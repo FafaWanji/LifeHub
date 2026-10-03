@@ -30,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import com.example.lifeorganizer.backup.AutoBackup
 import com.example.lifeorganizer.backup.BackupManager
 import com.example.lifeorganizer.backup.ImportSource
 import com.example.lifeorganizer.backup.ImportSummary
@@ -157,6 +158,11 @@ fun BackupScreen(
                     }
                 }
 
+                // Automatic weekly backup
+                AutoBackupCard(busy = busy, refreshKey = result) {
+                    run { BackupResult.Exported(AutoBackup.runNow(context).absolutePath) }
+                }
+
                 // Old apps
                 Text(BkStr.fromOldApps.text(), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
                 Text(BkStr.fromOldAppsDesc.text(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -259,6 +265,45 @@ private fun SourceCard(
                 )
             }
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), content = actions)
+        }
+    }
+}
+
+@Composable
+private fun AutoBackupCard(busy: Boolean, refreshKey: Any?, onRun: () -> Unit) {
+    val context = LocalContext.current
+    var enabled by remember { mutableStateOf(AutoBackup.isEnabled(context)) }
+    // Re-read after every action so "last backup" is current.
+    val latest = remember(refreshKey) { AutoBackup.latest(context) }
+    val formatter = remember { java.time.format.DateTimeFormatter.ofLocalizedDateTime(java.time.format.FormatStyle.SHORT) }
+
+    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
+        Column(Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(BkStr.autoBackup.text(), style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
+                Switch(checked = enabled, onCheckedChange = {
+                    enabled = it
+                    AutoBackup.setEnabled(context, it)
+                })
+            }
+            Text(
+                BkStr.autoBackupDesc.text().format("Android/data/${context.packageName}/files/backups"),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 12.dp)) {
+                Text(
+                    latest?.let {
+                        BkStr.lastBackup.text().format(
+                            java.time.Instant.ofEpochMilli(it.lastModified()).atZone(java.time.ZoneId.systemDefault()).format(formatter)
+                        )
+                    } ?: BkStr.noBackupYet.text(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(1f)
+                )
+                FilledTonalButton(enabled = !busy, onClick = onRun) { Text(BkStr.backupNow.text()) }
+            }
         }
     }
 }

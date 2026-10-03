@@ -2,6 +2,16 @@ package com.example.lifeorganizer.core.i18n
 
 /** Texts of the Backup & Import screen. */
 object BkStr {
+    val autoBackup = Txt("Automatic backup (weekly)", "Automatisches Backup (wöchentlich)", "Otomatik yedek (haftalık)", "Copia automática (semanal)")
+    val autoBackupDesc = Txt(
+        "Keeps the last 5 backups in %s. Deleted when the app is uninstalled – export to another place from time to time.",
+        "Behält die letzten 5 Backups in %s. Wird beim Deinstallieren gelöscht – exportiere ab und zu auch woanders hin.",
+        "Son 5 yedeği %s içinde tutar. Uygulama kaldırılınca silinir – ara sıra başka bir yere de dışa aktar.",
+        "Guarda las últimas 5 copias en %s. Se borran al desinstalar la app: exporta de vez en cuando a otro sitio."
+    )
+    val lastBackup = Txt("Last backup: %s", "Letztes Backup: %s", "Son yedek: %s", "Última copia: %s")
+    val noBackupYet = Txt("No backup yet", "Noch kein Backup", "Henüz yedek yok", "Aún no hay copia")
+    val backupNow = Txt("Back up now", "Jetzt sichern", "Şimdi yedekle", "Copiar ahora")
     val title = Txt("Backup & import", "Backup & Import", "Yedek ve içe aktarma", "Copia e importación")
     val fullBackup = Txt("Full backup", "Komplett-Backup", "Tam yedek", "Copia completa")
     val fullBackupDesc = Txt(

@@ -46,6 +46,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.androidx.work.runtime)
     implementation(project(":core"))
     implementation(project(":feature-calendar"))
     implementation(project(":feature-notes"))

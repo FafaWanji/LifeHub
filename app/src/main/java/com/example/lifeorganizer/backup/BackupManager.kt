@@ -65,6 +65,10 @@ class BackupManager(context: Context) {
     // ================================================================== export
 
     suspend fun export(uri: Uri): ExportSummary = withContext(Dispatchers.IO) {
+        appContext.contentResolver.openOutputStream(uri, "wt")?.use { export(it) } ?: error("Cannot write to $uri")
+    }
+
+    suspend fun export(out: java.io.OutputStream): ExportSummary = withContext(Dispatchers.IO) {
         val events = eventDao.getEventsWithRemindersSync()
         val categories = eventDao.getCategoriesSync()
         val notes = noteDao.getAllNotesWithLabelsSync()
@@ -120,8 +124,9 @@ class BackupManager(context: Context) {
                         .put("dateAdded", d.dateAdded)
                 })))
 
-        appContext.contentResolver.openOutputStream(uri, "wt")?.bufferedWriter()?.use { it.write(root.toString(2)) }
-            ?: error("Cannot write to $uri")
+        val writer = out.bufferedWriter()
+        writer.write(root.toString(2))
+        writer.flush()
         ExportSummary(events.size, notes.size, waypoints.size, documents.size)
     }
 

@@ -82,6 +82,7 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        com.example.lifeorganizer.backup.AutoBackup.schedule(applicationContext)
 
         // Check if we're restarting after a crash — show the crash info
         val prefs = getSharedPreferences("crash_reporter", MODE_PRIVATE)
