@@ -1,0 +1,12 @@
+<resources>
+    <string name="shortcut_new_event_short">Neues Event</string>
+    <string name="shortcut_new_event_long">Neuen Termin anlegen</string>
+    <string name="shortcut_new_note_short">Neue Notiz</string>
+    <string name="shortcut_new_note_long">Neue Notiz schreiben</string>
+    <string name="shortcut_smart_add_short">Smart Add</string>
+    <string name="shortcut_smart_add_long">Mit Smart Add hinzufügen</string>
+    <string name="shortcut_waypoints_short">Waypoints</string>
+    <string name="shortcut_waypoints_long">Waypoints öffnen</string>
+    <string name="smart_entry_hint">Etwas hinzufügen…</string>
+    <string name="smart_entry_widget_description">Termine oder Notizen per Text, Sprache oder Kamera anlegen</string>
+</resources>

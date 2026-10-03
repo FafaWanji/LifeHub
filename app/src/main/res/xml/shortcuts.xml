@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="new_event"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_event"
+        android:shortcutShortLabel="@string/shortcut_new_event_short"
+        android:shortcutLongLabel="@string/shortcut_new_event_long">
+        <intent
+            android:action="com.example.lifeorganizer.ACTION_NEW_EVENT"
+            android:targetPackage="com.example.lifeorganizer"
+            android:targetClass="com.example.lifeorganizer.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="new_note"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_note"
+        android:shortcutShortLabel="@string/shortcut_new_note_short"
+        android:shortcutLongLabel="@string/shortcut_new_note_long">
+        <intent
+            android:action="com.example.lifeorganizer.ACTION_NEW_NOTE"
+            android:targetPackage="com.example.lifeorganizer"
+            android:targetClass="com.example.lifeorganizer.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="smart_add"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_smart"
+        android:shortcutShortLabel="@string/shortcut_smart_add_short"
+        android:shortcutLongLabel="@string/shortcut_smart_add_long">
+        <intent
+            android:action="com.example.lifeorganizer.ACTION_SMART_ADD"
+            android:targetPackage="com.example.lifeorganizer"
+            android:targetClass="com.example.lifeorganizer.MainActivity" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="waypoints"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_place"
+        android:shortcutShortLabel="@string/shortcut_waypoints_short"
+        android:shortcutLongLabel="@string/shortcut_waypoints_long">
+        <intent
+            android:action="com.example.lifeorganizer.ACTION_WAYPOINTS"
+            android:targetPackage="com.example.lifeorganizer"
+            android:targetClass="com.example.lifeorganizer.MainActivity" />
+    </shortcut>
+</shortcuts>

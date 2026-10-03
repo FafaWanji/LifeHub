@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.privatecalendar" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="Theme.Cropper" parent="Theme.AppCompat.DayNight.DarkActionBar">
+        <!-- Disable edge-to-edge enforcement on Android 15+ so the cropper UI doesn't hide behind system bars -->
+        <item name="android:windowOptOutEdgeToEdgeEnforcement">true</item>
+    </style>
+</resources>

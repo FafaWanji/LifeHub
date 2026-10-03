@@ -1,0 +1,12 @@
+<resources>
+    <string name="shortcut_new_event_short">Nuevo evento</string>
+    <string name="shortcut_new_event_long">Crear un evento</string>
+    <string name="shortcut_new_note_short">Nueva nota</string>
+    <string name="shortcut_new_note_long">Escribir una nota</string>
+    <string name="shortcut_smart_add_short">Añadir intel.</string>
+    <string name="shortcut_smart_add_long">Añadir con Smart Add</string>
+    <string name="shortcut_waypoints_short">Lugares</string>
+    <string name="shortcut_waypoints_long">Abrir tus lugares</string>
+    <string name="smart_entry_hint">Añade lo que sea…</string>
+    <string name="smart_entry_widget_description">Añade eventos o notas escribiendo, por voz o con la cámara</string>
+</resources>

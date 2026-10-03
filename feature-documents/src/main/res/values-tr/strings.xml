@@ -1,0 +1,40 @@
+<resources>
+
+    <string name="pinned_docs">İğnelenenler</string>
+    <string name="no_pinned_docs">İğnelenmiş belge yok</string>
+    <string name="all_docs">Tüm Belgeler</string>
+    <string name="no_docs_added">Henüz belge eklenmedi</string>
+    <string name="add_doc">Belge Ekle</string>
+    <string name="new_doc">Yeni Belge</string>
+    <string name="doc_not_found">Belge bulunamadı</string>
+    <string name="open_pdf">PDF Aç</string>
+    <string name="open_pdf_with">PDF\'i şununla aç...</string>
+    <string name="settings">Ayarlar</string>
+    <string name="design_style">Tasarım Stili</string>
+    <string name="dark_mode">Karanlık Mod</string>
+    <string name="accent_color">Vurgu Rengi</string>
+    <string name="home">Ana Sayfa</string>
+    <string name="documents">Belgeler</string>
+    <string name="detail">Detay</string>
+    <string name="edit_document">Belgeyi Düzenle</string>
+    <string name="title">Başlık</string>
+    <string name="group">Grup</string>
+    <string name="save">Kaydet</string>
+    <string name="cancel">İptal</string>
+    <string name="new_group">Yeni Grup</string>
+    <string name="group_name">Grup Adı</string>
+    <string name="add">Ekle</string>
+    <string name="all">Tümü</string>
+    <string name="general">Genel</string>
+    <string name="work">İş</string>
+    <string name="private_group">Özel</string>
+    <string name="delete_document">Belgeyi Sil</string>
+    <string name="confirm_delete">Bu belgeyi silmek istediğinizden emin misiniz?</string>
+    <string name="delete">Sil</string>
+    <string name="language">Dil</string>
+    <string name="system_default">Sistem Varsayılanı</string>
+    <string name="german">Deutsch</string>
+    <string name="english">English</string>
+    <string name="turkish">Türkçe</string>
+    <string name="spanish">Español</string>
+</resources>

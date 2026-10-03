@@ -1,0 +1,85 @@
+{
+    "Allgemein": {
+        "tasks": [
+            {
+                "text": "Snitch",
+                "done": false,
+                "type": "counter",
+                "current": 1,
+                "target": 4
+            },
+            {
+                "type": "group",
+                "done": false,
+                "subtasks": [
+                    {
+                        "text": "Motor",
+                        "done": false,
+                        "type": "counter",
+                        "current": 0,
+                        "target": 3
+                    },
+                    {
+                        "text": "ARC Circ",
+                        "done": false,
+                        "type": "counter",
+                        "current": 0,
+                        "target": 4
+                    },
+                    {
+                        "text": "Bombardier",
+                        "done": false,
+                        "type": "counter",
+                        "current": 4,
+                        "target": 5
+                    }
+                ]
+            },
+            {
+                "type": "group",
+                "done": false,
+                "subtasks": [
+                    {
+                        "text": "Rusted Medical",
+                        "done": false,
+                        "type": "counter",
+                        "current": 0,
+                        "target": 1
+                    },
+                    {
+                        "text": "Surveyor",
+                        "done": false,
+                        "type": "counter",
+                        "current": 0,
+                        "target": 2
+                    }
+                ]
+            },
+            {
+                "type": "group",
+                "done": false,
+                "subtasks": [
+                    {
+                        "text": "Rusted Gear",
+                        "done": false,
+                        "type": "counter",
+                        "current": 1,
+                        "target": 3
+                    },
+                    {
+                        "text": "Sentinel",
+                        "done": false,
+                        "type": "counter",
+                        "current": 0,
+                        "target": 4
+                    }
+                ]
+            }
+        ],
+        "notes": "rfwerewewrwe\n"
+    },
+    "2": {
+        "tasks": [],
+        "notes": ""
+    }
+}

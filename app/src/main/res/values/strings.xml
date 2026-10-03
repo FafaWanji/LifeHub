@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">LifeOrganizer</string>
+    <string name="shortcut_new_event_short">New event</string>
+    <string name="shortcut_new_event_long">Create a new event</string>
+    <string name="shortcut_new_note_short">New note</string>
+    <string name="shortcut_new_note_long">Create a new note</string>
+    <string name="shortcut_smart_add_short">Smart Add</string>
+    <string name="shortcut_smart_add_long">Add anything with Smart Add</string>
+    <string name="shortcut_waypoints_short">Waypoints</string>
+    <string name="shortcut_waypoints_long">Open your waypoints</string>
+    <string name="smart_entry_hint">Add anything…</string>
+    <string name="smart_entry_widget_description">Quickly add events or notes by typing, voice or camera</string>
+</resources>

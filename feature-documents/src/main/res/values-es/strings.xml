@@ -1,0 +1,40 @@
+<resources>
+
+    <string name="pinned_docs">Fijados</string>
+    <string name="no_pinned_docs">No hay documentos fijados</string>
+    <string name="all_docs">Todos los Documentos</string>
+    <string name="no_docs_added">Aún no se han añadido documentos</string>
+    <string name="add_doc">Añadir Documento</string>
+    <string name="new_doc">Nuevo Documento</string>
+    <string name="doc_not_found">Documento no encontrado</string>
+    <string name="open_pdf">Abrir PDF</string>
+    <string name="open_pdf_with">Abrir PDF con...</string>
+    <string name="settings">Ajustes</string>
+    <string name="design_style">Estilo de Diseño</string>
+    <string name="dark_mode">Modo Oscuro</string>
+    <string name="accent_color">Color de Acento</string>
+    <string name="home">Inicio</string>
+    <string name="documents">Documentos</string>
+    <string name="detail">Detalle</string>
+    <string name="edit_document">Editar Documento</string>
+    <string name="title">Título</string>
+    <string name="group">Grupo</string>
+    <string name="save">Guardar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="new_group">Nuevo Grupo</string>
+    <string name="group_name">Nombre del Grupo</string>
+    <string name="add">Añadir</string>
+    <string name="all">Todos</string>
+    <string name="general">General</string>
+    <string name="work">Trabajo</string>
+    <string name="private_group">Privado</string>
+    <string name="delete_document">Eliminar documento</string>
+    <string name="confirm_delete">¿Estás seguro de que quieres eliminar este documento?</string>
+    <string name="delete">Eliminar</string>
+    <string name="language">Idioma</string>
+    <string name="system_default">Predeterminado del sistema</string>
+    <string name="german">Deutsch</string>
+    <string name="english">English</string>
+    <string name="turkish">Türkçe</string>
+    <string name="spanish">Español</string>
+</resources>

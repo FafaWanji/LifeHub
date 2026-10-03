@@ -1,0 +1,12 @@
+<resources>
+    <string name="shortcut_new_event_short">Yeni etkinlik</string>
+    <string name="shortcut_new_event_long">Yeni etkinlik oluştur</string>
+    <string name="shortcut_new_note_short">Yeni not</string>
+    <string name="shortcut_new_note_long">Yeni not yaz</string>
+    <string name="shortcut_smart_add_short">Akıllı Ekle</string>
+    <string name="shortcut_smart_add_long">Akıllı Ekle ile ekle</string>
+    <string name="shortcut_waypoints_short">Konumlar</string>
+    <string name="shortcut_waypoints_long">Konumları aç</string>
+    <string name="smart_entry_hint">Bir şey ekle…</string>
+    <string name="smart_entry_widget_description">Yazarak, sesle veya kamerayla etkinlik ya da not ekle</string>
+</resources>
