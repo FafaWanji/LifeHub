@@ -665,10 +665,11 @@ fun CalendarScreen(
                 categories = categories,
                 onDismiss = { showExportDialog = false },
                 onExport = { exportAll, exportBirthdays, selectedCategoryIds ->
+                    // Masters only: exporting expanded occurrences duplicated every series on import.
                     val eventsToExport = if (exportAll) {
-                        eventsWithReminders
+                        masterEvents
                     } else {
-                        eventsWithReminders.filter { event ->
+                        masterEvents.filter { event ->
                             (exportBirthdays && event.event.isBirthday) ||
                             (event.event.categoryId != null && selectedCategoryIds.contains(event.event.categoryId))
                         }

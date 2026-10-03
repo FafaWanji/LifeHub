@@ -41,6 +41,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     init {
         // Arm reminders of repeating events for their next occurrence.
         viewModelScope.launch(Dispatchers.IO) {
+            removeDuplicateSeries()
             com.example.lifeorganizer.calendar.alarm.RecurringAlarmSync.sync(application)
         }
         viewModelScope.launch {
@@ -202,6 +203,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             settingsManager.saveDesignStyle(style)
         }
+    }
+
+    /**
+     * Repairs calendars filled by the old .ics export: every occurrence of a series had been
+     * imported as its own series, so each week showed one copy more. Keeps the earliest series.
+     */
+    private suspend fun removeDuplicateSeries() {
+        val all = eventDao.getEventsWithRemindersSync()
+        val dropIds = com.example.lifeorganizer.calendar.util.SeriesDedup.duplicates(all.map { it.event }).map { it.id }.toSet()
+        if (dropIds.isEmpty()) return
+        all.filter { it.event.id in dropIds }.forEach { e ->
+            e.reminders.forEach { alarmScheduler.cancelAll(it) }
+            eventDao.deleteEvent(e.event)
+        }
+        DebugLogger.log("Removed ${dropIds.size} duplicate series copies")
     }
 
     fun deleteEvent(event: Event) {

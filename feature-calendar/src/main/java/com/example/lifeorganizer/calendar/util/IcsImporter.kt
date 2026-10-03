@@ -127,28 +127,42 @@ object IcsImporter {
                     val value = trimmed.substringAfter(":")
                     dateOnly = trimmed.contains("VALUE=DATE", ignoreCase = true) && !trimmed.contains("VALUE=DATE-TIME", ignoreCase = true) ||
                         value.trim().length == 8
-                    startTimeMillis = parseIcsDateTime(value)
+                    startTimeMillis = parseIcsDateTime(value, tzid(trimmed))
                 }
                 trimmed.startsWith("DTEND") -> {
                     val value = trimmed.substringAfter(":")
-                    endTimeMillis = parseIcsDateTime(value)
+                    endTimeMillis = parseIcsDateTime(value, tzid(trimmed))
                 }
             }
         }
 
-        return events
+        // Old exports contain every occurrence of a series, each with the RRULE – keep one per series.
+        return SeriesDedup.collapse(events)
     }
 
-    private fun parseIcsDateTime(value: String): Long {
+    /** TZID parameter of a DTSTART/DTEND line, e.g. "DTSTART;TZID=Europe/Berlin:20260708T120000". */
+    private fun tzid(line: String): ZoneId? =
+        Regex("TZID=([^;:]+)").find(line.substringBefore(":"))?.groupValues?.get(1)
+            ?.let { runCatching { ZoneId.of(it.trim('"')) }.getOrNull() }
+
+    private fun parseIcsDateTime(value: String, zone: ZoneId? = null): Long {
+        val v = value.trim()
+        // Local time ("floating" or with TZID): interpret in that zone, else the device zone
+        if (v.length == 15 && v[8] == 'T') {
+            runCatching {
+                val ldt = LocalDateTime.parse(v, DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss"))
+                return ldt.atZone(zone ?: ZoneId.systemDefault()).toInstant().toEpochMilli()
+            }
+        }
         return try {
             val formatter = DateTimeFormatter.ofPattern("yyyyMMdd'T'HHmmss'Z'")
-            val ldt = LocalDateTime.parse(value, formatter)
+            val ldt = LocalDateTime.parse(v, formatter)
             ldt.atZone(ZoneId.of("UTC")).toInstant().toEpochMilli()
         } catch (e: DateTimeParseException) {
             // fallback for DATE-only formats like DTSTART;VALUE=DATE:20260708
             try {
                 val formatter = DateTimeFormatter.ofPattern("yyyyMMdd")
-                val ldt = java.time.LocalDate.parse(value, formatter).atStartOfDay()
+                val ldt = java.time.LocalDate.parse(v, formatter).atStartOfDay()
                 ldt.atZone(ZoneId.of("UTC")).toInstant().toEpochMilli()
             } catch (ex: Exception) {
                 System.currentTimeMillis()
