@@ -111,4 +111,12 @@ class MarkdownTest {
     fun `word count ignores markdown markers`() {
         assertEquals(6, countWords("Einkauf **wichtig**\n- [ ] Milch\n- [x] Brot\n- [ ] Eier\n## Ende"))
     }
+
+    @Test
+    fun `uncheck all resets only checkbox items`() {
+        assertEquals(
+            "Liste [x] bleibt\n- [ ] Milch\n- [ ] Brot\n- [ ] Eier",
+            uncheckAll("Liste [x] bleibt\n- [x] Milch\n- [X] Brot\n- [ ] Eier")
+        )
+    }
 }

@@ -115,6 +115,12 @@ fun toggleCheckbox(content: String, lineIndex: Int): String {
     return lines.joinToString("\n")
 }
 
+/** Unchecks every "- [x]" item, e.g. to reuse a shopping list. */
+fun uncheckAll(content: String): String =
+    content.split("\n").joinToString("\n") { line ->
+        if (checkboxLine.matches(line)) line.replaceFirst(Regex("\\[[xX]]"), "[ ]") else line
+    }
+
 data class ChecklistProgress(val done: Int, val total: Int)
 
 fun checklistProgress(content: String): ChecklistProgress? {

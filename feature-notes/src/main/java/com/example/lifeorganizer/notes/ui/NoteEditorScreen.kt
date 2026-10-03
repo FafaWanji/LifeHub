@@ -42,6 +42,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.TextRange
@@ -109,6 +111,11 @@ fun NoteEditorScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     val allLabels by viewModel.labels.collectAsState()
+    // A brand-new note starts typing in the title.
+    val titleFocus = remember { FocusRequester() }
+    LaunchedEffect(Unit) {
+        if (noteId == null) runCatching { titleFocus.requestFocus() }
+    }
 
     // Load from the database (not from the filtered list) so opening a note never shows – and then saves – an empty body.
     LaunchedEffect(noteId, templateId, labelId) {
@@ -214,6 +221,12 @@ fun NoteEditorScreen(
                         MenuEntry(Icons.Default.NotificationAdd, Str.setReminder.text()) {
                             showMenu = false; showReminderDate = true
                         }
+                        if (checklistProgress(body.text)?.let { it.done > 0 } == true) {
+                            MenuEntry(Icons.Default.CheckBox, Str.uncheckAll.text()) {
+                                showMenu = false
+                                body = body.copy(text = uncheckAll(body.text))
+                            }
+                        }
                         MenuEntry(Icons.Outlined.Bookmarks, Str.saveAsTemplate.text()) {
                             showMenu = false; showTemplateDialog = true
                         }
@@ -247,7 +260,7 @@ fun NoteEditorScreen(
                 value = title,
                 onValueChange = { title = it },
                 placeholder = { Text(Str.title.text(), style = MaterialTheme.typography.headlineSmall) },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().focusRequester(titleFocus),
                 textStyle = MaterialTheme.typography.headlineSmall,
                 colors = transparentFieldColors(),
                 keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)

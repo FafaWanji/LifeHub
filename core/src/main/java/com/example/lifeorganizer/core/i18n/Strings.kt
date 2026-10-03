@@ -106,6 +106,7 @@ object Str {
     val deleteForever = Txt("Delete forever", "Endgültig löschen", "Kalıcı olarak sil", "Eliminar definitivamente")
     val movedToTrash = Txt("Moved to trash", "In den Papierkorb verschoben", "Çöp kutusuna taşındı", "Movida a la papelera")
     val undo = Txt("Undo", "Rückgängig", "Geri al", "Deshacer")
+    val uncheckAll = Txt("Uncheck all", "Alle Haken entfernen", "Tüm işaretleri kaldır", "Desmarcar todo")
     val labelTemplate = Txt("Template for new notes", "Vorlage für neue Notizen", "Yeni notlar için şablon", "Plantilla para notas nuevas")
     val labelTemplateNone = Txt("No template – tap to add one", "Keine Vorlage – tippen zum Anlegen", "Şablon yok – eklemek için dokun", "Sin plantilla: toca para añadir")
     val addChecklistItem = Txt("Checklist item", "Listenpunkt", "Liste öğesi", "Elemento de lista")
