@@ -33,6 +33,17 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // One APK per processor type instead of one carrying all native libraries (~48 MB -> ~15 MB).
+    // The in-app updater downloads the APK matching the phone.
+    splits {
+        abi {
+            isEnable = true
+            reset()
+            include("arm64-v8a", "armeabi-v7a", "x86_64")
+            isUniversalApk = false
+        }
+    }
+
     signingConfigs {
         localProps.getProperty("RELEASE_STORE_FILE")?.let { storePath ->
             create("release") {
@@ -46,7 +57,10 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            // Removes unused code and resources (APK was ~62 MB without)
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.findByName("release")
         }
     }

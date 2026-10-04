@@ -294,7 +294,7 @@ private fun AutoBackupCard(busy: Boolean, refreshKey: Any?, onRun: () -> Unit) {
                 })
             }
             Text(
-                BkStr.autoBackupDesc.text().format("Android/data/${context.packageName}/files/backups"),
+                BkStr.autoBackupDesc.text().format(remember { AutoBackup.folder(context).absolutePath.substringAfter("/0/") }),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(top = 4.dp)

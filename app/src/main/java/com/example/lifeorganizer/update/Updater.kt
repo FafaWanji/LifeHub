@@ -35,8 +35,14 @@ object Updater {
                 val version = json.optString("tag_name").removePrefix("v")
                 if (!isNewer(version, BuildConfig.VERSION_NAME)) return@runCatching null
                 val assets = json.optJSONArray("assets") ?: return@runCatching null
-                val apk = (0 until assets.length()).map { assets.getJSONObject(it) }
-                    .firstOrNull { it.optString("name").endsWith(".apk") } ?: return@runCatching null
+                val apks = (0 until assets.length()).map { assets.getJSONObject(it) }
+                    .filter { it.optString("name").endsWith(".apk") }
+                // Per-processor APKs ("...-arm64-v8a.apk"): take the first one this phone supports
+                val apk = android.os.Build.SUPPORTED_ABIS.firstNotNullOfOrNull { abi ->
+                    apks.firstOrNull { it.optString("name").contains(abi) }
+                } ?: apks.firstOrNull { a -> android.os.Build.SUPPORTED_ABIS.none { a.optString("name").contains(it) } &&
+                    listOf("arm64-v8a", "armeabi-v7a", "x86_64", "x86").none { a.optString("name").contains(it) } }
+                    ?: return@runCatching null
                 UpdateInfo(version, json.optString("body"), apk.optString("browser_download_url"))
             }
         }.getOrNull()

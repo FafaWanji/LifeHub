@@ -22,8 +22,21 @@ object AutoBackup {
     private const val KEY_FOLDER = "folder"
     const val KEEP = 5
 
-    fun folder(context: Context): File =
-        File(context.getExternalFilesDir(null) ?: context.filesDir, "backups").apply { mkdirs() }
+    /**
+     * Android/data/<package>/files/backups, or internal storage when that folder is not writable
+     * (it can be left over from an earlier installation and belong to another user id).
+     */
+    fun folder(context: Context): File {
+        val external = context.getExternalFilesDir(null)?.let { File(it, "backups") }
+        if (external != null && external.apply { mkdirs() }.let { writable(it) }) return external
+        return File(context.filesDir, "backups").apply { mkdirs() }
+    }
+
+    private fun writable(dir: File): Boolean = runCatching {
+        val probe = File(dir, ".probe")
+        probe.writeText("")
+        probe.delete()
+    }.isSuccess
 
     fun isEnabled(context: Context) =
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getBoolean(KEY_ENABLED, true)
@@ -88,8 +101,15 @@ object AutoBackup {
     /** Writes one backup now and removes the oldest beyond [KEEP]. */
     suspend fun runNow(context: Context): File {
         val dir = folder(context)
-        val file = File(dir, "lifeorganizer-auto-${LocalDate.now()}.json")
-        file.outputStream().use { BackupManager(context).export(it) }
+        var file = File(dir, "lifeorganizer-auto-${LocalDate.now()}.json")
+        val stream = try {
+            file.outputStream()
+        } catch (e: java.io.IOException) {
+            // A single leftover file of an earlier installation cannot be overwritten: use another name
+            file = File(dir, "lifeorganizer-auto-${LocalDate.now()}-${System.currentTimeMillis() % 100000}.json")
+            file.outputStream()
+        }
+        stream.use { BackupManager(context).export(it) }
         dir.listFiles { f -> f.name.startsWith("lifeorganizer-auto-") && f.name.endsWith(".json") }
             ?.sortedByDescending { it.lastModified() }
             ?.drop(KEEP)
