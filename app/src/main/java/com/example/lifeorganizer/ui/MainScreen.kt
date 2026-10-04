@@ -121,6 +121,8 @@ fun MainScreen(
     var showUniversalSearch by remember { mutableStateOf(false) }
     var showBackup by rememberSaveable { mutableStateOf(false) }
     var showChangelog by remember { mutableStateOf(false) }
+    var updateRequest by remember { mutableStateOf(false) }
+    var foundUpdate by remember { mutableStateOf<com.example.lifeorganizer.update.UpdateInfo?>(null) }
     // A shared/opened backup file (.ics/.json) jumps straight into the import screen.
     LaunchedEffect(importUri, intentsEnabled) {
         if (importUri != null && intentsEnabled) showBackup = true
@@ -139,6 +141,9 @@ fun MainScreen(
     val pinnedNotes by notesViewModel.pinnedToDateNotes.collectAsState()
     val templates by notesViewModel.templates.collectAsState()
     val allDocuments by documentViewModel.allDocuments.collectAsState()
+    val appContextForUpdate = androidx.compose.ui.platform.LocalContext.current.applicationContext
+    // Quiet daily check for a newer release on GitHub
+    LaunchedEffect(Unit) { foundUpdate = com.example.lifeorganizer.update.dailyUpdateCheck(appContextForUpdate) }
     // Keep the note widget in sync with edits made in the app.
     val activeNotes by notesViewModel.allActiveNotes.collectAsState()
     val appContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
@@ -241,6 +246,10 @@ fun MainScreen(
                 },
                 onBackupClick = {
                     showBackup = true
+                    scope.launch { drawerState.close() }
+                },
+                onUpdateClick = {
+                    updateRequest = true
                     scope.launch { drawerState.close() }
                 },
                 onChangelogClick = {
@@ -437,6 +446,9 @@ fun MainScreen(
                 )
 
                 if (showChangelog) ChangelogDialog(onDismiss = { showChangelog = false })
+                if (updateRequest || foundUpdate != null) {
+                    com.example.lifeorganizer.update.UpdateDialog(known = foundUpdate) { updateRequest = false; foundUpdate = null }
+                }
 
                 if (showTemplatePicker) {
                     TemplatePickerDialog(
