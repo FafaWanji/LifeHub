@@ -9,4 +9,7 @@
     <string name="shortcut_waypoints_long">Konumları aç</string>
     <string name="smart_entry_hint">Bir şey ekle…</string>
     <string name="smart_entry_widget_description">Yazarak, sesle veya kamerayla etkinlik ya da not ekle</string>
+    <string name="note_widget_empty">Burada görmek için bir notu sabitle</string>
+    <string name="note_widget_untitled">Başlıksız</string>
+    <string name="note_widget_description">Sabitlenen notun, işaretlenebilir listeyle</string>
 </resources>

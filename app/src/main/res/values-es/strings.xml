@@ -9,4 +9,7 @@
     <string name="shortcut_waypoints_long">Abrir tus lugares</string>
     <string name="smart_entry_hint">Añade lo que sea…</string>
     <string name="smart_entry_widget_description">Añade eventos o notas escribiendo, por voz o con la cámara</string>
+    <string name="note_widget_empty">Fija una nota para verla aquí</string>
+    <string name="note_widget_untitled">Sin título</string>
+    <string name="note_widget_description">Tu nota fijada con lista marcable</string>
 </resources>

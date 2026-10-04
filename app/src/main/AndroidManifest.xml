@@ -91,6 +91,17 @@
                 android:resource="@xml/smart_add_widget_info" />
         </receiver>
 
+        <receiver
+            android:name=".widgets.NoteWidgetReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/note_widget_info" />
+        </receiver>
+
         <!-- Reminders & alarms (were never registered, so no reminder could fire) -->
         <receiver
             android:name="com.example.lifeorganizer.calendar.alarm.AlarmReceiver"

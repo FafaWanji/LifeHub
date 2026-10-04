@@ -9,4 +9,7 @@
     <string name="shortcut_waypoints_long">Waypoints öffnen</string>
     <string name="smart_entry_hint">Etwas hinzufügen…</string>
     <string name="smart_entry_widget_description">Termine oder Notizen per Text, Sprache oder Kamera anlegen</string>
+    <string name="note_widget_empty">Hefte eine Notiz an, um sie hier zu sehen</string>
+    <string name="note_widget_untitled">Ohne Titel</string>
+    <string name="note_widget_description">Deine angeheftete Notiz mit abhakbarer Liste</string>
 </resources>

@@ -138,6 +138,10 @@ fun MainScreen(
     val pinnedNotes by notesViewModel.pinnedToDateNotes.collectAsState()
     val templates by notesViewModel.templates.collectAsState()
     val allDocuments by documentViewModel.allDocuments.collectAsState()
+    // Keep the note widget in sync with edits made in the app.
+    val activeNotes by notesViewModel.allActiveNotes.collectAsState()
+    val appContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
+    LaunchedEffect(activeNotes) { com.example.lifeorganizer.widgets.NoteWidget.refresh(appContext) }
     val noteLabels by notesViewModel.labels.collectAsState()
 
     fun openSmartAdd(text: String = "", image: Uri? = null, start: SmartAddStart = SmartAddStart.NONE) {

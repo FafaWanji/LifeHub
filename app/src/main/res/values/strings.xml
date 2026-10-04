@@ -10,4 +10,7 @@
     <string name="shortcut_waypoints_long">Open your waypoints</string>
     <string name="smart_entry_hint">Add anything…</string>
     <string name="smart_entry_widget_description">Quickly add events or notes by typing, voice or camera</string>
+    <string name="note_widget_empty">Pin a note to show it here</string>
+    <string name="note_widget_untitled">Untitled</string>
+    <string name="note_widget_description">Your pinned note with tickable checklist</string>
 </resources>
