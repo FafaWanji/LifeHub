@@ -1,5 +1,6 @@
 package com.example.lifeorganizer.ui
 
+import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,7 +45,8 @@ fun MenuDrawerSheet(
     currentView: ActiveView,
     onNavigate: (ActiveView) -> Unit,
     onSettingsClick: () -> Unit,
-    onBackupClick: () -> Unit = {}
+    onBackupClick: () -> Unit = {},
+    onChangelogClick: () -> Unit = {}
 ) {
     ModalDrawerSheet(
         drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -100,6 +102,13 @@ fun MenuDrawerSheet(
                 onClick = onBackupClick
             )
 
+            DrawerEntry(
+                selectedIcon = Icons.Outlined.NewReleases,
+                icon = Icons.Outlined.NewReleases,
+                label = Str.changelog.text(),
+                selected = false,
+                onClick = onChangelogClick
+            )
             DrawerEntry(
                 selectedIcon = Icons.Outlined.Settings,
                 icon = Icons.Outlined.Settings,

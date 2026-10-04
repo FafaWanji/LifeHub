@@ -140,6 +140,7 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
             val language by settingsManager.languageCode.collectAsState(initial = "en")
             // null until DataStore has answered, so locked content never flashes on screen.
             val enableAppLock by settingsManager.enableAppLock.collectAsState(initial = null)
+            val setupDone by settingsManager.onboardingCompleted.collectAsState(initial = null)
 
             LaunchedEffect(enableAppLock, isUnlocked) {
                 if (enableAppLock == true && !isUnlocked) showBiometricPrompt()
@@ -172,6 +173,11 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
                                         noteToOpen = null
                                     }
                                 )
+                                when (setupDone) {
+                                    false -> com.example.lifeorganizer.ui.SetupScreen(settingsManager) {}
+                                    true -> com.example.lifeorganizer.ui.WhatsNewAfterUpdate(applicationContext, setupDone = true)
+                                    null -> Unit
+                                }
                                 // Opaque overlay instead of replacing MainScreen keeps open editors/dialogs intact.
                                 if (locked) {
                                     AppLockScreen(

@@ -120,6 +120,7 @@ fun MainScreen(
     var smartAddStart by remember { mutableStateOf(SmartAddStart.NONE) }
     var showUniversalSearch by remember { mutableStateOf(false) }
     var showBackup by rememberSaveable { mutableStateOf(false) }
+    var showChangelog by remember { mutableStateOf(false) }
     // A shared/opened backup file (.ics/.json) jumps straight into the import screen.
     LaunchedEffect(importUri, intentsEnabled) {
         if (importUri != null && intentsEnabled) showBackup = true
@@ -240,6 +241,10 @@ fun MainScreen(
                 },
                 onBackupClick = {
                     showBackup = true
+                    scope.launch { drawerState.close() }
+                },
+                onChangelogClick = {
+                    showChangelog = true
                     scope.launch { drawerState.close() }
                 }
             )
@@ -430,6 +435,8 @@ fun MainScreen(
                         // Stay left of the action cluster in the bottom-right corner
                         .padding(bottom = 8.dp, end = 72.dp)
                 )
+
+                if (showChangelog) ChangelogDialog(onDismiss = { showChangelog = false })
 
                 if (showTemplatePicker) {
                     TemplatePickerDialog(
