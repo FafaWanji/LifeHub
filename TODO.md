@@ -16,25 +16,27 @@
 - [ ] Gefundene Fehler hier notieren
 
 ## 2. Absichern
-- [ ] Room `exportSchema = true` + Migrationstests (Notizen 1→2, Kalender 6→7)
+- [x] Room `exportSchema = true` + Migrationstests (Notizen 1→2, Kalender 6→7)
 - [ ] Optional: GitHub-Repo (privat) als externe Sicherung des Codes
 
 ## 3. Kalender
-- [ ] Serien bearbeiten: „Nur dieser Termin / Alle folgenden / Alle“ (EXDATE / Ausnahmen)
-- [ ] Sync mit Android-Systemkalender (Google/Samsung) – lesen, optional schreiben
-- [ ] „Jetzt losfahren“-Benachrichtigung aus Reisezeit + Heimadresse
+- [x] Serien bearbeiten: „Nur dieser Termin / Alle folgenden / Alle“ (EXDATE / Ausnahmen)
+- [x] Sync mit Android-Systemkalender (Google/Samsung) – lesen
+- [ ] Systemkalender: schreiben (optional)
+- [x] „Jetzt losfahren“-Benachrichtigung aus Reisezeit + Heimadresse
 
 ## 4. Notizen
-- [ ] Vorlagen und Label-Vorlagen zusammenlegen (Vorlage mit Standard-Label)
-- [ ] Platzhalter in Vorlagen: `{{datum}}`, `{{wochentag}}`
-- [ ] Erledigte Checklisten-Punkte optional nach unten
-- [ ] Notiz-Widget (Checkliste auf dem Homescreen abhaken)
+- [x] Vorlage mit Standard-Label (Label-Vorlagen bleiben zusätzlich bestehen)
+- [x] Platzhalter in Vorlagen: `{{datum}}`, `{{wochentag}}`
+- [x] Erledigte Checklisten-Punkte optional nach unten
+- [x] Notiz-Widget (Checkliste auf dem Homescreen abhaken)
 
 ## 5. Zusammenspiel
-- [ ] Im Termin: „Notiz anlegen“ (verknüpft)
-- [ ] Dokki-Dokument an Termin/Notiz anhängen
-- [ ] Universalsuche auch über Waypoints und Dokki (prüfen)
+- [x] Im Termin: „Notiz anlegen“ (verknüpft)
+- [x] Dokki-Dokument an Termin anhängen
+- [ ] Dokki-Dokument an Notiz anhängen
+- [x] Universalsuche auch über Waypoints und Dokki (prüfen)
 
 ## 6. Sonstiges
-- [ ] Smart Add offline: einfacher lokaler Parser („morgen 15 Uhr Zahnarzt“)
-- [ ] Auto-Backup optional in eigenen Ordner / Drive (SAF)
+- [x] Smart Add offline: einfacher lokaler Parser („morgen 15 Uhr Zahnarzt“)
+- [x] Auto-Backup optional in eigenen Ordner / Drive (SAF)

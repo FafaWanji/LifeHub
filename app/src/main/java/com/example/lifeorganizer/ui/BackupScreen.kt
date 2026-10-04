@@ -273,6 +273,13 @@ private fun SourceCard(
 private fun AutoBackupCard(busy: Boolean, refreshKey: Any?, onRun: () -> Unit) {
     val context = LocalContext.current
     var enabled by remember { mutableStateOf(AutoBackup.isEnabled(context)) }
+    var folder by remember { mutableStateOf(AutoBackup.externalFolder(context)) }
+    val folderPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+        if (uri != null) {
+            runCatching { AutoBackup.setExternalFolder(context, uri) }
+            folder = AutoBackup.externalFolder(context)
+        }
+    }
     // Re-read after every action so "last backup" is current.
     val latest = remember(refreshKey) { AutoBackup.latest(context) }
     val formatter = remember { java.time.format.DateTimeFormatter.ofLocalizedDateTime(java.time.format.FormatStyle.SHORT) }
@@ -303,6 +310,20 @@ private fun AutoBackupCard(busy: Boolean, refreshKey: Any?, onRun: () -> Unit) {
                     modifier = Modifier.weight(1f)
                 )
                 FilledTonalButton(enabled = !busy, onClick = onRun) { Text(BkStr.backupNow.text()) }
+            }
+            // Optional second copy outside the app (Drive, SD card …) – survives uninstalling
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 8.dp)) {
+                Text(
+                    folder?.let { BkStr.copyFolder.text().format(android.net.Uri.decode(it.lastPathSegment.orEmpty()).substringAfterLast(':')) }
+                        ?: BkStr.copyFolderNone.text(),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+                if (folder != null) {
+                    TextButton(onClick = { AutoBackup.setExternalFolder(context, null); folder = null }) { Text(Str.delete.text()) }
+                }
+                TextButton(onClick = { folderPicker.launch(null) }) { Text(BkStr.chooseFolder.text()) }
             }
         }
     }

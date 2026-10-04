@@ -11,6 +11,14 @@ object BkStr {
     )
     val lastBackup = Txt("Last backup: %s", "Letztes Backup: %s", "Son yedek: %s", "Última copia: %s")
     val noBackupYet = Txt("No backup yet", "Noch kein Backup", "Henüz yedek yok", "Aún no hay copia")
+    val chooseFolder = Txt("Choose folder", "Ordner wählen", "Klasör seç", "Elegir carpeta")
+    val copyFolder = Txt("Also copied to: %s", "Zusätzlich kopiert nach: %s", "Ayrıca kopyalanır: %s", "También se copia en: %s")
+    val copyFolderNone = Txt(
+        "Optional: copy to a folder of your choice (e.g. Google Drive) – survives uninstalling.",
+        "Optional: Kopie in einen Ordner deiner Wahl (z. B. Google Drive) – übersteht Deinstallation.",
+        "İsteğe bağlı: seçtiğin klasöre kopya (örn. Google Drive) – kaldırmaya dayanır.",
+        "Opcional: copia en una carpeta (p. ej. Google Drive): sobrevive a la desinstalación."
+    )
     val backupNow = Txt("Back up now", "Jetzt sichern", "Şimdi yedekle", "Copiar ahora")
     val title = Txt("Backup & import", "Backup & Import", "Yedek ve içe aktarma", "Copia e importación")
     val fullBackup = Txt("Full backup", "Komplett-Backup", "Tam yedek", "Copia completa")

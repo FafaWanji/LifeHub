@@ -19,6 +19,7 @@ object AutoBackup {
     private const val WORK_NAME = "auto_backup"
     private const val PREFS = "auto_backup"
     private const val KEY_ENABLED = "enabled"
+    private const val KEY_FOLDER = "folder"
     const val KEEP = 5
 
     fun folder(context: Context): File =
@@ -30,6 +31,42 @@ object AutoBackup {
     fun setEnabled(context: Context, enabled: Boolean) {
         context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit().putBoolean(KEY_ENABLED, enabled).apply()
         schedule(context)
+    }
+
+    /** Extra target folder chosen by the user (e.g. Google Drive), kept across reinstalls of the app. */
+    fun externalFolder(context: Context): android.net.Uri? =
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE).getString(KEY_FOLDER, null)?.let(android.net.Uri::parse)
+
+    fun setExternalFolder(context: Context, tree: android.net.Uri?) {
+        val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+        externalFolder(context)?.let { old ->
+            runCatching { context.contentResolver.releasePersistableUriPermission(old, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION) }
+        }
+        if (tree != null) {
+            context.contentResolver.takePersistableUriPermission(tree, android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+        }
+        prefs.edit().putString(KEY_FOLDER, tree?.toString()).apply()
+    }
+
+    /** Copies [file] into the chosen folder and keeps the newest [KEEP] auto backups there. */
+    private fun copyToExternal(context: Context, file: File) {
+        val tree = externalFolder(context) ?: return
+        val resolver = context.contentResolver
+        val parent = android.provider.DocumentsContract.buildDocumentUriUsingTree(tree, android.provider.DocumentsContract.getTreeDocumentId(tree))
+        val children = android.provider.DocumentsContract.buildChildDocumentsUriUsingTree(tree, android.provider.DocumentsContract.getTreeDocumentId(tree))
+        val existing = mutableListOf<Pair<String, android.net.Uri>>()
+        resolver.query(children, arrayOf(android.provider.DocumentsContract.Document.COLUMN_DOCUMENT_ID, android.provider.DocumentsContract.Document.COLUMN_DISPLAY_NAME), null, null, null)?.use { c ->
+            while (c.moveToNext()) {
+                val name = c.getString(1) ?: continue
+                if (name.startsWith("lifeorganizer-auto-")) existing += name to android.provider.DocumentsContract.buildDocumentUriUsingTree(tree, c.getString(0))
+            }
+        }
+        // Same day again: overwrite instead of piling up copies
+        existing.firstOrNull { it.first == file.name }?.let { runCatching { android.provider.DocumentsContract.deleteDocument(resolver, it.second) } }
+        val target = android.provider.DocumentsContract.createDocument(resolver, parent, "application/json", file.name) ?: return
+        resolver.openOutputStream(target, "wt")?.use { out -> file.inputStream().use { it.copyTo(out) } }
+        existing.filter { it.first != file.name }.sortedByDescending { it.first }.drop(KEEP - 1)
+            .forEach { runCatching { android.provider.DocumentsContract.deleteDocument(resolver, it.second) } }
     }
 
     /** Newest backup file, or null if none was written yet. */
@@ -57,6 +94,8 @@ object AutoBackup {
             ?.sortedByDescending { it.lastModified() }
             ?.drop(KEEP)
             ?.forEach { it.delete() }
+        // The external copy is best effort: a revoked folder must not fail the local backup.
+        runCatching { copyToExternal(context, file) }
         return file
     }
 }
