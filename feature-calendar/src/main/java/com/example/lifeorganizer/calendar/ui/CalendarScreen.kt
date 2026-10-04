@@ -1,6 +1,7 @@
 package com.example.lifeorganizer.calendar.ui
 
 import com.example.lifeorganizer.calendar.util.SeriesScope
+import androidx.compose.material.icons.filled.FilterList
 import com.example.lifeorganizer.calendar.device.DeviceCalendar
 import android.content.Intent
 import android.media.RingtoneManager
@@ -345,6 +346,7 @@ fun CalendarScreen(
                             Icon(icon, contentDescription = desc)
                         }
 
+                    CalendarFilterButton(viewModel, categories)
                     IconButton(onClick = { showSettings = !showSettings }) {
                         Icon(Icons.Default.Settings, contentDescription = "Settings")
                     }
@@ -2551,9 +2553,12 @@ private fun SeriesScopeDialog(isDelete: Boolean, onDismiss: () -> Unit, onPick: 
         title = { Text(if (isDelete) Str.deleteRepeating.text() else Str.editRepeating.text()) },
         text = {
             Column {
+                // "From here on" is the usual choice, so it comes first and stands out.
+                Button(onClick = { onPick(SeriesScope.FOLLOWING) }, modifier = Modifier.fillMaxWidth()) {
+                    Text(Str.thisAndFollowing.text())
+                }
                 listOf(
                     SeriesScope.THIS to Str.thisEventOnly,
-                    SeriesScope.FOLLOWING to Str.thisAndFollowing,
                     SeriesScope.ALL to Str.allEvents
                 ).forEach { (scope, label) ->
                     TextButton(onClick = { onPick(scope) }, modifier = Modifier.fillMaxWidth()) {
@@ -2637,4 +2642,37 @@ private fun CopyToDeviceFlow(event: EventWithReminders, onDone: (String?) -> Uni
         confirmButton = {},
         dismissButton = { TextButton(onClick = { onDone(null) }) { Text(Str.cancel.text()) } }
     )
+}
+
+/** Top-bar filter: show/hide repeating events and single categories; changes apply immediately. */
+@Composable
+private fun CalendarFilterButton(viewModel: MainViewModel, categories: List<com.example.lifeorganizer.calendar.data.Category>) {
+    var open by remember { mutableStateOf(false) }
+    val hideRecurring by viewModel.hideRecurring.collectAsState()
+    val hidden by viewModel.hiddenCategories.collectAsState()
+    val active = hideRecurring || hidden.isNotEmpty()
+    Box {
+        IconButton(onClick = { open = true }) {
+            Icon(
+                Icons.Default.FilterList, contentDescription = Str.filter.text(),
+                tint = if (active) MaterialTheme.colorScheme.primary else LocalContentColor.current
+            )
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            Text(Str.show.text(), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+            DropdownMenuItem(
+                text = { Text(Str.repeatingEvents.text()) },
+                leadingIcon = { Checkbox(checked = !hideRecurring, onCheckedChange = null) },
+                onClick = { viewModel.setHideRecurring(!hideRecurring) }
+            )
+            categories.forEach { c ->
+                DropdownMenuItem(
+                    text = { Text(c.name) },
+                    leadingIcon = { Checkbox(checked = c.id !in hidden, onCheckedChange = null) },
+                    trailingIcon = { Box(Modifier.size(12.dp).background(Color(c.color), CircleShape)) },
+                    onClick = { viewModel.toggleCategoryHidden(c.id) }
+                )
+            }
+        }
+    }
 }

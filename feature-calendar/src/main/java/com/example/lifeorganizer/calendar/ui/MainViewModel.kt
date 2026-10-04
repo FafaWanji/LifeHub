@@ -69,6 +69,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val eventTemplates: StateFlow<List<com.example.lifeorganizer.calendar.data.EventTemplate>> = eventDao.getEventTemplates()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    // ---- View filter: hide repeating events and/or categories (e.g. "Arbeit", "Uni"), applied live ----
+    private val filterPrefs = application.getSharedPreferences("calendar_filter", Context.MODE_PRIVATE)
+    val hideRecurring = MutableStateFlow(filterPrefs.getBoolean("hide_recurring", false))
+    val hiddenCategories = MutableStateFlow(
+        filterPrefs.getStringSet("hidden_categories", emptySet()).orEmpty().mapNotNull { it.toLongOrNull() }.toSet()
+    )
+
+    fun setHideRecurring(hide: Boolean) {
+        hideRecurring.value = hide
+        filterPrefs.edit().putBoolean("hide_recurring", hide).apply()
+    }
+
+    fun toggleCategoryHidden(id: Long) {
+        val next = hiddenCategories.value.let { if (id in it) it - id else it + id }
+        hiddenCategories.value = next
+        filterPrefs.edit().putStringSet("hidden_categories", next.map { it.toString() }.toSet()).apply()
+    }
+
     /** Events of the phone's calendars (read-only), reloaded when they change. */
     private val deviceEvents = MutableStateFlow<List<EventWithReminders>>(emptyList())
     val deviceCalendarEnabled = MutableStateFlow(DeviceCalendar.isEnabled(application))
@@ -112,6 +130,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
         .combine(deviceEvents) { own, device -> own + device }
+        .combine(hideRecurring) { list, hide -> if (hide) list.filter { it.event.recurrenceRule.isNullOrBlank() } else list }
+        .combine(hiddenCategories) { list, hidden -> if (hidden.isEmpty()) list else list.filter { it.event.categoryId !in hidden } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**

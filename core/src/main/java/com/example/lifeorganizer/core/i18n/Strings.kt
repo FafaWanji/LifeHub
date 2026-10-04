@@ -152,6 +152,9 @@ object Str {
         "İşaretle: önizlemede veya not kartında kutuya dokun – ya da düzenlerken satırda onay kutusu düğmesine bas.",
         "Marcar: toca la casilla en la vista previa o en la tarjeta, o pulsa el botón de casilla en la línea al editar."
     )
+    val filter = Txt("Filter", "Filter", "Filtre", "Filtro")
+    val show = Txt("Show", "Anzeigen", "Göster", "Mostrar")
+    val repeatingEvents = Txt("Repeating events", "Wiederholungen", "Tekrarlanan etkinlikler", "Eventos periódicos")
     val uncheckAll = Txt("Uncheck all", "Alle Haken entfernen", "Tüm işaretleri kaldır", "Desmarcar todo")
     val labelTemplate = Txt("Template for new notes", "Vorlage für neue Notizen", "Yeni notlar için şablon", "Plantilla para notas nuevas")
     val labelTemplateNone = Txt("No template – tap to add one", "Keine Vorlage – tippen zum Anlegen", "Şablon yok – eklemek için dokun", "Sin plantilla: toca para añadir")
