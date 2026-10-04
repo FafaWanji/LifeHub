@@ -137,7 +137,7 @@ class BackupManager(context: Context) {
         .put("arrivalBufferMinutes", e.arrivalBufferMinutes).put("alarmLeadMinutes", e.alarmLeadMinutes)
         .put("color", e.color).put("recurrenceRule", e.recurrenceRule).put("timezone", e.timezone)
         .put("isBirthday", e.isBirthday).put("birthYear", e.birthYear)
-        .put("categoryId", e.categoryId).put("linkedNoteId", e.linkedNoteId)
+        .put("categoryId", e.categoryId).put("linkedNoteId", e.linkedNoteId).put("exDates", e.exDates)
 
     // ================================================================== import
 
@@ -341,7 +341,8 @@ class BackupManager(context: Context) {
                 isBirthday = e.optBoolean("isBirthday"),
                 birthYear = e.optLongOrNull("birthYear")?.toInt(),
                 categoryId = e.optLongOrNull("categoryId")?.let { oldCategoryToNew[it] },
-                linkedNoteId = e.optLongOrNull("linkedNoteId")?.let { oldNoteIdToNew[it] }
+                linkedNoteId = e.optLongOrNull("linkedNoteId")?.let { oldNoteIdToNew[it] },
+                exDates = e.optString("exDates").takeIf { it.isNotBlank() && it != "null" }
             )
             val reminders = e.optJSONArray("reminders").objects().map { r ->
                 Reminder(

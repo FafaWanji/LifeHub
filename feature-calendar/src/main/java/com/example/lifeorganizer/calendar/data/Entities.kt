@@ -43,7 +43,8 @@ data class Event(
     val isBirthday: Boolean = false, // true for birthday events
     val birthYear: Int? = null, // birth year for age calculation
     val categoryId: Long? = null, // FK to categories
-    val linkedNoteId: Long? = null // note this event reminds about (note reminders)
+    val linkedNoteId: Long? = null, // note this event reminds about (note reminders)
+    val exDates: String? = null // repeating events: skipped dates, "2026-10-13,2026-10-20"
 )
 
 @Entity(

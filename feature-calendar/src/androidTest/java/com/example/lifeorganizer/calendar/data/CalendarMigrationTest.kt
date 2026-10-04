@@ -27,7 +27,7 @@ class CalendarMigrationTest {
     }
 
     @Test
-    fun migrates_2_to_7_and_keeps_events() {
+    fun migrates_2_to_latest_and_keeps_events() {
         context.deleteDatabase(name)
         SQLiteDatabase.openOrCreateDatabase(context.getDatabasePath(name), null).use { db ->
             db.execSQL("CREATE TABLE IF NOT EXISTS `events` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `description` TEXT NOT NULL, `startTimeMillis` INTEGER NOT NULL, `isAllDay` INTEGER NOT NULL, `targetAddress` TEXT, `arrivalBufferMinutes` INTEGER NOT NULL, `alarmLeadMinutes` INTEGER NOT NULL)")

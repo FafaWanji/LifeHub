@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.example.lifeorganizer.calendar.util.SeriesRules
+import com.example.lifeorganizer.calendar.util.SeriesScope
 import androidx.work.*
 import com.example.lifeorganizer.calendar.worker.TravelTimeWorker
 import java.util.concurrent.TimeUnit
@@ -584,6 +586,33 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             com.example.lifeorganizer.calendar.worker.TravelInfoStore.remove(getApplication(), eventWithReminders.event.id)
             eventDao.deleteEvent(eventWithReminders.event)
             DebugLogger.log("Event deleted: ${eventWithReminders.event.title}")
+        }
+    }
+
+    /**
+     * Cuts one occurrence ([SeriesScope.THIS]) or the rest of a series ([SeriesScope.FOLLOWING]) out of
+     * [master]. Deleting stops here; editing then adds the changed part as a new event.
+     * Returns false when nothing of the series would be left before the cut (caller treats it as ALL).
+     */
+    fun cutSeries(master: EventWithReminders, occurrenceStart: Long, scope: SeriesScope): Boolean {
+        val event = master.event
+        val date = SeriesRules.localDate(event, occurrenceStart)
+        if (scope == SeriesScope.FOLLOWING && !date.isAfter(SeriesRules.localDate(event))) return false
+        val changed = when (scope) {
+            SeriesScope.THIS -> SeriesRules.withoutDate(event, date)
+            SeriesScope.FOLLOWING -> SeriesRules.endingBefore(event, date)
+            SeriesScope.ALL -> return false
+        }
+        replaceEvent(changed)
+        return true
+    }
+
+    /** Stores [event] as it is (series cut or its undo) and re-arms the series' reminders. */
+    fun replaceEvent(event: Event) {
+        viewModelScope.launch(Dispatchers.IO) {
+            eventDao.updateEvent(event)
+            eventDao.getRemindersForEvent(event.id).forEach { alarmScheduler.cancelAll(it) }
+            com.example.lifeorganizer.calendar.alarm.RecurringAlarmSync.sync(getApplication())
         }
     }
 

@@ -56,6 +56,8 @@ object IcsExporter {
                 event.recurrenceRule?.let {
                     appendLine("RRULE:$it")
                 }
+                // Skipped occurrences of a series
+                SeriesRules.exDates(event).sorted().forEach { appendLine("EXDATE;VALUE=DATE:${it.format(java.time.format.DateTimeFormatter.BASIC_ISO_DATE)}") }
                 eventWithReminders.reminders.forEach { reminder ->
                     val minutesBefore = (event.startTimeMillis - reminder.reminderTimeMillis) / 60000
                     appendLine("BEGIN:VALARM")

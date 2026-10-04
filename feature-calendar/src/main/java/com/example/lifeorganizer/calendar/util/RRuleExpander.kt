@@ -34,9 +34,16 @@ object RRuleExpander {
         val params = parseRRule(rule)
         val freq = params["FREQ"] ?: return listOf(eventWithReminders)
         val interval = params["INTERVAL"]?.toIntOrNull() ?: 1
+        val requestedStart = rangeStart
+        val requestedEnd = rangeEnd
+        // COUNT is counted from the first occurrence, so expand from the series start.
+        val countLimit = params["COUNT"]?.toIntOrNull()
+        val until = SeriesRules.until(rule)
+        val rangeStart = if (countLimit != null) originalStartDate else requestedStart
+        val rangeEnd = if (until != null && until.isBefore(requestedEnd)) until else requestedEnd
+        if (rangeEnd.isBefore(rangeStart)) return emptyList()
         
-        // We do not support complex UNTIL/COUNT in this basic implementation, 
-        // but we limit instances to the query range.
+        // UNTIL/COUNT/EXDATE are applied via the adjusted range and the filter below.
         var currentDate = originalStartDate
         
         // Find the first date on or after rangeStart that matches the rule
@@ -111,7 +118,11 @@ object RRuleExpander {
             }
         }
 
+        val excluded = SeriesRules.exDates(eventWithReminders.event)
+        fun dateOf(e: EventWithReminders) = SeriesRules.localDate(e.event)
         return instances
+            .let { if (countLimit != null) it.take(countLimit) else it }
+            .filter { dateOf(it) !in excluded && !dateOf(it).isBefore(requestedStart) && !dateOf(it).isAfter(requestedEnd) }
     }
 
     private fun parseRRule(rule: String): Map<String, String> {

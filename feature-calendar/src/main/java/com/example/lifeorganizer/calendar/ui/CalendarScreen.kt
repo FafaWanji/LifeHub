@@ -1,5 +1,6 @@
 package com.example.lifeorganizer.calendar.ui
 
+import com.example.lifeorganizer.calendar.util.SeriesScope
 import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
@@ -44,6 +45,7 @@ import androidx.compose.material.icons.filled.DirectionsTransit
 import androidx.compose.material.icons.filled.NotificationsNone
 import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import com.example.lifeorganizer.core.i18n.Str
+import com.example.lifeorganizer.core.i18n.text
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -165,6 +167,19 @@ fun CalendarScreen(
     // Occurrences of a series map back to the stored event (real start, real reminder ids).
     fun master(item: EventWithReminders): EventWithReminders =
         masterEvents.firstOrNull { it.event.id == item.event.id } ?: item
+
+    // Repeating events first ask whether a change is for this occurrence, the following ones or all.
+    var seriesPrompt by remember { mutableStateOf<Pair<EventWithReminders, Boolean>?>(null) } // occurrence, isDelete
+    var editScope by remember { mutableStateOf(SeriesScope.ALL) }
+    var editOccurrence by remember { mutableStateOf<EventWithReminders?>(null) }
+    fun isSeries(item: EventWithReminders) = !master(item).event.recurrenceRule.isNullOrBlank()
+    fun requestEdit(item: EventWithReminders) {
+        if (isSeries(item)) seriesPrompt = item to false
+        else { editScope = SeriesScope.ALL; editOccurrence = null; editingEvent = master(item) }
+    }
+    fun requestDelete(item: EventWithReminders) {
+        if (isSeries(item)) seriesPrompt = item to true else showDeleteConfirm = master(item)
+    }
     // Remember which external requests were already handled so re-entering the screen doesn't replay them.
     var handledAddRequest by rememberSaveable { mutableIntStateOf(addEventRequest) }
     var handledSettingsRequest by rememberSaveable { mutableIntStateOf(settingsRequest) }
@@ -548,8 +563,8 @@ fun CalendarScreen(
                                 lang = lang,
                                 travelInfo = travelInfo[item.event.id],
                                 placeLabel = placeName(item.event.targetAddress),
-                                onDelete = { showDeleteConfirm = master(item) },
-                                onEdit = { editingEvent = master(item) },
+                                onDelete = { requestDelete(item) },
+                                onEdit = { requestEdit(item) },
                                 onView = { viewingEvent = item },
                                 showNavigation = showNavigation,
                                 modifier = Modifier.alpha(if (dragDropState.isDragging && dragDropState.draggingEvent?.event?.id == item.event.id) 0f else 1f)
@@ -644,8 +659,8 @@ fun CalendarScreen(
                     events = agendaEvents,
                     lang = lang,
                     onEventClick = { viewingEvent = it },
-                    onEventEdit = { editingEvent = master(it) },
-                    onEventDelete = { showDeleteConfirm = master(it) },
+                    onEventEdit = { requestEdit(it) },
+                    onEventDelete = { requestDelete(it) },
                     onEventView = { viewingEvent = it }
                 )
             }
@@ -700,11 +715,11 @@ fun CalendarScreen(
                 onDismiss = { viewingEvent = null },
                 onEdit = {
                     viewingEvent = null
-                    editingEvent = master(event)
+                    requestEdit(event)
                 },
                 onDelete = {
                     viewingEvent = null
-                    showDeleteConfirm = master(event)
+                    requestDelete(event)
                 },
                 onOpenNote = event.event.linkedNoteId?.let { noteId ->
                     { viewingEvent = null; onNoteClick?.invoke(noteId) }
@@ -715,6 +730,27 @@ fun CalendarScreen(
                     scope.launch {
                         viewModel.duplicateEvent(event, event.event.startTimeMillis + 86400000L)
                         showSnackbarMessage(Translations.get(TransKey.EVENT_CREATED, lang))
+                    }
+                }
+            )
+        }
+
+        seriesPrompt?.let { (occurrence, isDelete) ->
+            SeriesScopeDialog(
+                isDelete = isDelete,
+                onDismiss = { seriesPrompt = null },
+                onPick = { scope ->
+                    seriesPrompt = null
+                    val m = master(occurrence)
+                    if (isDelete) {
+                        val before = m.event
+                        if (scope != SeriesScope.ALL && viewModel.cutSeries(m, occurrence.event.startTimeMillis, scope)) {
+                            showSnackbarMessage(Translations.get(TransKey.EVENT_DELETED, lang)) { viewModel.replaceEvent(before) }
+                        } else showDeleteConfirm = m
+                    } else if (scope == SeriesScope.ALL) {
+                        editScope = SeriesScope.ALL; editOccurrence = null; editingEvent = m
+                    } else {
+                        editScope = scope; editOccurrence = occurrence; editingEvent = occurrence
                     }
                 }
             )
@@ -765,6 +801,7 @@ fun CalendarScreen(
                 onDismiss = {
                     showAddDialog = false
                     editingEvent = null
+                    editOccurrence = null
                     smartAddResult = null
                 },
                 checkConflict = { start, end, excludeId -> viewModel.checkConflict(start, end, excludeId) },
@@ -777,7 +814,24 @@ fun CalendarScreen(
                     viewModel.deleteEventTemplate(template)
                 },
                 onSave = { title, description, startTime, endTime, isAllDay, offsets, addr, buffer, lead, color, recurrence, timezone, isBirthday, birthYear, categoryId ->
-                    if (editingEvent != null) {
+                    val occurrence = editOccurrence
+                    if (editingEvent != null && occurrence != null && editScope != SeriesScope.ALL) {
+                        // Only this / the following occurrences: cut them out of the series, store the change as a new event.
+                        val m = master(occurrence)
+                        if (viewModel.cutSeries(m, occurrence.event.startTimeMillis, editScope)) {
+                            viewModel.addEvent(
+                                title, description, startTime, endTime, isAllDay, offsets,
+                                addr, buffer, lead, color, if (editScope == SeriesScope.THIS) null else recurrence,
+                                timezone, isBirthday, birthYear, categoryId
+                            )
+                        } else {
+                            viewModel.updateEvent(
+                                m, title, description, startTime, endTime,
+                                isAllDay, offsets, addr, buffer, lead, color, recurrence, timezone, isBirthday, birthYear, categoryId
+                            )
+                        }
+                        showSnackbarMessage(Translations.get(TransKey.EVENT_SAVED, lang))
+                    } else if (editingEvent != null) {
                         viewModel.updateEvent(
                             editingEvent!!, title, description, startTime, endTime,
                             isAllDay, offsets, addr, buffer, lead, color, recurrence, timezone, isBirthday, birthYear, categoryId
@@ -792,6 +846,7 @@ fun CalendarScreen(
                     }
                     showAddDialog = false
                     editingEvent = null
+                    editOccurrence = null
                     smartAddResult = null
                 }
             )
@@ -2456,4 +2511,27 @@ fun MonthYearJumpDialog(
             }
         }
     }
+}
+
+@Composable
+private fun SeriesScopeDialog(isDelete: Boolean, onDismiss: () -> Unit, onPick: (SeriesScope) -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (isDelete) Str.deleteRepeating.text() else Str.editRepeating.text()) },
+        text = {
+            Column {
+                listOf(
+                    SeriesScope.THIS to Str.thisEventOnly,
+                    SeriesScope.FOLLOWING to Str.thisAndFollowing,
+                    SeriesScope.ALL to Str.allEvents
+                ).forEach { (scope, label) ->
+                    TextButton(onClick = { onPick(scope) }, modifier = Modifier.fillMaxWidth()) {
+                        Text(label.text(), modifier = Modifier.fillMaxWidth())
+                    }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = onDismiss) { Text(Str.cancel.text()) } }
+    )
 }

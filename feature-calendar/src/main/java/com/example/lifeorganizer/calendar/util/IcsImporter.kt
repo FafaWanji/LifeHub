@@ -25,6 +25,7 @@ object IcsImporter {
         var dateOnly = false
         var location: String? = null
         var rrule: String? = null
+        val exDates = mutableListOf<String>()
         var isBirthday = false
         var birthYear: Int? = null
         val reminders = mutableListOf<Reminder>()
@@ -44,6 +45,7 @@ object IcsImporter {
                 dateOnly = false
                 location = null
                 rrule = null
+                exDates.clear()
                 isBirthday = false
                 birthYear = null
                 reminders.clear()
@@ -60,6 +62,7 @@ object IcsImporter {
                         endTimeMillis = endTimeMillis,
                         targetAddress = location,
                         recurrenceRule = rrule,
+                        exDates = exDates.takeIf { it.isNotEmpty() }?.distinct()?.joinToString(","),
                         isBirthday = isBirthday,
                         birthYear = birthYear,
                         // All-day only when DTSTART is a plain date. A missing DTEND just means
@@ -123,6 +126,13 @@ object IcsImporter {
                     }
                 }
                 trimmed.startsWith("RRULE:") -> rrule = trimmed.substringAfter("RRULE:")
+                trimmed.startsWith("EXDATE") -> trimmed.substringAfter(":").split(',').forEach { v ->
+                    // Local date of the skipped occurrence
+                    val millis = parseIcsDateTime(v, tzid(trimmed))
+                    exDates += java.time.Instant.ofEpochMilli(millis).atZone(
+                        if (v.trim().length == 8) java.time.ZoneOffset.UTC else java.time.ZoneId.systemDefault()
+                    ).toLocalDate().toString()
+                }
                 trimmed.startsWith("DTSTART") -> {
                     val value = trimmed.substringAfter(":")
                     dateOnly = trimmed.contains("VALUE=DATE", ignoreCase = true) && !trimmed.contains("VALUE=DATE-TIME", ignoreCase = true) ||
