@@ -1,5 +1,6 @@
 package com.example.lifeorganizer.backup
 
+import kotlinx.coroutines.flow.first
 import android.content.Context
 import android.net.Uri
 import com.example.lifeorganizer.backup.LegacyFormats.objects
@@ -106,6 +107,7 @@ class BackupManager(context: Context) {
                         .put("isChecklist", note.isChecklist).put("pinnedToDate", note.pinnedToDate)
                         .put("isDeleted", note.isDeleted).put("deletedAt", note.deletedAt)
                         .put("labels", JSONArray(n.labels.map { it.name }))
+                        .put("documentTitle", documentTitles[note.documentId])
                 }))
                 .put("templates", JSONArray(noteDao.getTemplatesSync().map { t ->
                     JSONObject().put("name", t.name).put("content", t.content).put("isChecklist", t.isChecklist)
@@ -120,6 +122,7 @@ class BackupManager(context: Context) {
                         .put("lastUsed", wp.lastUsed).put("lastEdited", wp.lastEdited)
                         .put("labels", JSONArray(w.labels.map { it.name }))
                 })))
+            .put("settings", exportSettings(categories.associate { it.id to it.name }))
             .put("documents", JSONObject()
                 .put("documents", JSONArray(documents.map { d ->
                     JSONObject().put("title", d.title).put("uri", d.uri).put("category", d.category)
@@ -131,6 +134,48 @@ class BackupManager(context: Context) {
         writer.write(root.toString(2))
         writer.flush()
         ExportSummary(events.size, notes.size, waypoints.size, documents.size)
+    }
+
+    // ================================================================== settings
+
+    private val settings = com.example.lifeorganizer.core.settings.SettingsManager(appContext)
+    private fun prefs(name: String) = appContext.getSharedPreferences(name, android.content.Context.MODE_PRIVATE)
+
+    /** App settings without secrets (the Groq API key is never exported). Categories are stored by name. */
+    private suspend fun exportSettings(categoryNames: Map<Long, String>): JSONObject {
+        val filter = prefs("calendar_filter")
+        return JSONObject()
+            .put("designStyle", settings.designStyle.first())
+            .put("isDarkTheme", settings.isDarkTheme.first())
+            .put("accentColor", settings.accentColor.first())
+            .put("languageCode", settings.languageCode.first())
+            .put("homeAddress", settings.homeAddress.first())
+            .put("travelMode", settings.travelMode.first())
+            .put("useHomeAsOrigin", settings.useHomeAsOrigin.first())
+            .put("enableSmartAlarms", settings.enableSmartAlarms.first())
+            .put("useSystemAlarm", settings.useSystemAlarmForReminders.first())
+            .put("hideRecurring", filter.getBoolean("hide_recurring", false))
+            .put("hiddenCategories", JSONArray(filter.getStringSet("hidden_categories", emptySet()).orEmpty()
+                .mapNotNull { it.toLongOrNull()?.let(categoryNames::get) }))
+            .put("whatsNew", prefs("whats_new").getBoolean("enabled", true))
+            .put("autoBackup", prefs("auto_backup").getBoolean("enabled", true))
+    }
+
+    private suspend fun importSettings(j: JSONObject) {
+        j.optStringOrNull("designStyle")?.let { settings.saveDesignStyle(it) }
+        if (j.has("isDarkTheme")) settings.saveIsDarkTheme(if (j.isNull("isDarkTheme")) null else j.optBoolean("isDarkTheme"))
+        if (j.has("accentColor")) settings.saveAccentColor(j.optLongOrNull("accentColor")?.toInt())
+        j.optStringOrNull("languageCode")?.let { settings.saveLanguageCode(it) }
+        j.optStringOrNull("homeAddress")?.takeIf { it.isNotBlank() }?.let { settings.saveHomeAddress(it) }
+        j.optStringOrNull("travelMode")?.let { settings.saveTravelMode(it) }
+        if (j.has("useHomeAsOrigin")) settings.saveUseHomeAsOrigin(j.optBoolean("useHomeAsOrigin"))
+        if (j.has("enableSmartAlarms")) settings.saveEnableSmartAlarms(j.optBoolean("enableSmartAlarms"))
+        if (j.has("useSystemAlarm")) settings.saveUseSystemAlarmForReminders(j.optBoolean("useSystemAlarm"))
+        val byName = eventDao.getCategoriesSync().associate { it.name.lowercase() to it.id }
+        val hidden = j.optJSONArray("hiddenCategories")?.let { a -> (0 until a.length()).mapNotNull { byName[a.optString(it).lowercase()]?.toString() } }.orEmpty()
+        prefs("calendar_filter").edit().putBoolean("hide_recurring", j.optBoolean("hideRecurring")).putStringSet("hidden_categories", hidden.toSet()).apply()
+        if (j.has("whatsNew")) prefs("whats_new").edit().putBoolean("enabled", j.optBoolean("whatsNew")).apply()
+        if (j.has("autoBackup")) prefs("auto_backup").edit().putBoolean("enabled", j.optBoolean("autoBackup")).apply()
     }
 
     private fun eventToJson(e: Event) = JSONObject()
@@ -408,6 +453,16 @@ class BackupManager(context: Context) {
             )
             documents++
         }
+        // Notes with an attached document (matched by title + creation time, document by title)
+        val docsByTitle = documentDao.getAllDocumentsSync().associateBy { it.title }
+        backupNotes.forEach { n ->
+            val docTitle = n.optString("documentTitle").takeIf { it.isNotBlank() && it != "null" } ?: return@forEach
+            val doc = docsByTitle[docTitle] ?: return@forEach
+            val id = noteIds[n.optString("title") to n.optLong("createdAt")] ?: return@forEach
+            noteDao.getNoteWithLabels(id)?.note?.takeIf { it.documentId == null }?.let { noteDao.updateNote(it.copy(documentId = doc.id)) }
+        }
+        root.optJSONObject("settings")?.let { importSettings(it) }
+
         if (pendingDocuments.isNotEmpty()) {
             val docs = documentDao.getAllDocumentsSync()
             val stored = eventDao.getEventsWithRemindersSync().map { it.event }
