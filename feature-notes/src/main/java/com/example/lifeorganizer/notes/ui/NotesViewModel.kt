@@ -224,6 +224,10 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch { noteDao.insertTemplate(template) }
     }
 
+    fun updateTemplate(template: NoteTemplate) {
+        viewModelScope.launch { noteDao.updateTemplate(template) }
+    }
+
     fun deleteTemplate(template: NoteTemplate) {
         viewModelScope.launch { noteDao.deleteTemplate(template) }
     }

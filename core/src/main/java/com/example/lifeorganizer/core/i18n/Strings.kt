@@ -124,6 +124,13 @@ object Str {
     val thisEventOnly = Txt("This event", "Nur diesen Termin", "Yalnızca bu etkinlik", "Solo este evento")
     val thisAndFollowing = Txt("This and following events", "Diesen und alle folgenden", "Bu ve sonrakiler", "Este y los siguientes")
     val allEvents = Txt("All events", "Alle Termine der Serie", "Tüm etkinlikler", "Todos los eventos")
+    val checkedToBottom = Txt("Move checked to bottom", "Erledigte nach unten", "İşaretlileri alta taşı", "Marcados al final")
+    val placeholderHint = Txt(
+        "Placeholders: {{date}}, {{weekday}}, {{time}}",
+        "Platzhalter: {{datum}}, {{wochentag}}, {{uhrzeit}}",
+        "Yer tutucular: {{tarih}}, {{gun}}, {{saat}}",
+        "Marcadores: {{fecha}}, {{dia}}, {{hora}}"
+    )
     val uncheckAll = Txt("Uncheck all", "Alle Haken entfernen", "Tüm işaretleri kaldır", "Desmarcar todo")
     val labelTemplate = Txt("Template for new notes", "Vorlage für neue Notizen", "Yeni notlar için şablon", "Plantilla para notas nuevas")
     val labelTemplateNone = Txt("No template – tap to add one", "Keine Vorlage – tippen zum Anlegen", "Şablon yok – eklemek için dokun", "Sin plantilla: toca para añadir")

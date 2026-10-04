@@ -102,4 +102,7 @@ interface NoteDao {
 
     @Delete
     suspend fun deleteTemplate(template: NoteTemplate)
+
+    @Update
+    suspend fun updateTemplate(template: NoteTemplate)
 }

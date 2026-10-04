@@ -137,11 +137,15 @@ fun NoteEditorScreen(
                 if (content.isBlank()) mode = EditorMode.EDIT
             }
         } else if (templateId != null) {
-            viewModel.loadTemplate(templateId)?.let { body = TextFieldValue(it.content) }
+            viewModel.loadTemplate(templateId)?.let { t ->
+                body = TextFieldValue(expandPlaceholders(t.content, lang))
+                t.labelId?.let { labelIds = setOf(it) }
+            }
         } else if (labelId != null) {
             viewModel.loadLabel(labelId)?.let { label ->
                 labelIds = setOf(label.id)
-                if (label.template.isNotBlank()) body = TextFieldValue(label.template, TextRange(label.template.length))
+                val filled = expandPlaceholders(label.template, lang)
+                if (filled.isNotBlank()) body = TextFieldValue(filled, TextRange(filled.length))
             }
         }
         loaded = true
@@ -225,6 +229,10 @@ fun NoteEditorScreen(
                             MenuEntry(Icons.Default.CheckBox, Str.uncheckAll.text()) {
                                 showMenu = false
                                 body = body.copy(text = uncheckAll(body.text))
+                            }
+                            MenuEntry(Icons.Default.CheckBox, Str.checkedToBottom.text()) {
+                                showMenu = false
+                                body = body.copy(text = moveCheckedToBottom(body.text))
                             }
                         }
                         MenuEntry(Icons.Outlined.Bookmarks, Str.saveAsTemplate.text()) {
@@ -366,7 +374,7 @@ fun NoteEditorScreen(
                 val adding = id !in labelIds
                 labelIds = if (adding) labelIds + id else labelIds - id
                 // An empty note picks up the label's template right away.
-                val template = allLabels.firstOrNull { it.id == id }?.template.orEmpty()
+                val template = expandPlaceholders(allLabels.firstOrNull { it.id == id }?.template.orEmpty(), lang)
                 if (adding && body.text.isBlank() && template.isNotBlank()) {
                     body = TextFieldValue(template, TextRange(template.length))
                     mode = EditorMode.EDIT

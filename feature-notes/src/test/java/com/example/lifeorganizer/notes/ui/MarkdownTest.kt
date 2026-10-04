@@ -119,4 +119,18 @@ class MarkdownTest {
             uncheckAll("Liste [x] bleibt\n- [x] Milch\n- [X] Brot\n- [ ] Eier")
         )
     }
+
+    @Test
+    fun `placeholders are filled`() {
+        val now = java.time.LocalDateTime.of(2026, 10, 5, 9, 30)
+        assertEquals("Montag 09:30 {{x}}", expandPlaceholders("{{wochentag}} {{ uhrzeit }} {{x}}", "de", now))
+    }
+
+    @Test
+    fun `checked items move below open ones per block`() {
+        assertEquals(
+            "- [ ] Eier\n- [x] Milch\nText\n- [ ] A\n- [X] B",
+            moveCheckedToBottom("- [x] Milch\n- [ ] Eier\nText\n- [X] B\n- [ ] A")
+        )
+    }
 }

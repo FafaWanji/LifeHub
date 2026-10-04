@@ -141,6 +141,40 @@ fun hasChecklist(content: String) = content.lineSequence().any { checkboxLine.ma
  * Converts the old checklist format ("[ ] item" / "[x] item") to Markdown task items so
  * notes written before the rewrite keep their checkboxes.
  */
+/**
+ * Fills placeholders of templates: {{date}}/{{datum}}, {{weekday}}/{{wochentag}}, {{time}}/{{uhrzeit}}.
+ */
+fun expandPlaceholders(text: String, lang: String, now: java.time.LocalDateTime = java.time.LocalDateTime.now()): String {
+    if (!text.contains("{{")) return text
+    val locale = java.util.Locale.forLanguageTag(lang)
+    val date = now.toLocalDate().format(java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM).withLocale(locale))
+    val weekday = now.dayOfWeek.getDisplayName(java.time.format.TextStyle.FULL, locale)
+    val time = now.toLocalTime().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
+    return Regex("\\{\\{\\s*(\\w+)\\s*}}").replace(text) { m ->
+        when (m.groupValues[1].lowercase()) {
+            "date", "datum", "fecha", "tarih" -> date
+            "weekday", "wochentag", "dia", "gun" -> weekday
+            "time", "uhrzeit", "hora", "saat" -> time
+            else -> m.value
+        }
+    }
+}
+
+/** Moves checked items below the unchecked ones within each block of consecutive checklist lines. */
+fun moveCheckedToBottom(content: String): String {
+    val lines = content.split("\n")
+    val out = mutableListOf<String>()
+    var i = 0
+    while (i < lines.size) {
+        if (!checkboxLine.matches(lines[i])) { out += lines[i]; i++; continue }
+        val block = mutableListOf<String>()
+        while (i < lines.size && checkboxLine.matches(lines[i])) { block += lines[i]; i++ }
+        val (done, open) = block.partition { checkboxLine.matchEntire(it)!!.groupValues[2] != " " }
+        out += open + done
+    }
+    return out.joinToString("\n")
+}
+
 fun migrateLegacyChecklist(content: String): String =
     content.lines().joinToString("\n") { line ->
         when {

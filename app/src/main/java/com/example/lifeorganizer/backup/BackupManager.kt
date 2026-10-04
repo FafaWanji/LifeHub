@@ -72,6 +72,7 @@ class BackupManager(context: Context) {
         val events = eventDao.getEventsWithRemindersSync()
         val categories = eventDao.getCategoriesSync()
         val notes = noteDao.getAllNotesWithLabelsSync()
+        val noteLabelNames = noteDao.getLabelsSync().associate { it.id to it.name }
         val waypoints = waypointDao.getAllWaypointsWithLabelsSync()
         val documents = documentDao.getAllDocumentsSync()
 
@@ -107,6 +108,7 @@ class BackupManager(context: Context) {
                 }))
                 .put("templates", JSONArray(noteDao.getTemplatesSync().map { t ->
                     JSONObject().put("name", t.name).put("content", t.content).put("isChecklist", t.isChecklist)
+                        .put("label", noteLabelNames[t.labelId])
                 })))
             .put("waypoints", JSONObject()
                 .put("labels", JSONArray(waypointDao.getAllLabelsSync().map { l -> JSONObject().put("name", l.name).put("colorHex", l.colorHex) }))
@@ -310,7 +312,8 @@ class BackupManager(context: Context) {
         notesJson?.optJSONArray("templates").objects().forEach { t ->
             val name = t.optString("name")
             if (noteDao.getTemplatesSync().none { it.name == name }) {
-                noteDao.insertTemplate(NoteTemplate(name = name, content = t.optString("content"), isChecklist = t.optBoolean("isChecklist")))
+                noteDao.insertTemplate(NoteTemplate(name = name, content = t.optString("content"), isChecklist = t.optBoolean("isChecklist"),
+                    labelId = t.optString("label").takeIf { it.isNotBlank() && it != "null" }?.let { ln -> noteDao.getLabelsSync().firstOrNull { it.name.equals(ln, true) }?.id }))
             }
         }
 

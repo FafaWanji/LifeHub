@@ -23,7 +23,7 @@ class NotesMigrationTest {
     }
 
     @Test
-    fun migrates_1_to_2_and_keeps_notes_and_labels() {
+    fun migrates_1_to_latest_and_keeps_notes_and_labels() {
         context.deleteDatabase(name)
         SQLiteDatabase.openOrCreateDatabase(context.getDatabasePath(name), null).use { db ->
             db.execSQL("CREATE TABLE IF NOT EXISTS `notes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `content` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `colorLabel` INTEGER, `isPinned` INTEGER NOT NULL, `isChecklist` INTEGER NOT NULL, `pinnedToDate` INTEGER, `isDeleted` INTEGER NOT NULL, `deletedAt` INTEGER, `templateId` INTEGER)")
@@ -37,7 +37,7 @@ class NotesMigrationTest {
         }
 
         val room = Room.databaseBuilder(context, NotesDatabase::class.java, name)
-            .addMigrations(NotesDatabase.MIGRATION_1_2)
+            .addMigrations(NotesDatabase.MIGRATION_1_2, NotesDatabase.MIGRATION_2_3)
             .build()
         try {
             val notes = runBlocking { room.noteDao().getAllNotesWithLabelsSync() }

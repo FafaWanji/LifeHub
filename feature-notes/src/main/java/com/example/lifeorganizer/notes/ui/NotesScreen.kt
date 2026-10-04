@@ -7,6 +7,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -584,6 +586,7 @@ private fun LabelTemplateEditor(label: NoteLabel, onChange: (String) -> Unit) {
             value = value,
             onValueChange = { update(it) },
             label = { Text(Str.labelTemplate.text()) },
+            supportingText = { Text(Str.placeholderHint.text()) },
             placeholder = { Text("- [ ] …") },
             minLines = 3,
             modifier = Modifier.fillMaxWidth().focusRequester(focus)
@@ -614,6 +617,7 @@ private fun ColorRow(selected: Int, onPick: (Int) -> Unit) {
 @Composable
 fun TemplatesManagerView(viewModel: NotesViewModel, onBack: () -> Unit) {
     val templates by viewModel.templates.collectAsState()
+    val labels by viewModel.labels.collectAsState()
 
     SubPageScaffold(title = Str.manageTemplates.text(), onBack = onBack) { padding ->
         if (templates.isEmpty()) {
@@ -626,6 +630,7 @@ fun TemplatesManagerView(viewModel: NotesViewModel, onBack: () -> Unit) {
             ) {
                 items(templates, key = { it.id }) { template ->
                     Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
+                      Column {
                         Row(Modifier.padding(start = 16.dp, top = 12.dp, bottom = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                             Column(Modifier.weight(1f)) {
                                 Text(template.name, style = MaterialTheme.typography.titleMedium)
@@ -643,6 +648,25 @@ fun TemplatesManagerView(viewModel: NotesViewModel, onBack: () -> Unit) {
                                 Icon(Icons.Default.Delete, contentDescription = Str.delete.text())
                             }
                         }
+                        // Standard label for notes created from this template
+                        if (labels.isNotEmpty()) {
+                            Row(
+                                Modifier.horizontalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, bottom = 12.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                labels.forEach { label ->
+                                    FilterChip(
+                                        selected = template.labelId == label.id,
+                                        onClick = {
+                                            viewModel.updateTemplate(template.copy(labelId = if (template.labelId == label.id) null else label.id))
+                                        },
+                                        label = { Text(label.name) },
+                                        leadingIcon = { Box(Modifier.size(10.dp).background(Color(label.color), CircleShape)) }
+                                    )
+                                }
+                            }
+                        }
+                      }
                     }
                 }
             }

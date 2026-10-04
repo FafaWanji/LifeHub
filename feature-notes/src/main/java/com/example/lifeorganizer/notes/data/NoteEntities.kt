@@ -57,5 +57,7 @@ data class NoteTemplate(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val name: String,
     val content: String,
-    val isChecklist: Boolean = false
+    val isChecklist: Boolean = false,
+    /** Label given to notes created from this template. */
+    val labelId: Long? = null
 )
