@@ -1888,8 +1888,41 @@ fun AddEventDialog(
 
     val selectedCategoryColor = categories.firstOrNull { it.id == selectedCategoryId }?.color?.let { Color(it) }
 
+    // Saves the entry; also used when the dialog is closed, so nothing typed gets lost.
+    fun commit() {
+                            val startTime = if (isAllDay) {
+                                selectedDate.atStartOfDay(ZoneId.of(selectedTimezone)).toInstant().toEpochMilli()
+                            } else {
+                                selectedDate.atTime(startTimeState.hour, startTimeState.minute)
+                                    .atZone(ZoneId.of(selectedTimezone)).toInstant().toEpochMilli()
+                            }
+                            val endTime = if (showEndTime && !isAllDay) {
+                                selectedDate.atTime(endTimeState.hour, endTimeState.minute)
+                                    .atZone(ZoneId.of(selectedTimezone)).toInstant().toEpochMilli()
+                                    .let { if (it <= startTime) it + 86400000L else it }
+                            } else null
+                            onSave(
+                                title,
+                                description,
+                                startTime,
+                                endTime,
+                                isAllDay,
+                                reminders.map { it.second },
+                                targetAddress.ifBlank { null },
+                                arrivalBuffer.toIntOrNull() ?: 0,
+                                alarmLead.toIntOrNull() ?: 0,
+                                null,
+                                selectedRecurrence,
+                                selectedTimezone,
+                                isBirthday,
+                                birthYear.toIntOrNull(),
+                                selectedCategoryId
+                            )
+                        }
+
     Dialog(
-        onDismissRequest = onDismiss,
+        // Closing (back / tap outside) saves automatically; "Discard" is the explicit way out.
+        onDismissRequest = { if (title.isNotBlank()) commit() else onDismiss() },
         properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Card(
@@ -2324,38 +2357,9 @@ fun AddEventDialog(
                         Text("Save as Template")
                     }
                     Spacer(modifier = Modifier.weight(1f))
-                    TextButton(onClick = onDismiss) { Text(Translations.get(TransKey.CANCEL, lang)) }
+                    TextButton(onClick = onDismiss) { Text(com.example.lifeorganizer.core.i18n.Str.discard.of(lang)) }
                     Button(
-                        onClick = {
-                            val startTime = if (isAllDay) {
-                                selectedDate.atStartOfDay(ZoneId.of(selectedTimezone)).toInstant().toEpochMilli()
-                            } else {
-                                selectedDate.atTime(startTimeState.hour, startTimeState.minute)
-                                    .atZone(ZoneId.of(selectedTimezone)).toInstant().toEpochMilli()
-                            }
-                            val endTime = if (showEndTime && !isAllDay) {
-                                selectedDate.atTime(endTimeState.hour, endTimeState.minute)
-                                    .atZone(ZoneId.of(selectedTimezone)).toInstant().toEpochMilli()
-                                    .let { if (it <= startTime) it + 86400000L else it }
-                            } else null
-                            onSave(
-                                title,
-                                description,
-                                startTime,
-                                endTime,
-                                isAllDay,
-                                reminders.map { it.second },
-                                targetAddress.ifBlank { null },
-                                arrivalBuffer.toIntOrNull() ?: 0,
-                                alarmLead.toIntOrNull() ?: 0,
-                                null,
-                                selectedRecurrence,
-                                selectedTimezone,
-                                isBirthday,
-                                birthYear.toIntOrNull(),
-                                selectedCategoryId
-                            )
-                        },
+                        onClick = { commit() },
                         enabled = title.isNotBlank()
                     ) {
                         Text(if (editingEvent != null) Translations.get(TransKey.UPDATE, lang) else Translations.get(TransKey.CREATE, lang))
