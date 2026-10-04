@@ -214,6 +214,17 @@ object Str {
     val delete2 = Txt("Delete", "Löschen", "Sil", "Eliminar")
     val cancel2 = Txt("Cancel", "Abbrechen", "İptal", "Cancelar")
     val done2 = Txt("Done", "Fertig", "Tamam", "Listo")
+    val crashTitle = Txt("LifeOrganizer stopped", "LifeOrganizer wurde beendet", "LifeOrganizer durdu", "LifeOrganizer se cerró")
+    val crashText = Txt(
+        "Something went wrong. Your data is safe. Sharing the report helps fix the problem – it only contains technical information, no notes or events.",
+        "Etwas ist schiefgelaufen. Deine Daten sind sicher. Teile den Bericht, damit der Fehler behoben werden kann – er enthält nur technische Angaben, keine Notizen oder Termine.",
+        "Bir şeyler ters gitti. Verilerin güvende. Raporu paylaşmak hatanın düzeltilmesine yardım eder – yalnızca teknik bilgi içerir.",
+        "Algo salió mal. Tus datos están a salvo. Compartir el informe ayuda a corregirlo: solo contiene información técnica."
+    )
+    val shareReport = Txt("Share report", "Bericht teilen", "Raporu paylaş", "Compartir informe")
+    val copyReport = Txt("Copy report", "Bericht kopieren", "Raporu kopyala", "Copiar informe")
+    val restartApp = Txt("Restart app", "App neu starten", "Uygulamayı yeniden başlat", "Reiniciar app")
+    val technicalDetails = Txt("Technical details", "Technische Details", "Teknik ayrıntılar", "Detalles técnicos")
     val appSetupTitle = Txt("Welcome to LifeOrganizer", "Willkommen bei LifeOrganizer", "LifeOrganizer'a hoş geldin", "Bienvenido a LifeOrganizer")
     val checkUpdates = Txt("Check for updates", "Nach Updates suchen", "Güncellemeleri denetle", "Buscar actualizaciones")
     val updateAvailable = Txt("Version %s available", "Version %s verfügbar", "%s sürümü mevcut", "Versión %s disponible")

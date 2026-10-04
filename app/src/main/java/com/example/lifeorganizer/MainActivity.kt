@@ -1,5 +1,10 @@
 package com.example.lifeorganizer
 
+import androidx.compose.runtime.remember
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.TextButton
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -109,7 +114,12 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
         val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             try {
-                val crashText = throwable.stackTraceToString()
+                // Context first so a shared report is useful without asking back
+                val crashText = "LifeOrganizer ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\n" +
+                    "Android ${android.os.Build.VERSION.RELEASE} (SDK ${android.os.Build.VERSION.SDK_INT}), " +
+                    "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}\n" +
+                    "${java.time.LocalDateTime.now().withNano(0)}, thread ${thread.name}\n\n" +
+                    throwable.stackTraceToString()
                 Log.e("LifeOrganizer", "CRASH: $crashText")
                 getSharedPreferences("crash_reporter", MODE_PRIVATE)
                     .edit()
@@ -339,34 +349,34 @@ private fun AppLockScreen(error: String?, onUnlock: () -> Unit, onBack: () -> Un
 
 @Composable
 fun CrashReportScreen(error: String, onRetry: () -> Unit) {
-    Surface(modifier = Modifier.fillMaxSize(), color = Color(0xFF1A1A2E)) {
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val lang = java.util.Locale.getDefault().language
+    val S = com.example.lifeorganizer.core.i18n.Str
+    var showDetails by remember { mutableStateOf(false) }
+    Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState())
+            modifier = Modifier.fillMaxSize().systemBarsPadding().padding(24.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text(
-                "❌ LifeOrganizer Crashed",
-                color = Color(0xFFE94560),
-                fontSize = 22.sp,
-                modifier = Modifier.padding(top = 48.dp)
-            )
-            Text(
-                "Please screenshot this and share it so the crash can be fixed:",
-                color = Color(0xFFCCCCCC),
-                fontSize = 14.sp,
-                modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
-            )
-            Text(
-                text = error,
-                color = Color(0xFF00FF88),
-                fontSize = 9.sp,
-                lineHeight = 12.sp,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            Button(onClick = onRetry) {
-                Text(com.example.lifeorganizer.core.i18n.Str.retry.of(java.util.Locale.getDefault().language))
+            Text(S.crashTitle.of(lang), style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(top = 24.dp))
+            Text(S.crashText.of(lang), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Button(onClick = {
+                // Nothing leaves the phone automatically – the user picks where the report goes (mail, Telegram …)
+                val send = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_SUBJECT, "LifeOrganizer crash report")
+                    putExtra(Intent.EXTRA_TEXT, error)
+                }
+                context.startActivity(Intent.createChooser(send, S.shareReport.of(lang)))
+            }, modifier = Modifier.fillMaxWidth()) { Text(S.shareReport.of(lang)) }
+            OutlinedButton(onClick = {
+                val cm = context.getSystemService(android.content.ClipboardManager::class.java)
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("LifeOrganizer crash", error))
+            }, modifier = Modifier.fillMaxWidth()) { Text(S.copyReport.of(lang)) }
+            OutlinedButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) { Text(S.restartApp.of(lang)) }
+            TextButton(onClick = { showDetails = !showDetails }) { Text(S.technicalDetails.of(lang)) }
+            if (showDetails) {
+                Text(error, fontSize = 10.sp, lineHeight = 13.sp, fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace)
             }
         }
     }
