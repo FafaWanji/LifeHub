@@ -131,6 +131,7 @@ object Str {
         "Yer tutucular: {{tarih}}, {{gun}}, {{saat}}",
         "Marcadores: {{fecha}}, {{dia}}, {{hora}}"
     )
+    val createNoteForEvent = Txt("Create note", "Notiz anlegen", "Not oluştur", "Crear nota")
     val uncheckAll = Txt("Uncheck all", "Alle Haken entfernen", "Tüm işaretleri kaldır", "Desmarcar todo")
     val labelTemplate = Txt("Template for new notes", "Vorlage für neue Notizen", "Yeni notlar için şablon", "Plantilla para notas nuevas")
     val labelTemplateNone = Txt("No template – tap to add one", "Keine Vorlage – tippen zum Anlegen", "Şablon yok – eklemek için dokun", "Sin plantilla: toca para añadir")

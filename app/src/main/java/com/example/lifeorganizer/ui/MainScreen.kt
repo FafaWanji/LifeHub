@@ -269,6 +269,21 @@ fun MainScreen(
                                     )
                                 },
                                 onNoteClick = { noteId -> openNoteEditor(noteId) },
+                                onCreateNoteForEvent = { event ->
+                                    // Note pinned to the event's day and linked both ways
+                                    val day = java.time.Instant.ofEpochMilli(event.startTimeMillis).atZone(ZoneId.systemDefault())
+                                        .toLocalDate().atStartOfDay(ZoneId.systemDefault()).toInstant().toEpochMilli()
+                                    notesViewModel.saveNote(
+                                        com.example.lifeorganizer.notes.ui.NoteDraft(
+                                            id = null, title = event.title, content = "", colorLabel = null, isPinned = false,
+                                            pinnedToDate = day, templateId = null, labelIds = emptySet()
+                                        ),
+                                        sessionKey = "event-${event.id}-${System.currentTimeMillis()}"
+                                    ) { noteId ->
+                                        calendarViewModel.linkNote(event.id, noteId)
+                                        openNoteEditor(noteId)
+                                    }
+                                },
                                 onMenuClick = openMenu,
                                 showFabs = false,
                                 addEventRequest = addEventRequest,

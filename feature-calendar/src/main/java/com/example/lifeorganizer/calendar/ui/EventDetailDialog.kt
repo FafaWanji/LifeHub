@@ -35,7 +35,8 @@ fun EventDetailDialog(
     onEdit: () -> Unit,
     onDelete: () -> Unit,
     onDuplicate: () -> Unit,
-    onOpenNote: (() -> Unit)? = null
+    onOpenNote: (() -> Unit)? = null,
+    onCreateNote: (() -> Unit)? = null
 ) {
     val event = eventWithReminders.event
     val scrollState = rememberScrollState()
@@ -186,6 +187,13 @@ fun EventDetailDialog(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     // Event created from a note reminder: jump back to the note.
+                    if (onOpenNote == null && onCreateNote != null) {
+                        FilledTonalButton(onClick = onCreateNote, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.AutoMirrored.Filled.Notes, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(com.example.lifeorganizer.core.i18n.Str.createNoteForEvent.of(lang))
+                        }
+                    }
                     if (onOpenNote != null) {
                         FilledTonalButton(onClick = onOpenNote, modifier = Modifier.fillMaxWidth()) {
                             Icon(Icons.AutoMirrored.Filled.Notes, contentDescription = null, modifier = Modifier.size(18.dp))

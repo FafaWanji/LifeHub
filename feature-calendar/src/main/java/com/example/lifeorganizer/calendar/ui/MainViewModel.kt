@@ -639,6 +639,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return true
     }
 
+    /** Links a note to an event ("note for this event"). */
+    fun linkNote(eventId: Long, noteId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            eventDao.getEventsWithRemindersSync().firstOrNull { it.event.id == eventId }?.let {
+                eventDao.updateEvent(it.event.copy(linkedNoteId = noteId))
+            }
+        }
+    }
+
     /** Stores [event] as it is (series cut or its undo) and re-arms the series' reminders. */
     fun replaceEvent(event: Event) {
         viewModelScope.launch(Dispatchers.IO) {

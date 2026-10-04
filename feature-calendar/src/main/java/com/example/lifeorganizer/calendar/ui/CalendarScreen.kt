@@ -119,6 +119,8 @@ fun CalendarScreen(
     onGlobalSearchClick: (() -> Unit)? = null,
     allNotes: List<PinnedNote> = emptyList(),
     onNoteClick: ((Long) -> Unit)? = null,
+    /** Creates a note linked to the event (app shell), then opens it. */
+    onCreateNoteForEvent: ((com.example.lifeorganizer.calendar.data.Event) -> Unit)? = null,
     onMenuClick: () -> Unit = {},
     // When hosted in LifeOrganizer the shell draws a shared FAB cluster and triggers these requests.
     showFabs: Boolean = true,
@@ -727,6 +729,9 @@ fun CalendarScreen(
                 },
                 onOpenNote = event.event.linkedNoteId?.let { noteId ->
                     { viewingEvent = null; onNoteClick?.invoke(noteId) }
+                },
+                onCreateNote = onCreateNoteForEvent?.takeIf { !DeviceCalendar.isDeviceEvent(event.event) }?.let { create ->
+                    { viewingEvent = null; create(master(event).event) }
                 },
                 onDuplicate = {
                     viewingEvent = null
