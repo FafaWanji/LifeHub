@@ -1,5 +1,12 @@
 package com.example.lifeorganizer.calendar.ui
 
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -36,8 +43,30 @@ fun EventDetailDialog(
     onDelete: () -> Unit,
     onDuplicate: () -> Unit,
     onOpenNote: (() -> Unit)? = null,
-    onCreateNote: (() -> Unit)? = null
+    onCreateNote: (() -> Unit)? = null,
+    /** Dokki documents (id to title) that can be attached. */
+    documents: List<Pair<Long, String>> = emptyList(),
+    onAttachDocument: ((Long?) -> Unit)? = null,
+    onOpenDocument: ((Long) -> Unit)? = null
 ) {
+    var pickDocument by remember { mutableStateOf(false) }
+    if (pickDocument && onAttachDocument != null) {
+        AlertDialog(
+            onDismissRequest = { pickDocument = false },
+            title = { Text(com.example.lifeorganizer.core.i18n.Str.attachDocument.of(lang)) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    documents.forEach { (id, title) ->
+                        TextButton(onClick = { pickDocument = false; onAttachDocument(id) }, modifier = Modifier.fillMaxWidth()) {
+                            Text(title, modifier = Modifier.fillMaxWidth(), maxLines = 1)
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { pickDocument = false }) { Text(com.example.lifeorganizer.core.i18n.Str.cancel.of(lang)) } }
+        )
+    }
     val event = eventWithReminders.event
     val scrollState = rememberScrollState()
 
@@ -187,6 +216,20 @@ fun EventDetailDialog(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     // Event created from a note reminder: jump back to the note.
+                    val attached = event.documentId?.let { id -> documents.firstOrNull { it.first == id } }
+                    if (attached != null && onOpenDocument != null) {
+                        FilledTonalButton(onClick = { onOpenDocument(attached.first) }, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.Default.AttachFile, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(attached.second, maxLines = 1)
+                        }
+                    } else if (onAttachDocument != null && documents.isNotEmpty()) {
+                        OutlinedButton(onClick = { pickDocument = true }, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.Default.AttachFile, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(com.example.lifeorganizer.core.i18n.Str.attachDocument.of(lang))
+                        }
+                    }
                     if (onOpenNote == null && onCreateNote != null) {
                         FilledTonalButton(onClick = onCreateNote, modifier = Modifier.fillMaxWidth()) {
                             Icon(Icons.AutoMirrored.Filled.Notes, contentDescription = null, modifier = Modifier.size(18.dp))

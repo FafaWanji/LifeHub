@@ -75,6 +75,7 @@ class BackupManager(context: Context) {
         val noteLabelNames = noteDao.getLabelsSync().associate { it.id to it.name }
         val waypoints = waypointDao.getAllWaypointsWithLabelsSync()
         val documents = documentDao.getAllDocumentsSync()
+        val documentTitles = documents.associate { it.id to it.title }
 
         val root = JSONObject()
             .put("format", BackupFormat.FORMAT_ID)
@@ -85,7 +86,7 @@ class BackupManager(context: Context) {
                     JSONObject().put("id", c.id).put("name", c.name).put("color", c.color).put("isDefault", c.isDefault)
                 }))
                 .put("events", JSONArray(events.map { e ->
-                    eventToJson(e.event).put("reminders", JSONArray(e.reminders.map { r ->
+                    eventToJson(e.event).put("documentTitle", documentTitles[e.event.documentId]).put("reminders", JSONArray(e.reminders.map { r ->
                         JSONObject().put("reminderTimeMillis", r.reminderTimeMillis).put("type", r.type).put("timezone", r.timezone)
                     }))
                 }))
@@ -319,6 +320,8 @@ class BackupManager(context: Context) {
 
         // Calendar: categories by name, then events with remapped category/note links.
         val calendar = root.optJSONObject("calendar")
+        // Attached documents are linked after the documents themselves are imported (by title).
+        val pendingDocuments = mutableListOf<Triple<String, Long, String>>()
         val categoryIds = eventDao.getCategoriesSync().associate { it.name.lowercase() to it.id }.toMutableMap()
         val oldCategoryToNew = calendar?.optJSONArray("categories").objects().associate { c ->
             val name = c.optString("name")
@@ -356,6 +359,8 @@ class BackupManager(context: Context) {
                 )
             }
             if (insertEvent(event, reminders)) events++ else skipped++
+            e.optString("documentTitle").takeIf { it.isNotBlank() && it != "null" }
+                ?.let { pendingDocuments += Triple(event.title, event.startTimeMillis, it) }
         }
         calendar?.optJSONArray("templates").objects().forEach { t ->
             val name = t.optString("name")
@@ -402,6 +407,15 @@ class BackupManager(context: Context) {
                 )
             )
             documents++
+        }
+        if (pendingDocuments.isNotEmpty()) {
+            val docs = documentDao.getAllDocumentsSync()
+            val stored = eventDao.getEventsWithRemindersSync().map { it.event }
+            pendingDocuments.forEach { (title, start, docTitle) ->
+                val doc = docs.firstOrNull { it.title == docTitle } ?: return@forEach
+                stored.firstOrNull { it.title == title && it.startTimeMillis == start && it.documentId == null }
+                    ?.let { eventDao.updateEvent(it.copy(documentId = doc.id)) }
+            }
         }
 
         return ImportSummary(

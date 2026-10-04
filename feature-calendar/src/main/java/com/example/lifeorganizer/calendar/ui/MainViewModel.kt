@@ -639,6 +639,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         return true
     }
 
+    /** Attaches a Dokki document to an event (null removes it). */
+    fun attachDocument(eventId: Long, documentId: Long?) {
+        viewModelScope.launch(Dispatchers.IO) {
+            eventDao.getEventsWithRemindersSync().firstOrNull { it.event.id == eventId }?.let {
+                eventDao.updateEvent(it.event.copy(documentId = documentId))
+            }
+        }
+    }
+
     /** Links a note to an event ("note for this event"). */
     fun linkNote(eventId: Long, noteId: Long) {
         viewModelScope.launch(Dispatchers.IO) {

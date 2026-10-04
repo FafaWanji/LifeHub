@@ -121,6 +121,9 @@ fun CalendarScreen(
     onNoteClick: ((Long) -> Unit)? = null,
     /** Creates a note linked to the event (app shell), then opens it. */
     onCreateNoteForEvent: ((com.example.lifeorganizer.calendar.data.Event) -> Unit)? = null,
+    /** Dokki documents (id to title) for attaching, and how to open one. */
+    documents: List<Pair<Long, String>> = emptyList(),
+    onOpenDocument: ((Long) -> Unit)? = null,
     onMenuClick: () -> Unit = {},
     // When hosted in LifeOrganizer the shell draws a shared FAB cluster and triggers these requests.
     showFabs: Boolean = true,
@@ -730,6 +733,12 @@ fun CalendarScreen(
                 onOpenNote = event.event.linkedNoteId?.let { noteId ->
                     { viewingEvent = null; onNoteClick?.invoke(noteId) }
                 },
+                documents = documents,
+                onAttachDocument = if (DeviceCalendar.isDeviceEvent(event.event)) null else { id ->
+                    viewingEvent = null
+                    viewModel.attachDocument(event.event.id, id)
+                },
+                onOpenDocument = onOpenDocument?.let { open -> { id: Long -> viewingEvent = null; open(id) } },
                 onCreateNote = onCreateNoteForEvent?.takeIf { !DeviceCalendar.isDeviceEvent(event.event) }?.let { create ->
                     { viewingEvent = null; create(master(event).event) }
                 },

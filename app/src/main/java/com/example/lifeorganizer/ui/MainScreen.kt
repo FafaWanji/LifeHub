@@ -137,6 +137,7 @@ fun MainScreen(
     val waypoints by waypointsViewModel.allWaypoints.collectAsState()
     val pinnedNotes by notesViewModel.pinnedToDateNotes.collectAsState()
     val templates by notesViewModel.templates.collectAsState()
+    val allDocuments by documentViewModel.allDocuments.collectAsState()
     val noteLabels by notesViewModel.labels.collectAsState()
 
     fun openSmartAdd(text: String = "", image: Uri? = null, start: SmartAddStart = SmartAddStart.NONE) {
@@ -269,6 +270,11 @@ fun MainScreen(
                                     )
                                 },
                                 onNoteClick = { noteId -> openNoteEditor(noteId) },
+                                documents = allDocuments.map { it.id to it.title },
+                                onOpenDocument = { id ->
+                                    activeView = ActiveView.DOCUMENTS
+                                    documentToOpen = id
+                                },
                                 onCreateNoteForEvent = { event ->
                                     // Note pinned to the event's day and linked both ways
                                     val day = java.time.Instant.ofEpochMilli(event.startTimeMillis).atZone(ZoneId.systemDefault())
