@@ -276,6 +276,7 @@ fun CalendarScreen(
     var seriesPrompt by remember { mutableStateOf<Pair<EventWithReminders, Boolean>?>(null) } // occurrence, isDelete
     var editScope by remember { mutableStateOf(SeriesScope.ALL) }
     var editOccurrence by remember { mutableStateOf<EventWithReminders?>(null) }
+    var copyRequest by remember { mutableStateOf<EventWithReminders?>(null) }
     fun isSeries(item: EventWithReminders) = !master(item).event.recurrenceRule.isNullOrBlank()
     fun requestEdit(item: EventWithReminders) {
         if (DeviceCalendar.isDeviceEvent(item.event)) { scope.launch { snackbarHostState.showSnackbar(Str.deviceEventReadOnly.of(lang)) }; return }
@@ -739,6 +740,9 @@ fun CalendarScreen(
                     viewModel.attachDocument(event.event.id, id)
                 },
                 onOpenDocument = onOpenDocument?.let { open -> { id: Long -> viewingEvent = null; open(id) } },
+                onCopyToDevice = if (DeviceCalendar.isDeviceEvent(event.event)) null else {
+                    { viewingEvent = null; copyRequest = master(event) }
+                },
                 onCreateNote = onCreateNoteForEvent?.takeIf { !DeviceCalendar.isDeviceEvent(event.event) }?.let { create ->
                     { viewingEvent = null; create(master(event).event) }
                 },
@@ -750,6 +754,13 @@ fun CalendarScreen(
                         showSnackbarMessage(Translations.get(TransKey.EVENT_CREATED, lang))
                     }
                 }
+            )
+        }
+
+        copyRequest?.let { toCopy ->
+            CopyToDeviceFlow(
+                event = toCopy,
+                onDone = { message -> copyRequest = null; message?.let { showSnackbarMessage(it) } }
             )
         }
 
@@ -2583,4 +2594,47 @@ private fun DeviceCalendarRow(viewModel: MainViewModel) {
             }
         )
     }
+}
+
+/** Asks for calendar access, lets the user pick a phone calendar and copies the event there. */
+@Composable
+private fun CopyToDeviceFlow(event: EventWithReminders, onDone: (String?) -> Unit) {
+    val context = LocalContext.current
+    val lang = com.example.lifeorganizer.core.i18n.LocalAppLanguage.current
+    val scope = rememberCoroutineScope()
+    var calendars by remember { mutableStateOf<List<Pair<Long, String>>?>(null) }
+    fun load() {
+        scope.launch {
+            val list = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { DeviceCalendar.writableCalendars(context) }
+            if (list.isEmpty()) onDone(Str.noWritableCalendar.of(lang)) else calendars = list
+        }
+    }
+    val permission = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions()
+    ) { granted -> if (granted.values.all { it }) load() else onDone(null) }
+    LaunchedEffect(Unit) {
+        if (DeviceCalendar.hasPermission(context) && DeviceCalendar.hasWritePermission(context)) load()
+        else permission.launch(arrayOf(android.Manifest.permission.READ_CALENDAR, android.Manifest.permission.WRITE_CALENDAR))
+    }
+    val list = calendars ?: return
+    AlertDialog(
+        onDismissRequest = { onDone(null) },
+        title = { Text(Str.copyToDevice.text()) },
+        text = {
+            Column {
+                list.forEach { (id, name) ->
+                    TextButton(onClick = {
+                        scope.launch {
+                            val ok = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+                                DeviceCalendar.copyToDevice(context, id, event) != null
+                            }
+                            onDone(if (ok) Str.copiedToDevice.of(lang) else Str.copyFailed.of(lang))
+                        }
+                    }, modifier = Modifier.fillMaxWidth()) { Text(name, modifier = Modifier.fillMaxWidth()) }
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = { TextButton(onClick = { onDone(null) }) { Text(Str.cancel.text()) } }
+    )
 }

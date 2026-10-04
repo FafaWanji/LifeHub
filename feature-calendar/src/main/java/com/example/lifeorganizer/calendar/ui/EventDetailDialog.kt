@@ -1,6 +1,7 @@
 package com.example.lifeorganizer.calendar.ui
 
 import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.Event
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.getValue
@@ -47,7 +48,8 @@ fun EventDetailDialog(
     /** Dokki documents (id to title) that can be attached. */
     documents: List<Pair<Long, String>> = emptyList(),
     onAttachDocument: ((Long?) -> Unit)? = null,
-    onOpenDocument: ((Long) -> Unit)? = null
+    onOpenDocument: ((Long) -> Unit)? = null,
+    onCopyToDevice: (() -> Unit)? = null
 ) {
     var pickDocument by remember { mutableStateOf(false) }
     if (pickDocument && onAttachDocument != null) {
@@ -228,6 +230,13 @@ fun EventDetailDialog(
                             Icon(Icons.Default.AttachFile, contentDescription = null, modifier = Modifier.size(18.dp))
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(com.example.lifeorganizer.core.i18n.Str.attachDocument.of(lang))
+                        }
+                    }
+                    if (onCopyToDevice != null) {
+                        OutlinedButton(onClick = onCopyToDevice, modifier = Modifier.fillMaxWidth()) {
+                            Icon(Icons.Default.Event, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(com.example.lifeorganizer.core.i18n.Str.copyToDevice.of(lang))
                         }
                     }
                     if (onOpenNote == null && onCreateNote != null) {

@@ -22,7 +22,7 @@
 ## 3. Kalender
 - [x] Serien bearbeiten: „Nur dieser Termin / Alle folgenden / Alle“ (EXDATE / Ausnahmen)
 - [x] Sync mit Android-Systemkalender (Google/Samsung) – lesen
-- [ ] Systemkalender: schreiben (optional)
+- [x] Systemkalender: Termin in Gerätekalender kopieren (einseitig)
 - [x] „Jetzt losfahren“-Benachrichtigung aus Reisezeit + Heimadresse
 
 ## 4. Notizen
