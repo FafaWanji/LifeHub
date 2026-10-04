@@ -106,6 +106,19 @@ object Str {
     val deleteForever = Txt("Delete forever", "Endgültig löschen", "Kalıcı olarak sil", "Eliminar definitivamente")
     val movedToTrash = Txt("Moved to trash", "In den Papierkorb verschoben", "Çöp kutusuna taşındı", "Movida a la papelera")
     val undo = Txt("Undo", "Rückgängig", "Geri al", "Deshacer")
+    val showDeviceCalendars = Txt("Show phone calendars", "Gerätekalender anzeigen", "Telefon takvimlerini göster", "Mostrar calendarios del teléfono")
+    val showDeviceCalendarsDesc = Txt(
+        "Google, Samsung & co. – read-only",
+        "Google, Samsung & Co. – nur lesen",
+        "Google, Samsung vb. – salt okunur",
+        "Google, Samsung, etc. – solo lectura"
+    )
+    val deviceEventReadOnly = Txt(
+        "This event is from your phone calendar – change it there.",
+        "Dieser Termin stammt aus dem Gerätekalender – bitte dort ändern.",
+        "Bu etkinlik telefon takviminden – orada değiştir.",
+        "Este evento es del calendario del teléfono: cámbialo allí."
+    )
     val editRepeating = Txt("Edit repeating event", "Wiederkehrenden Termin bearbeiten", "Tekrarlanan etkinliği düzenle", "Editar evento periódico")
     val deleteRepeating = Txt("Delete repeating event", "Wiederkehrenden Termin löschen", "Tekrarlanan etkinliği sil", "Eliminar evento periódico")
     val thisEventOnly = Txt("This event", "Nur diesen Termin", "Yalnızca bu etkinlik", "Solo este evento")

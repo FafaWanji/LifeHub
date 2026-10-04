@@ -1,6 +1,7 @@
 package com.example.lifeorganizer.calendar.ui
 
 import com.example.lifeorganizer.calendar.util.SeriesScope
+import com.example.lifeorganizer.calendar.device.DeviceCalendar
 import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
@@ -168,18 +169,6 @@ fun CalendarScreen(
     fun master(item: EventWithReminders): EventWithReminders =
         masterEvents.firstOrNull { it.event.id == item.event.id } ?: item
 
-    // Repeating events first ask whether a change is for this occurrence, the following ones or all.
-    var seriesPrompt by remember { mutableStateOf<Pair<EventWithReminders, Boolean>?>(null) } // occurrence, isDelete
-    var editScope by remember { mutableStateOf(SeriesScope.ALL) }
-    var editOccurrence by remember { mutableStateOf<EventWithReminders?>(null) }
-    fun isSeries(item: EventWithReminders) = !master(item).event.recurrenceRule.isNullOrBlank()
-    fun requestEdit(item: EventWithReminders) {
-        if (isSeries(item)) seriesPrompt = item to false
-        else { editScope = SeriesScope.ALL; editOccurrence = null; editingEvent = master(item) }
-    }
-    fun requestDelete(item: EventWithReminders) {
-        if (isSeries(item)) seriesPrompt = item to true else showDeleteConfirm = master(item)
-    }
     // Remember which external requests were already handled so re-entering the screen doesn't replay them.
     var handledAddRequest by rememberSaveable { mutableIntStateOf(addEventRequest) }
     var handledSettingsRequest by rememberSaveable { mutableIntStateOf(settingsRequest) }
@@ -276,6 +265,21 @@ fun CalendarScreen(
                     .atZone(ZoneId.systemDefault()).toLocalDate()
             }
             .toSet()
+    }
+
+    // Repeating events first ask whether a change is for this occurrence, the following ones or all.
+    var seriesPrompt by remember { mutableStateOf<Pair<EventWithReminders, Boolean>?>(null) } // occurrence, isDelete
+    var editScope by remember { mutableStateOf(SeriesScope.ALL) }
+    var editOccurrence by remember { mutableStateOf<EventWithReminders?>(null) }
+    fun isSeries(item: EventWithReminders) = !master(item).event.recurrenceRule.isNullOrBlank()
+    fun requestEdit(item: EventWithReminders) {
+        if (DeviceCalendar.isDeviceEvent(item.event)) { scope.launch { snackbarHostState.showSnackbar(Str.deviceEventReadOnly.of(lang)) }; return }
+        if (isSeries(item)) seriesPrompt = item to false
+        else { editScope = SeriesScope.ALL; editOccurrence = null; editingEvent = master(item) }
+    }
+    fun requestDelete(item: EventWithReminders) {
+        if (DeviceCalendar.isDeviceEvent(item.event)) { scope.launch { snackbarHostState.showSnackbar(Str.deviceEventReadOnly.of(lang)) }; return }
+        if (isSeries(item)) seriesPrompt = item to true else showDeleteConfirm = master(item)
     }
 
     // Snackbar helper
@@ -862,6 +866,7 @@ fun CalendarScreen(
                         detectDragGestures(
                             onDragEnd = {
                                 dragDropState.onDragEnd { occurrence, newDate ->
+                                    if (DeviceCalendar.isDeviceEvent(occurrence.event)) return@onDragEnd
                                     // Move the stored event by the same distance the occurrence was dragged.
                                     val ev = master(occurrence)
                                     val currentStartTime = Instant.ofEpochMilli(occurrence.event.startTimeMillis).atZone(ZoneId.of(ev.event.timezone)).toLocalTime()
@@ -1715,6 +1720,7 @@ fun SettingsDialog(
                                     }
                                 )
                             }
+                            DeviceCalendarRow(viewModel)
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                             ListItem(
                                 headlineContent = { Text(Translations.get(TransKey.EXPORT, lang)) },
@@ -2534,4 +2540,33 @@ private fun SeriesScopeDialog(isDelete: Boolean, onDismiss: () -> Unit, onPick: 
         confirmButton = {},
         dismissButton = { TextButton(onClick = onDismiss) { Text(Str.cancel.text()) } }
     )
+}
+
+/** Settings row: show the phone's calendars (read-only) next to the app's own events. */
+@Composable
+private fun DeviceCalendarRow(viewModel: MainViewModel) {
+    val context = LocalContext.current
+    val enabled by viewModel.deviceCalendarEnabled.collectAsState()
+    val permission = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { granted -> if (granted) viewModel.setDeviceCalendarEnabled(true) }
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
+    ) {
+        Column(Modifier.weight(1f)) {
+            Text(Str.showDeviceCalendars.text(), style = MaterialTheme.typography.bodyLarge)
+            Text(Str.showDeviceCalendarsDesc.text(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Switch(
+            checked = enabled && DeviceCalendar.hasPermission(context),
+            onCheckedChange = { on ->
+                when {
+                    !on -> viewModel.setDeviceCalendarEnabled(false)
+                    DeviceCalendar.hasPermission(context) -> viewModel.setDeviceCalendarEnabled(true)
+                    else -> permission.launch(android.Manifest.permission.READ_CALENDAR)
+                }
+            }
+        )
+    }
 }

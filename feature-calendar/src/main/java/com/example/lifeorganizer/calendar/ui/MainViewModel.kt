@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.example.lifeorganizer.calendar.device.DeviceCalendar
 import com.example.lifeorganizer.calendar.util.SeriesRules
 import com.example.lifeorganizer.calendar.util.SeriesScope
 import androidx.work.*
@@ -68,6 +69,36 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val eventTemplates: StateFlow<List<com.example.lifeorganizer.calendar.data.EventTemplate>> = eventDao.getEventTemplates()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    /** Events of the phone's calendars (read-only), reloaded when they change. */
+    private val deviceEvents = MutableStateFlow<List<EventWithReminders>>(emptyList())
+    val deviceCalendarEnabled = MutableStateFlow(DeviceCalendar.isEnabled(application))
+
+    fun reloadDeviceCalendar() {
+        viewModelScope.launch(Dispatchers.IO) {
+            deviceEvents.value = DeviceCalendar.load(getApplication(), LocalDate.now().minusYears(1), LocalDate.now().plusYears(2))
+        }
+    }
+
+    fun setDeviceCalendarEnabled(enabled: Boolean) {
+        DeviceCalendar.setEnabled(getApplication(), enabled)
+        deviceCalendarEnabled.value = enabled
+        reloadDeviceCalendar()
+    }
+
+    private val deviceObserver = object : android.database.ContentObserver(android.os.Handler(android.os.Looper.getMainLooper())) {
+        override fun onChange(selfChange: Boolean) = reloadDeviceCalendar()
+    }
+
+    init {
+        application.contentResolver.registerContentObserver(android.provider.CalendarContract.Events.CONTENT_URI, true, deviceObserver)
+        reloadDeviceCalendar()
+    }
+
+    override fun onCleared() {
+        getApplication<Application>().contentResolver.unregisterContentObserver(deviceObserver)
+        super.onCleared()
+    }
+
     val eventsWithReminders: StateFlow<List<EventWithReminders>> = eventDao.getEventsWithReminders()
         .map { events ->
             val rangeStart = LocalDate.now().minusYears(2)
@@ -80,6 +111,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 }
             }
         }
+        .combine(deviceEvents) { own, device -> own + device }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     /**
