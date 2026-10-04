@@ -443,12 +443,8 @@ fun MainScreen(
                 }
 
                 if (showSmartAdd) {
-                    if (geminiApiKey.isNullOrBlank()) {
-                        com.example.lifeorganizer.calendar.ui.ApiKeyPromptDialog(
-                            onDismiss = { showSmartAdd = false },
-                            onSaveKey = { key -> calendarViewModel.saveGeminiApiKey(key) }
-                        )
-                    } else {
+                    // Without a key Smart Add runs offline (rule-based); the key can be set in the settings.
+                    run {
                         val contextData = SmartAddEngine.ContextData(
                             apiKey = geminiApiKey.orEmpty(),
                             categories = categories.map { it.id to it.name },

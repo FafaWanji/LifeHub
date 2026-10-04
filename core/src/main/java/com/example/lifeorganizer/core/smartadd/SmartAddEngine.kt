@@ -20,6 +20,8 @@ object SmartAddEngine {
     )
 
     suspend fun process(inputText: String, contextData: ContextData): List<SmartResult>? = withContext(Dispatchers.IO) {
+        // Without an API key, Smart Add works offline with simple rules.
+        if (contextData.apiKey.isBlank()) return@withContext OfflineParser.parse(inputText, contextData.waypoints).ifEmpty { null }
         try {
             val now = LocalDateTime.now()
             val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -177,6 +179,9 @@ object SmartAddEngine {
                 }
             }
             results.ifEmpty { null }
+        } catch (e: java.io.IOException) {
+            // No network: fall back to the offline rules instead of failing.
+            OfflineParser.parse(inputText, contextData.waypoints).ifEmpty { null }
         } catch (e: Exception) {
             e.printStackTrace()
             throw e
