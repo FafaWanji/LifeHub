@@ -121,6 +121,7 @@ fun MainScreen(
     var showUniversalSearch by remember { mutableStateOf(false) }
     var showBackup by rememberSaveable { mutableStateOf(false) }
     var showChangelog by remember { mutableStateOf(false) }
+    var showAbout by rememberSaveable { mutableStateOf(false) }
     var updateRequest by remember { mutableStateOf(false) }
     var foundUpdate by remember { mutableStateOf<com.example.lifeorganizer.update.UpdateInfo?>(null) }
     // A shared/opened backup file (.ics/.json) jumps straight into the import screen.
@@ -246,6 +247,10 @@ fun MainScreen(
                 },
                 onBackupClick = {
                     showBackup = true
+                    scope.launch { drawerState.close() }
+                },
+                onAboutClick = {
+                    showAbout = true
                     scope.launch { drawerState.close() }
                 },
                 onUpdateClick = {
@@ -446,6 +451,7 @@ fun MainScreen(
                 )
 
                 if (showChangelog) ChangelogDialog(onDismiss = { showChangelog = false })
+                if (showAbout) AboutScreen(onBack = { showAbout = false })
                 if (updateRequest || foundUpdate != null) {
                     com.example.lifeorganizer.update.UpdateDialog(known = foundUpdate) { updateRequest = false; foundUpdate = null }
                 }
