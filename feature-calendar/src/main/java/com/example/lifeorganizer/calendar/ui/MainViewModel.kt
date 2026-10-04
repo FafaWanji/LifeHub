@@ -97,7 +97,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private var observing = false
+
+    /** Watching the calendar provider needs the permission – without it the app crashed on a fresh install. */
+    private fun observeDeviceCalendar() {
+        if (observing || !DeviceCalendar.hasPermission(getApplication())) return
+        observing = runCatching {
+            getApplication<Application>().contentResolver.registerContentObserver(
+                android.provider.CalendarContract.Events.CONTENT_URI, true, deviceObserver
+            )
+        }.isSuccess
+    }
+
     fun setDeviceCalendarEnabled(enabled: Boolean) {
+        observeDeviceCalendar()
         DeviceCalendar.setEnabled(getApplication(), enabled)
         deviceCalendarEnabled.value = enabled
         reloadDeviceCalendar()
@@ -108,12 +121,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     init {
-        application.contentResolver.registerContentObserver(android.provider.CalendarContract.Events.CONTENT_URI, true, deviceObserver)
+        observeDeviceCalendar()
         reloadDeviceCalendar()
     }
 
     override fun onCleared() {
-        getApplication<Application>().contentResolver.unregisterContentObserver(deviceObserver)
+        if (observing) getApplication<Application>().contentResolver.unregisterContentObserver(deviceObserver)
         super.onCleared()
     }
 

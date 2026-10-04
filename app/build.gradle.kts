@@ -7,6 +7,11 @@ plugins {
 }
 
 // Read the Maps key from local.properties (not committed) instead of hard-coding it.
+// Release signing comes from local.properties (not in git); without it release builds stay unsigned.
+val localProps = Properties().apply {
+    rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+}
+
 val mapsApiKey: String = Properties().apply {
     rootProject.file("local.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
 }.getProperty("MAPS_API_KEY", "")
@@ -28,9 +33,21 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        localProps.getProperty("RELEASE_STORE_FILE")?.let { storePath ->
+            create("release") {
+                storeFile = file(storePath)
+                storePassword = localProps.getProperty("RELEASE_STORE_PASSWORD")
+                keyAlias = localProps.getProperty("RELEASE_KEY_ALIAS")
+                keyPassword = localProps.getProperty("RELEASE_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 
