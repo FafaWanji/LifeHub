@@ -20,6 +20,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.automirrored.filled.Label
+import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.Close
@@ -84,8 +85,13 @@ fun NoteEditorScreen(
     labelId: Long? = null,
     pinnedDate: Long? = null,
     onBack: () -> Unit = {},
-    onCreateReminder: (noteId: Long, title: String, timeMillis: Long) -> Unit = { _, _, _ -> }
+    onCreateReminder: (noteId: Long, title: String, timeMillis: Long) -> Unit = { _, _, _ -> },
+    /** Dokki documents (id to title) and how to open one. */
+    documents: List<Pair<Long, String>> = emptyList(),
+    onOpenDocument: (Long) -> Unit = {}
 ) {
+    var documentId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var pickDocument by remember { mutableStateOf(false) }
     val lang = LocalAppLanguage.current
     val scope = rememberCoroutineScope()
     val sessionKey = rememberSaveable { UUID.randomUUID().toString() }
@@ -134,6 +140,7 @@ fun NoteEditorScreen(
                 colorLabel = n.note.colorLabel
                 pinnedToDate = n.note.pinnedToDate
                 labelIds = n.labels.map { it.id }.toSet()
+                documentId = n.note.documentId
                 if (content.isBlank()) mode = EditorMode.EDIT
             }
         } else if (templateId != null) {
@@ -149,10 +156,10 @@ fun NoteEditorScreen(
             }
         }
         loaded = true
-        lastSaved = draft(currentId, title, body.text, colorLabel, isPinned, pinnedToDate, templateId, labelIds)
+        lastSaved = draft(currentId, title, body.text, colorLabel, isPinned, pinnedToDate, templateId, labelIds, documentId)
     }
 
-    fun currentDraft() = draft(currentId, title, body.text, colorLabel, isPinned, pinnedToDate, templateId, labelIds)
+    fun currentDraft() = draft(currentId, title, body.text, colorLabel, isPinned, pinnedToDate, templateId, labelIds, documentId)
 
     fun save(onSaved: (Long) -> Unit = {}) {
         if (!loaded || deleted) return
@@ -219,6 +226,11 @@ fun NoteEditorScreen(
                         MenuEntry(Icons.AutoMirrored.Filled.Label, "${Str.labels.text()} & ${Str.color.text()}") {
                             showMenu = false; showLabelSheet = true
                         }
+                        if (documents.isNotEmpty()) {
+                            MenuEntry(Icons.Default.AttachFile, Str.attachDocument.text()) {
+                                showMenu = false; pickDocument = true
+                            }
+                        }
                         MenuEntry(Icons.Default.Event, Str.pinToDate.text()) {
                             showMenu = false; showDatePicker = true
                         }
@@ -276,11 +288,23 @@ fun NoteEditorScreen(
 
             // Meta chips: calendar day, labels, color
             val noteLabels = allLabels.filter { it.id in labelIds }
-            AnimatedVisibility(visible = pinnedToDate != null || noteLabels.isNotEmpty()) {
+            val attached = documentId?.let { id -> documents.firstOrNull { it.first == id } }
+            AnimatedVisibility(visible = pinnedToDate != null || noteLabels.isNotEmpty() || attached != null) {
                 FlowRow(
                     modifier = Modifier.padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
+                    attached?.let { (id, docTitle) ->
+                        InputChip(
+                            selected = true,
+                            onClick = { onOpenDocument(id) },
+                            label = { Text(docTitle, maxLines = 1) },
+                            leadingIcon = { Icon(Icons.Default.AttachFile, null, Modifier.size(18.dp)) },
+                            trailingIcon = {
+                                Icon(Icons.Default.Close, Str.delete.text(), Modifier.size(18.dp).clickable { documentId = null })
+                            }
+                        )
+                    }
                     pinnedToDate?.let { millis ->
                         InputChip(
                             selected = true,
@@ -363,6 +387,24 @@ fun NoteEditorScreen(
             }
             Spacer(Modifier.height(24.dp))
         }
+    }
+
+    if (pickDocument) {
+        AlertDialog(
+            onDismissRequest = { pickDocument = false },
+            title = { Text(Str.attachDocument.text()) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    documents.forEach { (id, docTitle) ->
+                        TextButton(onClick = { documentId = id; pickDocument = false }, modifier = Modifier.fillMaxWidth()) {
+                            Text(docTitle, modifier = Modifier.fillMaxWidth(), maxLines = 1)
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { pickDocument = false }) { Text(Str.cancel.text()) } }
+        )
     }
 
     if (showLabelSheet) {
@@ -476,8 +518,8 @@ fun NoteEditorScreen(
 
 private fun draft(
     id: Long?, title: String, content: String, color: Int?, pinned: Boolean,
-    pinnedToDate: Long?, templateId: Long?, labels: Set<Long>
-) = NoteDraft(id, title, content, color, pinned, pinnedToDate, templateId, labels)
+    pinnedToDate: Long?, templateId: Long?, labels: Set<Long>, documentId: Long?
+) = NoteDraft(id, title, content, color, pinned, pinnedToDate, templateId, labels, documentId)
 
 private fun utcPickerToLocalMidnight(utcMillis: Long): Long =
     Instant.ofEpochMilli(utcMillis).atZone(ZoneOffset.UTC).toLocalDate()

@@ -32,7 +32,8 @@ data class NoteDraft(
     val isPinned: Boolean,
     val pinnedToDate: Long?,
     val templateId: Long?,
-    val labelIds: Set<Long>
+    val labelIds: Set<Long>,
+    val documentId: Long? = null
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -114,7 +115,8 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             pinnedToDate = draft.pinnedToDate,
             isDeleted = existing?.isDeleted ?: false,
             deletedAt = existing?.deletedAt,
-            templateId = draft.templateId
+            templateId = draft.templateId,
+            documentId = draft.documentId
         )
         val id = if (existing != null) {
             noteDao.updateNote(note)

@@ -20,7 +20,8 @@ data class Note(
     val pinnedToDate: Long? = null,
     val isDeleted: Boolean = false,
     val deletedAt: Long? = null,
-    val templateId: Long? = null
+    val templateId: Long? = null,
+    val documentId: Long? = null // attached Dokki document
 )
 
 @Entity(tableName = "note_labels")

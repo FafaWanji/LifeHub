@@ -328,6 +328,11 @@ fun MainScreen(
                                 templateId = editorTemplateId,
                                 labelId = editorLabelId,
                                 onBack = { activeView = editorReturnView },
+                                documents = allDocuments.map { it.id to it.title },
+                                onOpenDocument = { id ->
+                                    activeView = ActiveView.DOCUMENTS
+                                    documentToOpen = id
+                                },
                                 onCreateReminder = { noteId, title, timeMillis ->
                                     calendarViewModel.addEvent(
                                         title = "${Str.reminderPrefix.of(lang)}: $title",

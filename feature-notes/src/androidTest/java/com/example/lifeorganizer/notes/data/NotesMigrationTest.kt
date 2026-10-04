@@ -37,7 +37,7 @@ class NotesMigrationTest {
         }
 
         val room = Room.databaseBuilder(context, NotesDatabase::class.java, name)
-            .addMigrations(NotesDatabase.MIGRATION_1_2, NotesDatabase.MIGRATION_2_3)
+            .addMigrations(NotesDatabase.MIGRATION_1_2, NotesDatabase.MIGRATION_2_3, NotesDatabase.MIGRATION_3_4)
             .build()
         try {
             val notes = runBlocking { room.noteDao().getAllNotesWithLabelsSync() }

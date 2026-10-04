@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [Note::class, NoteLabel::class, NoteLabelCrossRef::class, NoteTemplate::class],
-    version = 3,
+    version = 4,
     exportSchema = true
 )
 abstract class NotesDatabase : RoomDatabase() {
@@ -18,6 +18,13 @@ abstract class NotesDatabase : RoomDatabase() {
     companion object {
         @Volatile
         private var INSTANCE: NotesDatabase? = null
+
+        /** v4: notes can carry a Dokki document. */
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE notes ADD COLUMN documentId INTEGER")
+            }
+        }
 
         /** v3: templates can assign a label. */
         val MIGRATION_2_3 = object : Migration(2, 3) {
@@ -39,7 +46,7 @@ abstract class NotesDatabase : RoomDatabase() {
                     context.applicationContext,
                     NotesDatabase::class.java,
                     "notes_database"
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3).build()
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
                 INSTANCE = instance
                 instance
             }

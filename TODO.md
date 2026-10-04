@@ -34,7 +34,7 @@
 ## 5. Zusammenspiel
 - [x] Im Termin: „Notiz anlegen“ (verknüpft)
 - [x] Dokki-Dokument an Termin anhängen
-- [ ] Dokki-Dokument an Notiz anhängen
+- [x] Dokki-Dokument an Notiz anhängen
 - [x] Universalsuche auch über Waypoints und Dokki (prüfen)
 
 ## 6. Sonstiges
