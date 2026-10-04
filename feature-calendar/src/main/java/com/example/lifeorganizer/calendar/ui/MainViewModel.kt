@@ -765,22 +765,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
     }
 
+    /** Label of a reminder offset in the app language, e.g. "30 Minuten vorher". */
     private fun formatOffset(offset: Long): String {
-        return when (offset) {
-            0L -> "Exact start time"
-            30 * 60 * 1000L -> "30 mins before"
-            60 * 60 * 1000L -> "1 hour before"
-            24 * 60 * 60 * 1000L -> "1 day before"
-            7 * 24 * 60 * 60 * 1000L -> "1 week before"
-            else -> {
-                val mins = offset / 60000
-                when {
-                    mins < 60 -> "$mins mins before"
-                    mins < 1440 -> "${mins / 60} hours before"
-                    else -> "${mins / 1440} days before"
-                }
-            }
+        val lang = languageCode.value
+        val S = com.example.lifeorganizer.core.i18n.Str
+        if (offset == 0L) return S.exactTime.of(lang)
+        val mins = offset / 60000
+        val amount = when {
+            mins % 1440 == 0L -> "${mins / 1440} ${S.days.of(lang)}"
+            mins % 60 == 0L -> "${mins / 60} ${S.hours.of(lang)}"
+            else -> "$mins ${S.minutes.of(lang)}"
         }
+        return S.before.of(lang).format(amount)
     }
 
     fun importEventsFromUri(context: Context, uri: Uri, onResult: (Int, Int) -> Unit) {

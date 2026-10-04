@@ -1,5 +1,7 @@
 package com.example.lifeorganizer.calendar.ui
 
+import com.example.lifeorganizer.core.i18n.text
+import com.example.lifeorganizer.core.i18n.Str
 import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -203,7 +205,7 @@ fun SwipeToDeleteItem(
                 }) {
                     Icon(
                         Icons.Default.Delete,
-                        contentDescription = "Delete",
+                        contentDescription = Str.delete2.text(),
                         tint = MaterialTheme.colorScheme.onErrorContainer
                     )
                 }
@@ -266,7 +268,7 @@ fun SwipeToDeleteItem(
                     }
                 }
                 IconButton(onClick = onEdit) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit", modifier = Modifier.size(20.dp))
+                    Icon(Icons.Default.Edit, contentDescription = Str.edit2.text(), modifier = Modifier.size(20.dp))
                 }
             }
         }

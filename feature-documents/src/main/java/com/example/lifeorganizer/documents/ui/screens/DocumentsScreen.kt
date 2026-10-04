@@ -1,5 +1,7 @@
 package com.example.lifeorganizer.documents.ui.screens
 
+import com.example.lifeorganizer.core.i18n.text
+import com.example.lifeorganizer.core.i18n.Str
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -157,7 +159,7 @@ fun DocumentsScreen(
                 title = { Text(stringResource(R.string.documents)) },
                 navigationIcon = {
                     androidx.compose.material3.IconButton(onClick = onMenuClick) {
-                        androidx.compose.material3.Icon(Icons.Filled.Menu, contentDescription = "Menu")
+                        androidx.compose.material3.Icon(Icons.Filled.Menu, contentDescription = Str.menu.text())
                     }
                 }
             )

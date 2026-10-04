@@ -313,12 +313,12 @@ fun CalendarScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onMenuClick) {
-                        Icon(Icons.Default.Menu, contentDescription = "Menu")
+                        Icon(Icons.Default.Menu, contentDescription = Str.menu.text())
                     }
                 },
                 actions = {
                     IconButton(onClick = { onGlobalSearchClick?.invoke() }) {
-                        Icon(Icons.Default.Search, contentDescription = "Global Search")
+                        Icon(Icons.Default.Search, contentDescription = Str.globalSearch.text())
                     }
                         IconButton(onClick = {
                             scope.launch { state.scrollToMonth(YearMonth.now()) }
@@ -339,16 +339,16 @@ fun CalendarScreen(
                                 ViewMode.AGENDA -> Icons.Default.ViewWeek
                             }
                             val desc = when (viewMode) {
-                                ViewMode.MONTH -> "Week"
-                                ViewMode.WEEK -> "Agenda"
-                                ViewMode.AGENDA -> "Calendar"
+                                ViewMode.MONTH -> Str.weekView.text()
+                                ViewMode.WEEK -> Str.agendaView.text()
+                                ViewMode.AGENDA -> Str.monthView.text()
                             }
                             Icon(icon, contentDescription = desc)
                         }
 
                     CalendarFilterButton(viewModel, categories)
                     IconButton(onClick = { showSettings = !showSettings }) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        Icon(Icons.Default.Settings, contentDescription = Str.settings.text())
                     }
                 }
             )
@@ -365,10 +365,10 @@ fun CalendarScreen(
                         },
                         containerColor = MaterialTheme.colorScheme.tertiaryContainer
                     ) {
-                        Icon(Icons.Default.AutoAwesome, contentDescription = "Smart Add Event")
+                        Icon(Icons.Default.AutoAwesome, contentDescription = "Smart Add")
                     }
                     FloatingActionButton(onClick = { showAddDialog = true }) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Event")
+                        Icon(Icons.Default.Add, contentDescription = Str.addEvent.text())
                     }
                 }
             }
@@ -627,10 +627,10 @@ fun CalendarScreen(
                                     modifier = Modifier.padding(16.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(Icons.Default.PushPin, contentDescription = "Pinned Note", tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
+                                    Icon(Icons.Default.PushPin, contentDescription = Str.pinnedNote.text(), tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
                                     Spacer(modifier = Modifier.width(12.dp))
                                     Column {
-                                        Text(noteItem.title.ifBlank { "Untitled Note" }, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSecondaryContainer)
+                                        Text(noteItem.title.ifBlank { Str.untitledNote.text() }, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSecondaryContainer)
                                         if (noteItem.content.isNotBlank()) {
                                             Text(noteItem.content, maxLines = 1, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f))
                                         }
@@ -839,7 +839,7 @@ fun CalendarScreen(
                 eventTemplates = eventTemplates,
                 onSaveTemplate = { name, title, description, isAllDay, addr, buffer, lead, categoryId, recurrence ->
                     viewModel.saveEventTemplate(name, title, description, isAllDay, addr, buffer, lead, categoryId, recurrence)
-                    showSnackbarMessage("Template saved")
+                    showSnackbarMessage(Str.templateSaved.of(lang))
                 },
                 onDeleteTemplate = { template ->
                     viewModel.deleteEventTemplate(template)
@@ -1953,7 +1953,7 @@ fun AddEventDialog(
                         modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
                     ) {
                         OutlinedTextField(
-                            value = "Load from Template",
+                            value = Str.loadTemplate.text(),
                             onValueChange = {},
                             readOnly = true,
                             modifier = Modifier.menuAnchor(androidx.compose.material3.MenuAnchorType.PrimaryNotEditable, true).fillMaxWidth(),
@@ -1970,7 +1970,7 @@ fun AddEventDialog(
                                     text = { Text(template.name) },
                                     trailingIcon = {
                                         IconButton(onClick = { onDeleteTemplate(template) }) {
-                                            Icon(Icons.Default.Delete, contentDescription = "Delete Template", tint = MaterialTheme.colorScheme.error)
+                                            Icon(Icons.Default.Delete, contentDescription = Str.deleteTemplate.text(), tint = MaterialTheme.colorScheme.error)
                                         }
                                     },
                                     onClick = {
@@ -2170,7 +2170,7 @@ fun AddEventDialog(
                     ) {
                         Text(reminder.first, style = MaterialTheme.typography.bodyMedium)
                         IconButton(onClick = { reminders.remove(reminder) }) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                            Icon(Icons.Default.Delete, contentDescription = Str.delete2.text(), tint = MaterialTheme.colorScheme.error)
                         }
                     }
                 }
@@ -2242,13 +2242,13 @@ fun AddEventDialog(
                                 "Hours" -> Translations.get(TransKey.HOURS, lang).lowercase()
                                 else -> Translations.get(TransKey.DAYS, lang).lowercase()
                             }
-                            val label = if (value == 0L) "Exact time" else "$value $unitLabel before"
+                            val label = if (value == 0L) Str.exactTime.of(lang) else Str.before.of(lang).format("$value $unitLabel")
                             reminders.add(label to offset)
                             newReminderValue = ""
                         },
                         enabled = newReminderValue.isNotEmpty()
                     ) {
-                        Icon(Icons.Default.Add, contentDescription = "Add Reminder")
+                        Icon(Icons.Default.Add, contentDescription = Str.addReminder.text())
                     }
                 }
 
@@ -2266,7 +2266,7 @@ fun AddEventDialog(
                     isError = targetAddress.isNotBlank() && targetAddress.length < 5,
                     supportingText = {
                         if (targetAddress.isNotBlank() && targetAddress.length < 5) {
-                            Text("Address too short", color = MaterialTheme.colorScheme.error)
+                            Text(Str.addressTooShort.text(), color = MaterialTheme.colorScheme.error)
                         }
                     }
                 )
@@ -2318,18 +2318,18 @@ fun AddEventDialog(
                         Dialog(onDismissRequest = { showSaveTemplateDialog = false }) {
                             Card(modifier = Modifier.padding(16.dp)) {
                                 Column(modifier = Modifier.padding(16.dp)) {
-                                    Text("Save as Template", style = MaterialTheme.typography.titleMedium)
+                                    Text(Str.saveAsTemplate2.text(), style = MaterialTheme.typography.titleMedium)
                                     Spacer(modifier = Modifier.height(8.dp))
                                     OutlinedTextField(
                                         value = templateName,
                                         onValueChange = { templateName = it },
-                                        label = { Text("Template Name") },
+                                        label = { Text(Str.templateName.text()) },
                                         singleLine = true,
                                         modifier = Modifier.fillMaxWidth()
                                     )
                                     Spacer(modifier = Modifier.height(16.dp))
                                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                                        TextButton(onClick = { showSaveTemplateDialog = false }) { Text("Cancel") }
+                                        TextButton(onClick = { showSaveTemplateDialog = false }) { Text(Str.cancel2.text()) }
                                         Button(
                                             onClick = {
                                                 onSaveTemplate(
@@ -2346,7 +2346,7 @@ fun AddEventDialog(
                                                 showSaveTemplateDialog = false
                                             },
                                             enabled = templateName.isNotBlank()
-                                        ) { Text("Save") }
+                                        ) { Text(Str.save.text()) }
                                     }
                                 }
                             }
@@ -2354,7 +2354,7 @@ fun AddEventDialog(
                     }
 
                     TextButton(onClick = { showSaveTemplateDialog = true }, enabled = title.isNotBlank()) {
-                        Text("Save as Template")
+                        Text(Str.saveAsTemplate2.text())
                     }
                     Spacer(modifier = Modifier.weight(1f))
                     TextButton(onClick = onDismiss) { Text(com.example.lifeorganizer.core.i18n.Str.discard.of(lang)) }

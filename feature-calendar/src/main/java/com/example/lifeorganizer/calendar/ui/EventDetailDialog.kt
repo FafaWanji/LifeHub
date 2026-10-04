@@ -1,5 +1,7 @@
 package com.example.lifeorganizer.calendar.ui
 
+import com.example.lifeorganizer.core.i18n.text
+import com.example.lifeorganizer.core.i18n.Str
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.foundation.rememberScrollState
@@ -108,7 +110,7 @@ fun EventDetailDialog(
                         )
                     }
                     IconButton(onClick = onDismiss) {
-                        Icon(Icons.Default.Close, contentDescription = "Close")
+                        Icon(Icons.Default.Close, contentDescription = Str.close.text())
                     }
                 }
 
@@ -136,7 +138,7 @@ fun EventDetailDialog(
 
                 if (eventWithReminders.category != null) {
                     Spacer(modifier = Modifier.height(8.dp))
-                    DetailRow(label = "Category") {
+                    DetailRow(label = Str.category.text()) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(modifier = Modifier.size(12.dp).clip(RoundedCornerShape(2.dp)).background(Color(eventWithReminders.category.color)))
                             Spacer(modifier = Modifier.width(8.dp))

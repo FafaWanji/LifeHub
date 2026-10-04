@@ -1,5 +1,7 @@
 package com.example.lifeorganizer.calendar.widget
 
+import com.example.lifeorganizer.core.i18n.text
+import com.example.lifeorganizer.core.i18n.Str
 import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.Context
@@ -57,7 +59,7 @@ class CalendarWidgetConfigActivity : ComponentActivity() {
                 Scaffold(
                     topBar = {
                         TopAppBar(
-                            title = { Text("Widget Categories") },
+                            title = { Text(Str.widgetCategories.text()) },
                             actions = {
                                 TextButton(onClick = {
                                     saveWidgetConfig(this@CalendarWidgetConfigActivity, appWidgetId, selectedCategories)
@@ -72,7 +74,7 @@ class CalendarWidgetConfigActivity : ComponentActivity() {
                                     }
                                     finish()
                                 }) {
-                                    Text("Save")
+                                    Text(Str.save.text())
                                 }
                             }
                         )
@@ -91,12 +93,12 @@ class CalendarWidgetConfigActivity : ComponentActivity() {
                             TextButton(onClick = {
                                 selectedCategories = categories.map { it.id }.toSet() + (-1L)
                             }) {
-                                Text("Select All")
+                                Text(Str.selectAll.text())
                             }
                             TextButton(onClick = {
                                 selectedCategories = emptySet()
                             }) {
-                                Text("Clear")
+                                Text(Str.clear.text())
                             }
                         }
 
@@ -119,7 +121,7 @@ class CalendarWidgetConfigActivity : ComponentActivity() {
                                         }
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
-                                    Text("No Category", modifier = Modifier.weight(1f))
+                                    Text(Str.noCategory.text(), modifier = Modifier.weight(1f))
                                 }
                             }
                             items(categories) { category ->

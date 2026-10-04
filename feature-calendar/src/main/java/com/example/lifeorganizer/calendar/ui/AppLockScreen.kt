@@ -1,5 +1,7 @@
 package com.example.lifeorganizer.calendar.ui
 
+import com.example.lifeorganizer.core.i18n.text
+import com.example.lifeorganizer.core.i18n.Str
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
@@ -60,8 +62,8 @@ fun AppLockScreen(onUnlocked: () -> Unit) {
 
     val promptInfo = remember {
         BiometricPrompt.PromptInfo.Builder()
-            .setTitle("App Lock")
-            .setSubtitle("Authenticate to access Private Calendar")
+            .setTitle(Str.appLock.of(java.util.Locale.getDefault().language))
+            .setSubtitle(Str.appLockSubtitle.of(java.util.Locale.getDefault().language))
             .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_WEAK or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
             .build()
     }
@@ -78,13 +80,13 @@ fun AppLockScreen(onUnlocked: () -> Unit) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(
                     imageVector = Icons.Default.Lock,
-                    contentDescription = "Locked",
+                    contentDescription = Str.locked.text(),
                     modifier = Modifier.size(64.dp),
                     tint = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Button(onClick = { biometricPrompt?.authenticate(promptInfo) }) {
-                    Text("Unlock App")
+                    Text(Str.unlockApp.text())
                 }
             }
         }

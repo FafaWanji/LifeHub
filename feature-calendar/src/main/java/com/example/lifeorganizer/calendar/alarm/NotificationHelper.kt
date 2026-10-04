@@ -29,10 +29,10 @@ class NotificationHelper(private val context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 CHANNEL_ID,
-                "Calendar Reminders",
+                com.example.lifeorganizer.core.i18n.Str.remindersChannel.of(java.util.Locale.getDefault().language),
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "Notifications for calendar events"
+                description = com.example.lifeorganizer.core.i18n.Str.remindersChannelDesc.of(java.util.Locale.getDefault().language)
                 enableVibration(true)
                 vibrationPattern = longArrayOf(0, 500, 200, 500)
             }
@@ -44,7 +44,7 @@ class NotificationHelper(private val context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val channel = NotificationChannel(
                 BIRTHDAY_CHANNEL_ID,
-                "Birthday Reminders",
+                com.example.lifeorganizer.core.i18n.Str.birthdayChannel.of(java.util.Locale.getDefault().language),
                 NotificationManager.IMPORTANCE_DEFAULT
             ).apply {
                 description = "Birthday reminders at 23:59 with sound and vibration"

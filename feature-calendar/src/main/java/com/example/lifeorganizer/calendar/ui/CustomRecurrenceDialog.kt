@@ -1,5 +1,7 @@
 package com.example.lifeorganizer.calendar.ui
 
+import com.example.lifeorganizer.core.i18n.text
+import com.example.lifeorganizer.core.i18n.Str
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -51,7 +53,7 @@ fun CustomRecurrenceDialog(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
-                    text = "Custom Recurrence",
+                    text = Str.customRecurrence.text(),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -68,7 +70,7 @@ fun CustomRecurrenceDialog(
                         value = freq,
                         onValueChange = {},
                         readOnly = true,
-                        label = { Text("Frequency") },
+                        label = { Text(Str.frequency.text()) },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = freqExpanded) },
                         modifier = Modifier.menuAnchor().fillMaxWidth(),
                         colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
@@ -121,7 +123,7 @@ fun CustomRecurrenceDialog(
                     horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(onClick = onDismiss) {
-                        Text("Cancel")
+                        Text(Str.cancel2.text())
                     }
                     Button(
                         onClick = {
@@ -135,7 +137,7 @@ fun CustomRecurrenceDialog(
                         },
                         enabled = interval.isNotBlank() && (interval.toIntOrNull() ?: 0) > 0
                     ) {
-                        Text("Save")
+                        Text(Str.save.text())
                     }
                 }
             }

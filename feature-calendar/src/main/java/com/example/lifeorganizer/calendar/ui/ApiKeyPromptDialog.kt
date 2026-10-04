@@ -1,5 +1,7 @@
 package com.example.lifeorganizer.calendar.ui
 
+import com.example.lifeorganizer.core.i18n.text
+import com.example.lifeorganizer.core.i18n.Str
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.layout.*
@@ -55,7 +57,7 @@ fun ApiKeyPromptDialog(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = Icons.Default.Info,
-                        contentDescription = "Info",
+                        contentDescription = Str.info.text(),
                         tint = MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.width(8.dp))

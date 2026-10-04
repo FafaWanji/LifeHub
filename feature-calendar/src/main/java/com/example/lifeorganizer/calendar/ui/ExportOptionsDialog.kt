@@ -1,5 +1,7 @@
 package com.example.lifeorganizer.calendar.ui
 
+import com.example.lifeorganizer.core.i18n.text
+import com.example.lifeorganizer.core.i18n.Str
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -22,7 +24,7 @@ fun ExportOptionsDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Export Options") },
+        title = { Text(Str.exportOptions.text()) },
         text = {
             Column(
                 modifier = Modifier
@@ -37,7 +39,7 @@ fun ExportOptionsDialog(
                         selected = exportAll,
                         onClick = { exportAll = true }
                     )
-                    Text("Export Everything", modifier = Modifier.padding(start = 8.dp))
+                    Text(Str.exportEverything.text(), modifier = Modifier.padding(start = 8.dp))
                 }
                 
                 Row(
@@ -48,7 +50,7 @@ fun ExportOptionsDialog(
                         selected = !exportAll,
                         onClick = { exportAll = false }
                     )
-                    Text("Export Specifics", modifier = Modifier.padding(start = 8.dp))
+                    Text(Str.exportSpecific.text(), modifier = Modifier.padding(start = 8.dp))
                 }
 
                 if (!exportAll) {
@@ -63,7 +65,7 @@ fun ExportOptionsDialog(
                             checked = exportBirthdays,
                             onCheckedChange = { exportBirthdays = it }
                         )
-                        Text("Birthdays", modifier = Modifier.padding(start = 8.dp))
+                        Text(Str.birthdays.text(), modifier = Modifier.padding(start = 8.dp))
                     }
 
                     categories.forEach { category ->
@@ -93,12 +95,12 @@ fun ExportOptionsDialog(
                     onExport(exportAll, exportBirthdays, selectedCategoryIds)
                 }
             ) {
-                Text("Export")
+                Text(Str.exportBtn2.text())
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(Str.cancel2.text())
             }
         }
     )

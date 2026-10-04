@@ -366,7 +366,7 @@ fun CrashReportScreen(error: String, onRetry: () -> Unit) {
                 modifier = Modifier.padding(bottom = 16.dp)
             )
             Button(onClick = onRetry) {
-                Text("Retry")
+                Text(com.example.lifeorganizer.core.i18n.Str.retry.of(java.util.Locale.getDefault().language))
             }
         }
     }

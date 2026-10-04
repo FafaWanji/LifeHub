@@ -1,5 +1,7 @@
 package com.example.lifeorganizer.calendar.ui
 
+import com.example.lifeorganizer.core.i18n.text
+import com.example.lifeorganizer.core.i18n.Str
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -83,7 +85,7 @@ fun WeekView(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = { startOfWeek = startOfWeek.minusWeeks(1) }) {
-                Icon(Icons.Default.ArrowBack, contentDescription = "Previous Week")
+                Icon(Icons.Default.ArrowBack, contentDescription = Str.previousWeek.text())
             }
             Text(
                 text = "${startOfWeek.month.getDisplayName(TextStyle.SHORT, Locale.Builder().setLanguage(lang).build())} ${startOfWeek.year}",
@@ -91,7 +93,7 @@ fun WeekView(
                 fontWeight = FontWeight.Bold
             )
             IconButton(onClick = { startOfWeek = startOfWeek.plusWeeks(1) }) {
-                Icon(Icons.Default.ArrowForward, contentDescription = "Next Week")
+                Icon(Icons.Default.ArrowForward, contentDescription = Str.nextWeek.text())
             }
         }
 

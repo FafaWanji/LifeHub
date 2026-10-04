@@ -1,5 +1,7 @@
 package com.example.lifeorganizer.documents.ui.screens
 
+import com.example.lifeorganizer.core.i18n.text
+import com.example.lifeorganizer.core.i18n.Str
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -158,7 +160,7 @@ fun DocumentCard(
                 IconButton(onClick = onPinClick) {
                     Icon(
                         imageVector = Icons.Filled.PushPin,
-                        contentDescription = "Pin",
+                        contentDescription = Str.pin2.text(),
                         tint = if (document.isPinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }

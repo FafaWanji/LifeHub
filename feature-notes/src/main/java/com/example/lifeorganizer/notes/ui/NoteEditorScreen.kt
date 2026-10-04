@@ -574,7 +574,7 @@ private fun EditorBottomBar(mode: EditorMode, text: String, containerColor: Colo
                 if (mode == EditorMode.EDIT) {
                     ToolButton(Icons.Default.FormatBold, Str.bold.text()) { onFormat(FormatAction.BOLD) }
                     ToolButton(Icons.Default.FormatItalic, Str.italic.text()) { onFormat(FormatAction.ITALIC) }
-                    ToolButton(Icons.Default.FormatStrikethrough, "Strike") { onFormat(FormatAction.STRIKE) }
+                    ToolButton(Icons.Default.FormatStrikethrough, Str.strikethrough.text()) { onFormat(FormatAction.STRIKE) }
                     ToolButton(Icons.Default.Title, Str.heading.text()) { onFormat(FormatAction.HEADING) }
                     ToolButton(Icons.AutoMirrored.Filled.FormatListBulleted, Str.bulletList.text()) { onFormat(FormatAction.BULLET) }
                     ToolButton(Icons.Default.CheckBox, Str.checkbox.text()) { onFormat(FormatAction.CHECKBOX) }

@@ -62,7 +62,7 @@ class CalendarWidget : GlanceAppWidget() {
                 horizontalAlignment = Alignment.Horizontal.Start
             ) {
                 Text(
-                    text = "Upcoming Agenda",
+                    text = com.example.lifeorganizer.core.i18n.Str.upcomingAgenda.of(java.util.Locale.getDefault().language),
                     style = TextStyle(
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Bold,
@@ -73,7 +73,7 @@ class CalendarWidget : GlanceAppWidget() {
 
             if (events.isEmpty()) {
                 Text(
-                    text = "No upcoming events",
+                    text = com.example.lifeorganizer.core.i18n.Str.noUpcoming.of(java.util.Locale.getDefault().language),
                     style = TextStyle(
                         fontSize = 14.sp,
                         color = ColorProvider(Color(0xFFCAC4D0))
@@ -111,7 +111,7 @@ class CalendarWidget : GlanceAppWidget() {
                         
                         items(dayEvents) { event ->
                             val timeText = if (event.isAllDay) {
-                                "All day"
+                                com.example.lifeorganizer.core.i18n.Str.allDay.of(java.util.Locale.getDefault().language)
                             } else {
                                 Instant.ofEpochMilli(event.startTimeMillis)
                                     .atZone(ZoneId.of(event.timezone))

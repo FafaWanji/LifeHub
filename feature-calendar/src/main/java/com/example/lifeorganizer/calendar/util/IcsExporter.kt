@@ -102,6 +102,6 @@ object IcsExporter {
             putExtra(Intent.EXTRA_STREAM, uri)
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
-        context.startActivity(Intent.createChooser(intent, "Export Calendar"))
+        context.startActivity(Intent.createChooser(intent, com.example.lifeorganizer.core.i18n.Str.exportCalendar.of(java.util.Locale.getDefault().language)))
     }
 }

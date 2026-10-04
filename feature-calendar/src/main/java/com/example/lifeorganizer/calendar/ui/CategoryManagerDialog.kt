@@ -1,5 +1,7 @@
 package com.example.lifeorganizer.calendar.ui
 
+import com.example.lifeorganizer.core.i18n.text
+import com.example.lifeorganizer.core.i18n.Str
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -39,12 +41,12 @@ fun CategoryManagerDialog(
         ) {
             Column(modifier = Modifier.fillMaxSize()) {
                 TopAppBar(
-                    title = { Text("Manage Categories", style = MaterialTheme.typography.titleMedium) },
+                    title = { Text(Str.manageCategories.text(), style = MaterialTheme.typography.titleMedium) },
                     actions = {
                         IconButton(onClick = { showAddDialog = true }) {
-                            Icon(Icons.Default.Add, contentDescription = "Add Category")
+                            Icon(Icons.Default.Add, contentDescription = Str.addCategory.text())
                         }
-                        TextButton(onClick = onClose) { Text("Done") }
+                        TextButton(onClick = onClose) { Text(Str.done2.text()) }
                     }
                 )
                 HorizontalDivider()
@@ -68,7 +70,7 @@ fun CategoryManagerDialog(
                             trailingContent = {
                                 if (!category.isDefault) {
                                     IconButton(onClick = { onDelete(category) }) {
-                                        Icon(Icons.Default.Delete, contentDescription = "Delete", tint = MaterialTheme.colorScheme.error)
+                                        Icon(Icons.Default.Delete, contentDescription = Str.delete2.text(), tint = MaterialTheme.colorScheme.error)
                                     }
                                 }
                             },
@@ -109,17 +111,17 @@ fun AddCategoryDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("New Category") },
+        title = { Text(Str.newCategory.text()) },
         text = {
             Column {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
-                    label = { Text("Category Name") },
+                    label = { Text(Str.categoryName.text()) },
                     modifier = Modifier.fillMaxWidth()
                 )
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Select Color", style = MaterialTheme.typography.labelMedium)
+                Text(Str.selectColor.text(), style = MaterialTheme.typography.labelMedium)
                 Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -196,12 +198,12 @@ fun AddCategoryDialog(
                 onClick = { if (name.isNotBlank()) onSave(name, selectedColor) },
                 enabled = name.isNotBlank()
             ) {
-                Text("Save")
+                Text(Str.save.text())
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancel")
+                Text(Str.cancel2.text())
             }
         }
     )
@@ -222,7 +224,7 @@ fun CustomColorPickerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Custom Color (RGB)") },
+        title = { Text(Str.customColor.text()) },
         text = {
             Column {
                 Box(
@@ -245,10 +247,10 @@ fun CustomColorPickerDialog(
             }
         },
         confirmButton = {
-            Button(onClick = { onSave(currentColor.toArgb()) }) { Text("Save") }
+            Button(onClick = { onSave(currentColor.toArgb()) }) { Text(Str.save.text()) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(Str.cancel2.text()) }
         }
     )
 }

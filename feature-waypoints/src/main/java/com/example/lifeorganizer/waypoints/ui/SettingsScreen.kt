@@ -154,7 +154,7 @@ fun SettingsScreen(
                         Text(WpStr.appearance.text(), style = MaterialTheme.typography.titleLarge)
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        Text("Design Style", style = MaterialTheme.typography.bodyMedium)
+                        Text(Str.designStyle.text(), style = MaterialTheme.typography.bodyMedium)
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             FilterChip(
@@ -181,24 +181,24 @@ fun SettingsScreen(
 
                         if (currentThemeStyle == "pastel") {
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("Mode", style = MaterialTheme.typography.bodyMedium)
+                            Text(Str.mode.text(), style = MaterialTheme.typography.bodyMedium)
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             FilterChip(
                                 selected = currentThemeMode == "light",
                                 onClick = { onThemeModeChanged("light") },
-                                label = { Text("Pastel Light") }
+                                label = { Text(Str.pastelLight.text()) }
                             )
                             FilterChip(
                                 selected = currentThemeMode == "dark",
                                 onClick = { onThemeModeChanged("dark") },
-                                label = { Text("Pastel Dark") }
+                                label = { Text(Str.pastelDark.text()) }
                             )
                         }
 
                         Spacer(modifier = Modifier.height(16.dp))
 
-                        Text("Accent Color", style = MaterialTheme.typography.bodyMedium)
+                        Text(Str.accent.text(), style = MaterialTheme.typography.bodyMedium)
                         Spacer(modifier = Modifier.height(8.dp))
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             items(pastelAccents) { (accentId, color) ->
@@ -220,7 +220,7 @@ fun SettingsScreen(
 
                         if (currentThemeStyle == "neon") {
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("Neon Accent", style = MaterialTheme.typography.bodyMedium)
+                            Text(Str.neonAccent.text(), style = MaterialTheme.typography.bodyMedium)
                             Spacer(modifier = Modifier.height(8.dp))
                             LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 items(neonAccents) { (accentId, color) ->
