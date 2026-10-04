@@ -28,7 +28,7 @@ object Str {
     val calendar = Txt("Calendar", "Kalender", "Takvim", "Calendario")
     val notes = Txt("Notes", "Notizen", "Notlar", "Notas")
     val waypoints = Txt("Waypoints", "Waypoints", "Konumlar", "Lugares")
-    val documents = Txt("Dokki (Documents)", "Dokki (Dokumente)", "Dokki (Belgeler)", "Dokki (Documentos)")
+    val documents = Txt("Documents", "Dokumente", "Belgeler", "Documentos")
     val settings = Txt("Settings", "Einstellungen", "Ayarlar", "Ajustes")
     val menu = Txt("Menu", "Menü", "Menü", "Menú")
     val back = Txt("Back", "Zurück", "Geri", "Atrás")

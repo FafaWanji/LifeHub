@@ -184,7 +184,7 @@ fun BackupScreen(
                     FilledTonalButton(enabled = !busy, onClick = pickFile) { Text(BkStr.importBtn.text()) }
                     OutlinedButton(enabled = !busy, onClick = paste) { Text(BkStr.pasteBtn.text()) }
                 }
-                SourceCard(Icons.Default.Description, "DocPocket → Dokki", BkStr.dokkiHow.text()) {
+                SourceCard(Icons.Default.Description, "DocPocket → ${Str.documents.text()}", BkStr.dokkiHow.text()) {
                     FilledTonalButton(onClick = onOpenDokki) { Text(BkStr.openDokki.text()) }
                 }
                 Spacer(Modifier.height(24.dp))

@@ -63,12 +63,12 @@ object BkStr {
         "Copia checklist_data.json de la carpeta Checklist del PC al móvil (o su contenido al portapapeles). Cada página será una nota con casillas."
     )
     val dokkiHow = Txt(
-        "DocPocket only stored links to your files, the files themselves are still on the phone. Re-add them in Dokki – several at once is now possible.",
-        "DocPocket hat nur Verweise auf deine Dateien gespeichert, die Dateien selbst liegen weiter auf dem Handy. Füge sie in Dokki neu hinzu – jetzt auch mehrere auf einmal.",
-        "DocPocket yalnızca dosyalarına bağlantı saklıyordu; dosyalar hâlâ telefonda. Dokki'de yeniden ekle – artık birden fazlası aynı anda.",
-        "DocPocket solo guardaba enlaces; los archivos siguen en el móvil. Vuelve a añadirlos en Dokki, ahora varios a la vez."
+        "DocPocket only stored links to your files, the files themselves are still on the phone. Re-add them under Documents – several at once is now possible.",
+        "DocPocket hat nur Verweise auf deine Dateien gespeichert, die Dateien selbst liegen weiter auf dem Handy. Füge sie unter Dokumente neu hinzu – jetzt auch mehrere auf einmal.",
+        "DocPocket yalnızca dosyalarına bağlantı saklıyordu; dosyalar hâlâ telefonda. Belgeler'de yeniden ekle – artık birden fazlası aynı anda.",
+        "DocPocket solo guardaba enlaces; los archivos siguen en el móvil. Vuelve a añadirlos en Documentos, ahora varios a la vez."
     )
-    val openDokki = Txt("Open Dokki", "Dokki öffnen", "Dokki'yi aç", "Abrir Dokki")
+    val openDokki = Txt("Open documents", "Dokumente öffnen", "Belgeleri aç", "Abrir documentos")
     val working = Txt("Working…", "Wird verarbeitet…", "İşleniyor…", "Procesando…")
     val exported = Txt("Backup saved", "Backup gespeichert", "Yedek kaydedildi", "Copia guardada")
     val imported = Txt("Import finished", "Import abgeschlossen", "İçe aktarma tamamlandı", "Importación completada")

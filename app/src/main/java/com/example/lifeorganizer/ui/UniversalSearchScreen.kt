@@ -187,7 +187,7 @@ fun UniversalSearchScreen(
                     section(Str.waypoints.of(lang), Icons.Default.Place, waypointHits, q) {
                         MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
                     }
-                    section("Dokki", Icons.Default.Description, documentHits, q) {
+                    section(Str.documents.text(), Icons.Default.Description, documentHits, q) {
                         MaterialTheme.colorScheme.surfaceContainerHighest to MaterialTheme.colorScheme.onSurface
                     }
                 }
