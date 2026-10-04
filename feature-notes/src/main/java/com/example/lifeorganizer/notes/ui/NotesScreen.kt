@@ -306,7 +306,8 @@ fun NotesMainView(
                                 n,
                                 onClick = { onCardClick(n.note.id) },
                                 onLongClick = { onCardLongClick(n.note.id) },
-                                selected = n.note.id in selectedIds
+                                selected = n.note.id in selectedIds,
+                                onToggleItem = { line -> viewModel.toggleChecklistItem(n, line) }
                             )
                         }
                         if (otherNotes.isNotEmpty()) {
@@ -318,7 +319,8 @@ fun NotesMainView(
                             n,
                             onClick = { onCardClick(n.note.id) },
                             onLongClick = { onCardLongClick(n.note.id) },
-                            selected = n.note.id in selectedIds
+                            selected = n.note.id in selectedIds,
+                            onToggleItem = { line -> viewModel.toggleChecklistItem(n, line) }
                         )
                     }
                 }

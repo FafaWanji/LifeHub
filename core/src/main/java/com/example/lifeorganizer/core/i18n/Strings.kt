@@ -137,6 +137,21 @@ object Str {
     val copiedToDevice = Txt("Copied to phone calendar", "In Gerätekalender kopiert", "Telefon takvimine kopyalandı", "Copiado al calendario del teléfono")
     val copyFailed = Txt("Could not copy", "Kopieren fehlgeschlagen", "Kopyalanamadı", "No se pudo copiar")
     val noWritableCalendar = Txt("No writable calendar on this phone", "Kein beschreibbarer Kalender auf dem Gerät", "Yazılabilir takvim yok", "No hay calendario editable")
+    val markdownHelp = Txt("Formatting help", "Formatierungshilfe", "Biçimlendirme yardımı", "Ayuda de formato")
+    val helpHeading = Txt("Headings", "Überschriften", "Başlıklar", "Títulos")
+    val helpEmphasis = Txt("Bold, italic, strikethrough", "Fett, kursiv, durchgestrichen", "Kalın, italik, üstü çizili", "Negrita, cursiva, tachado")
+    val helpBullet = Txt("Bullet list", "Aufzählung", "Madde listesi", "Lista")
+    val helpNumbered = Txt("Numbered list", "Nummerierte Liste", "Numaralı liste", "Lista numerada")
+    val helpCheckbox = Txt("Checklist", "Checkliste", "Kontrol listesi", "Lista de tareas")
+    val helpQuote = Txt("Quote", "Zitat", "Alıntı", "Cita")
+    val helpCode = Txt("Code", "Code", "Kod", "Código")
+    val helpRule = Txt("Divider line", "Trennlinie", "Ayırıcı çizgi", "Línea divisoria")
+    val helpTick = Txt(
+        "Tick items: tap the box in the preview or on the note card – or press the checkbox button on the line while editing.",
+        "Abhaken: Kästchen in der Vorschau oder direkt auf der Notizkarte antippen – oder beim Bearbeiten den Checkbox-Knopf in der Zeile drücken.",
+        "İşaretle: önizlemede veya not kartında kutuya dokun – ya da düzenlerken satırda onay kutusu düğmesine bas.",
+        "Marcar: toca la casilla en la vista previa o en la tarjeta, o pulsa el botón de casilla en la línea al editar."
+    )
     val uncheckAll = Txt("Uncheck all", "Alle Haken entfernen", "Tüm işaretleri kaldır", "Desmarcar todo")
     val labelTemplate = Txt("Template for new notes", "Vorlage für neue Notizen", "Yeni notlar için şablon", "Plantilla para notas nuevas")
     val labelTemplateNone = Txt("No template – tap to add one", "Keine Vorlage – tippen zum Anlegen", "Şablon yok – eklemek için dokun", "Sin plantilla: toca para añadir")

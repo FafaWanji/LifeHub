@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
+import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.Label
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Check
@@ -555,6 +556,8 @@ enum class FormatAction { BOLD, ITALIC, STRIKE, CODE, HEADING, BULLET, CHECKBOX 
 @Composable
 private fun EditorBottomBar(mode: EditorMode, text: String, containerColor: Color, onFormat: (FormatAction) -> Unit) {
     val words = remember(text) { countWords(text) }
+    var showHelp by remember { mutableStateOf(false) }
+    if (showHelp) MarkdownHelpDialog { showHelp = false }
     Surface(color = containerColor, tonalElevation = 2.dp) {
         Row(
             modifier = Modifier
@@ -576,6 +579,7 @@ private fun EditorBottomBar(mode: EditorMode, text: String, containerColor: Colo
                     ToolButton(Icons.AutoMirrored.Filled.FormatListBulleted, Str.bulletList.text()) { onFormat(FormatAction.BULLET) }
                     ToolButton(Icons.Default.CheckBox, Str.checkbox.text()) { onFormat(FormatAction.CHECKBOX) }
                     ToolButton(Icons.Default.Code, "Code") { onFormat(FormatAction.CODE) }
+                    ToolButton(Icons.AutoMirrored.Filled.HelpOutline, Str.markdownHelp.text()) { showHelp = true }
                 } else {
                     checklistProgress(text)?.let { p ->
                         Spacer(Modifier.width(12.dp))
@@ -629,7 +633,15 @@ internal fun applyFormat(value: TextFieldValue, action: FormatAction): TextField
         FormatAction.CODE -> wrap("`")
         FormatAction.HEADING -> linePrefix("## ", Regex("^#{1,6}\\s"))
         FormatAction.BULLET -> linePrefix("- ", Regex("^[-*+]\\s(?!\\[)"))
-        FormatAction.CHECKBOX -> linePrefix("- [ ] ", Regex("^[-*+]\\s\\[[ xX]]\\s?"))
+        FormatAction.CHECKBOX -> {
+            // Cycles the current line: plain -> "- [ ]" -> "- [x]" -> plain, so items can be ticked while editing.
+            val lineStart = text.lastIndexOf('\n', (sel.start - 1).coerceAtLeast(0)).let { if (sel.start == 0) 0 else it + 1 }
+            val open = Regex("^(\\s*[-*+]\\s)\\[ ]").find(text.substring(lineStart))
+            if (open != null) {
+                val at = lineStart + open.groupValues[1].length + 1
+                TextFieldValue(text.substring(0, at) + "x" + text.substring(at + 1), sel)
+            } else linePrefix("- [ ] ", Regex("^[-*+]\\s\\[[xX]]\\s?"))
+        }
     }
 }
 
@@ -710,4 +722,35 @@ internal fun ColorSwatch(color: Int?, selected: Boolean, onClick: () -> Unit) {
         if (color == null) Icon(Icons.Default.Close, Str.noColor.text(), Modifier.size(18.dp))
         else if (selected) Icon(Icons.Default.Check, null, Modifier.size(18.dp), tint = Color.Black.copy(alpha = 0.7f))
     }
+}
+
+/** Short Markdown tutorial: what to type and what it looks like. */
+@Composable
+internal fun MarkdownHelpDialog(onDismiss: () -> Unit) {
+    val rows = listOf(
+        "# Titel / ## Untertitel" to Str.helpHeading,
+        "**fett**  *kursiv*  ~~durch~~" to Str.helpEmphasis,
+        "- Punkt" to Str.helpBullet,
+        "1. Punkt" to Str.helpNumbered,
+        "- [ ] Aufgabe  /  - [x] erledigt" to Str.helpCheckbox,
+        "> Zitat" to Str.helpQuote,
+        "`code`" to Str.helpCode,
+        "---" to Str.helpRule
+    )
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(Str.markdownHelp.text()) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                rows.forEach { (syntax, label) ->
+                    Column {
+                        Text(syntax, style = MaterialTheme.typography.bodyMedium.copy(fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace))
+                        Text(label.text(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                Text(Str.helpTick.text(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(Str.done.text()) } }
+    )
 }

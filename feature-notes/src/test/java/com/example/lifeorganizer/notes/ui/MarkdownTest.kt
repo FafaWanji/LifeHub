@@ -94,10 +94,12 @@ class MarkdownTest {
     }
 
     @Test
-    fun `checkbox action toggles the line prefix`() {
+    fun `checkbox action cycles open, done and plain`() {
         val added = applyFormat(TextFieldValue("Milch", TextRange(2)), FormatAction.CHECKBOX)
         assertEquals("- [ ] Milch", added.text)
-        val removed = applyFormat(TextFieldValue(added.text, TextRange(8)), FormatAction.CHECKBOX)
+        val done = applyFormat(TextFieldValue(added.text, TextRange(8)), FormatAction.CHECKBOX)
+        assertEquals("- [x] Milch", done.text)
+        val removed = applyFormat(TextFieldValue(done.text, TextRange(8)), FormatAction.CHECKBOX)
         assertEquals("Milch", removed.text)
     }
 

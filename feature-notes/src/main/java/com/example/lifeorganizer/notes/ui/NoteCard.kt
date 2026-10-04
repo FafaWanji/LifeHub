@@ -1,5 +1,7 @@
 package com.example.lifeorganizer.notes.ui
 
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -51,7 +53,9 @@ fun NoteCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     onLongClick: (() -> Unit)? = null,
-    selected: Boolean = false
+    selected: Boolean = false,
+    /** Ticks a checklist item right on the card (line index in the note content). */
+    onToggleItem: ((Int) -> Unit)? = null
 ) {
     val note = noteWithLabels.note
     val lang = LocalAppLanguage.current
@@ -98,7 +102,37 @@ fun NoteCard(
                 Spacer(Modifier.height(6.dp))
             }
 
-            if (preview.isNotBlank()) {
+            if (progress != null && onToggleItem != null) {
+                // Checklists: items can be ticked without opening the note
+                val lines = remember(note.content) { note.content.split("\n").withIndex().filter { it.value.isNotBlank() }.take(8) }
+                lines.forEach { (index, line) ->
+                    val box = Regex("^\\s*[-*+]\\s+\\[([ xX])]\\s?(.*)$").matchEntire(line)
+                    if (box != null) {
+                        val done = box.groupValues[1] != " "
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth().clickable { onToggleItem(index) }.padding(vertical = 2.dp)
+                        ) {
+                            Icon(
+                                if (done) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank, null,
+                                Modifier.size(18.dp),
+                                tint = if (done) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Spacer(Modifier.width(6.dp))
+                            Text(
+                                box.groupValues[2], maxLines = 1, overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    textDecoration = if (done) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
+                                ),
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    } else {
+                        Text(markdownToPlainText(line), maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            } else if (preview.isNotBlank()) {
                 Text(
                     text = preview,
                     maxLines = 8,
