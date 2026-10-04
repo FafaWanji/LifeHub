@@ -23,6 +23,11 @@ android {
     }
 }
 
+ksp {
+    // Schemas are kept in git so migrations can be checked against older versions.
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
     implementation(project(":core"))
 

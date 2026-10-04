@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 @Database(
     entities = [WaypointEntity::class, LabelEntity::class, WaypointLabelCrossRef::class],
     version = 2,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun waypointDao(): WaypointDao
@@ -34,7 +34,6 @@ abstract class AppDatabase : RoomDatabase() {
                     "waypoints_database"
                 )
                 .addMigrations(MIGRATION_1_2)
-                .fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance
                 instance

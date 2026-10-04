@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 @Database(
     entities = [Note::class, NoteLabel::class, NoteLabelCrossRef::class, NoteTemplate::class],
     version = 2,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class NotesDatabase : RoomDatabase() {
     abstract fun noteDao(): NoteDao
