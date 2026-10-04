@@ -30,6 +30,17 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "0.10", listOf(
+            Txt("App is much smaller (about 18 MB instead of 62 MB)", "App ist deutlich kleiner (ca. 18 MB statt 62 MB)", "Uygulama çok daha küçük (~18 MB)", "La app es mucho más pequeña (~18 MB)"),
+            Txt("All texts translated – no more English mix", "Alle Texte übersetzt – kein Englisch-Mix mehr", "Tüm metinler çevrildi", "Todos los textos traducidos"),
+            Txt("Backup now includes settings and documents attached to notes", "Backup enthält jetzt Einstellungen und an Notizen angehängte Dokumente", "Yedek artık ayarları ve notlara ekli belgeleri içerir", "La copia incluye ajustes y documentos de notas"),
+            Txt("Crash screen with 'share report'", "Absturz-Bildschirm mit „Bericht teilen“", "'Raporu paylaş' ile çökme ekranı", "Pantalla de error con 'compartir informe'"),
+            Txt("About & privacy with open-source licences", "Über die App & Datenschutz mit Open-Source-Lizenzen", "Hakkında ve gizlilik, açık kaynak lisansları", "Acerca de y privacidad con licencias"),
+            Txt("Better with large font sizes", "Besser bei großer Schrift", "Büyük yazı boyutunda daha iyi", "Mejor con letra grande"),
+            Txt("Fixed: backup failed after reinstalling", "Behoben: Backup schlug nach Neuinstallation fehl", "Düzeltildi: yeniden kurulumdan sonra yedekleme hatası", "Corregido: copia fallaba tras reinstalar")
+        )
+    ),
+    Release(
         "0.9", listOf(
             Txt("First start: setup for language and design", "Erster Start: Einrichtung von Sprache und Design", "İlk açılış: dil ve tasarım kurulumu", "Primer inicio: configuración de idioma y diseño"),
             Txt("Patch notes after updates and a full changelog in the menu", "Patchnotes nach Updates und komplettes Changelog im Menü", "Güncellemeden sonra yenilikler ve menüde tüm değişiklikler", "Novedades tras actualizar y registro completo en el menú"),

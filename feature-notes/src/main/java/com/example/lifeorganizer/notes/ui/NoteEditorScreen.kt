@@ -593,7 +593,10 @@ private fun EditorBottomBar(mode: EditorMode, text: String, containerColor: Colo
                 "$words ${Str.words.text()} · ${text.length} ${Str.chars.text()}",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(horizontal = 12.dp)
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                // Large font sizes must not push the formatting buttons off screen
+                modifier = Modifier.padding(horizontal = 12.dp).widthIn(max = 110.dp)
             )
         }
     }

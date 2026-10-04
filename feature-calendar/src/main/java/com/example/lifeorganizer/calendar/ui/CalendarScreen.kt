@@ -1,5 +1,6 @@
 package com.example.lifeorganizer.calendar.ui
 
+import androidx.compose.ui.text.style.TextOverflow
 import com.example.lifeorganizer.calendar.util.SeriesScope
 import androidx.compose.material.icons.filled.FilterList
 import com.example.lifeorganizer.calendar.device.DeviceCalendar
@@ -309,7 +310,7 @@ fun CalendarScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("LifeOrganizer", fontWeight = FontWeight.Bold)
+                    Text("LifeOrganizer", fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 },
                 navigationIcon = {
                     IconButton(onClick = onMenuClick) {
