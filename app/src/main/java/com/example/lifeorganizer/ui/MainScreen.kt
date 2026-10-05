@@ -1,5 +1,7 @@
 package com.example.lifeorganizer.ui
 
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.widthIn
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContent
@@ -279,6 +281,7 @@ fun MainScreen(
                     }
                 ) { view ->
                     saveableStateHolder.SaveableStateProvider(if (view == ActiveView.NOTE_EDITOR) "${view.name}-$editorSession" else view.name) {
+                        ReadableWidth(enabled = view != ActiveView.NOTES) {
                         when (view) {
                             ActiveView.CALENDAR -> CalendarScreen(
                                 viewModel = calendarViewModel,
@@ -396,6 +399,7 @@ fun MainScreen(
                             )
                         }
                     }
+}
                 }
 
                 // Unified action cluster: Smart Add, contextual "+" and the calendar/notes switcher in the corner.
@@ -602,3 +606,12 @@ internal fun toChecklist(content: String): String =
     content.lines().filter { it.isNotBlank() }.joinToString("\n") { line ->
         if (existingItem.containsMatchIn(line)) line.trim() else "- [ ] " + line.replace(bullet, "").trim()
     }
+
+/** On tablets / landscape, single-column screens stay at a readable width instead of stretching. */
+@Composable
+private fun ReadableWidth(enabled: Boolean, content: @Composable () -> Unit) {
+    if (!enabled) { content(); return }
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        Box(Modifier.fillMaxHeight().widthIn(max = 840.dp)) { content() }
+    }
+}

@@ -37,6 +37,7 @@ val CHANGELOG = listOf(
             Txt("Crash screen with 'share report'", "Absturz-Bildschirm mit „Bericht teilen“", "'Raporu paylaş' ile çökme ekranı", "Pantalla de error con 'compartir informe'"),
             Txt("About & privacy with open-source licences", "Über die App & Datenschutz mit Open-Source-Lizenzen", "Hakkında ve gizlilik, açık kaynak lisansları", "Acerca de y privacidad con licencias"),
             Txt("Better with large font sizes", "Besser bei großer Schrift", "Büyük yazı boyutunda daha iyi", "Mejor con letra grande"),
+            Txt("Landscape and tablets: readable width, compact month, more room in the note editor", "Querformat & Tablets: lesbare Breite, kompakter Monat, mehr Platz im Notiz-Editor", "Yatay ve tablet: okunur genişlik, kompakt ay, not düzenleyicide daha fazla alan", "Horizontal y tablets: ancho legible, mes compacto, más espacio en notas"),
             Txt("Fixed: backup failed after reinstalling", "Behoben: Backup schlug nach Neuinstallation fehl", "Düzeltildi: yeniden kurulumdan sonra yedekleme hatası", "Corregido: copia fallaba tras reinstalar")
         )
     ),

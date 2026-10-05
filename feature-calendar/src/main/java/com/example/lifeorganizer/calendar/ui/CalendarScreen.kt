@@ -310,7 +310,7 @@ fun CalendarScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("LifeOrganizer", fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("LifeOrganizer", fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
                 },
                 navigationIcon = {
                     IconButton(onClick = onMenuClick) {
@@ -1230,10 +1230,13 @@ fun Day(
 ) {
     val today = LocalDate.now()
     val isToday = day.date == today
+    // Wide screens (landscape, tablets): flatter cells so the whole month fits
+    val config = androidx.compose.ui.platform.LocalConfiguration.current
+    val ratio = if (config.screenWidthDp > config.screenHeightDp) 2.2f else 1f
 
     Box(
         modifier = Modifier
-            .aspectRatio(1f)
+            .aspectRatio(ratio)
             .padding(2.dp)
             .clip(RoundedCornerShape(8.dp))
             .background(

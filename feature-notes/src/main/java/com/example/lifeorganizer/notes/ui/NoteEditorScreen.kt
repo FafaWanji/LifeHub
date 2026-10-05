@@ -194,7 +194,9 @@ fun NoteEditorScreen(
         containerColor = noteTint,
         snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
-            TopAppBar(
+            // Landscape with keyboard: the bar would leave no room for the text itself
+            val landscape = androidx.compose.ui.platform.LocalConfiguration.current.let { it.screenWidthDp > it.screenHeightDp }
+            if (!(landscape && WindowInsets.isImeVisible)) TopAppBar(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = noteTint),
                 title = {},
                 navigationIcon = {
