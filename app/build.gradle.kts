@@ -21,7 +21,8 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.example.lifeorganizer"
+        // New store-ready id (0.10): installs as a separate app; move data via backup
+        applicationId = "de.fayaz.lifehub"
         minSdk = 26
         targetSdk = 36
         versionCode = 10

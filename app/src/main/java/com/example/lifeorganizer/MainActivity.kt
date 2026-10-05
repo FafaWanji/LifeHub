@@ -115,7 +115,7 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             try {
                 // Context first so a shared report is useful without asking back
-                val crashText = "LifeOrganizer ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\n" +
+                val crashText = "LifeHub ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\n" +
                     "Android ${android.os.Build.VERSION.RELEASE} (SDK ${android.os.Build.VERSION.SDK_INT}), " +
                     "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}\n" +
                     "${java.time.LocalDateTime.now().withNano(0)}, thread ${thread.name}\n\n" +
@@ -364,14 +364,14 @@ fun CrashReportScreen(error: String, onRetry: () -> Unit) {
                 // Nothing leaves the phone automatically – the user picks where the report goes (mail, Telegram …)
                 val send = Intent(Intent.ACTION_SEND).apply {
                     type = "text/plain"
-                    putExtra(Intent.EXTRA_SUBJECT, "LifeOrganizer crash report")
+                    putExtra(Intent.EXTRA_SUBJECT, "LifeHub crash report")
                     putExtra(Intent.EXTRA_TEXT, error)
                 }
                 context.startActivity(Intent.createChooser(send, S.shareReport.of(lang)))
             }, modifier = Modifier.fillMaxWidth()) { Text(S.shareReport.of(lang)) }
             OutlinedButton(onClick = {
                 val cm = context.getSystemService(android.content.ClipboardManager::class.java)
-                cm.setPrimaryClip(android.content.ClipData.newPlainText("LifeOrganizer crash", error))
+                cm.setPrimaryClip(android.content.ClipData.newPlainText("LifeHub crash", error))
             }, modifier = Modifier.fillMaxWidth()) { Text(S.copyReport.of(lang)) }
             OutlinedButton(onClick = onRetry, modifier = Modifier.fillMaxWidth()) { Text(S.restartApp.of(lang)) }
             TextButton(onClick = { showDetails = !showDetails }) { Text(S.technicalDetails.of(lang)) }

@@ -310,7 +310,7 @@ fun CalendarScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("LifeOrganizer", fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
+                    Text("LifeHub", fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
                 },
                 navigationIcon = {
                     IconButton(onClick = onMenuClick) {

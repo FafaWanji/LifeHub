@@ -198,7 +198,7 @@ object Str {
     val selectAll = Txt("Select all", "Alle auswählen", "Tümünü seç", "Seleccionar todo")
     val noCategory = Txt("No category", "Keine Kategorie", "Kategori yok", "Sin categoría")
     val appLock = Txt("App lock", "App-Sperre", "Uygulama kilidi", "Bloqueo de app")
-    val appLockSubtitle = Txt("Unlock to open LifeOrganizer", "Entsperren, um LifeOrganizer zu öffnen", "LifeOrganizer'ı açmak için kilidi aç", "Desbloquea para abrir LifeOrganizer")
+    val appLockSubtitle = Txt("Unlock to open LifeHub", "Entsperren, um LifeHub zu öffnen", "LifeHub'ı açmak için kilidi aç", "Desbloquea para abrir LifeHub")
     val unlockApp = Txt("Unlock", "Entsperren", "Kilidi aç", "Desbloquear")
     val info = Txt("Info", "Info", "Bilgi", "Info")
     val remindersChannel = Txt("Calendar reminders", "Kalender-Erinnerungen", "Takvim hatırlatıcıları", "Recordatorios del calendario")
@@ -214,7 +214,7 @@ object Str {
     val delete2 = Txt("Delete", "Löschen", "Sil", "Eliminar")
     val cancel2 = Txt("Cancel", "Abbrechen", "İptal", "Cancelar")
     val done2 = Txt("Done", "Fertig", "Tamam", "Listo")
-    val crashTitle = Txt("LifeOrganizer stopped", "LifeOrganizer wurde beendet", "LifeOrganizer durdu", "LifeOrganizer se cerró")
+    val crashTitle = Txt("LifeHub stopped", "LifeHub wurde beendet", "LifeHub durdu", "LifeHub se cerró")
     val crashText = Txt(
         "Something went wrong. Your data is safe. Sharing the report helps fix the problem – it only contains technical information, no notes or events.",
         "Etwas ist schiefgelaufen. Deine Daten sind sicher. Teile den Bericht, damit der Fehler behoben werden kann – er enthält nur technische Angaben, keine Notizen oder Termine.",
@@ -228,7 +228,7 @@ object Str {
     val about = Txt("About & privacy", "Über die App & Datenschutz", "Hakkında ve gizlilik", "Acerca de y privacidad")
     val privacy = Txt("Privacy", "Datenschutz", "Gizlilik", "Privacidad")
     val openSource = Txt("Open-source licences", "Open-Source-Lizenzen", "Açık kaynak lisansları", "Licencias de código abierto")
-    val appSetupTitle = Txt("Welcome to LifeOrganizer", "Willkommen bei LifeOrganizer", "LifeOrganizer'a hoş geldin", "Bienvenido a LifeOrganizer")
+    val appSetupTitle = Txt("Welcome to LifeHub", "Willkommen bei LifeHub", "LifeHub'a hoş geldin", "Bienvenido a LifeHub")
     val checkUpdates = Txt("Check for updates", "Nach Updates suchen", "Güncellemeleri denetle", "Buscar actualizaciones")
     val updateAvailable = Txt("Version %s available", "Version %s verfügbar", "%s sürümü mevcut", "Versión %s disponible")
     val upToDate = Txt("Up to date", "Aktuell", "Güncel", "Actualizado")
@@ -355,10 +355,10 @@ object Str {
 
     // Smart Add
     val smartAddHint = Txt(
-        "Type, paste, speak or scan a screenshot — LifeOrganizer decides whether it's an event or a note.",
-        "Tippen, einfügen, sprechen oder Screenshot scannen – LifeOrganizer erkennt, ob es ein Termin oder eine Notiz ist.",
-        "Yaz, yapıştır, konuş ya da ekran görüntüsü tara — LifeOrganizer etkinlik mi not mu karar verir.",
-        "Escribe, pega, habla o escanea una captura: LifeOrganizer decide si es un evento o una nota."
+        "Type, paste, speak or scan a screenshot — LifeHub decides whether it's an event or a note.",
+        "Tippen, einfügen, sprechen oder Screenshot scannen – LifeHub erkennt, ob es ein Termin oder eine Notiz ist.",
+        "Yaz, yapıştır, konuş ya da ekran görüntüsü tara — LifeHub etkinlik mi not mu karar verir.",
+        "Escribe, pega, habla o escanea una captura: LifeHub decide si es un evento o una nota."
     )
     val smartAddPlaceholder = Txt(
         "e.g. Sunday 3pm meeting at Max",
@@ -387,7 +387,7 @@ object Str {
     val savedItems = Txt("items saved", "Einträge gespeichert", "öğe kaydedildi", "elementos guardados")
 
     // App lock
-    val locked = Txt("LifeOrganizer is locked", "LifeOrganizer ist gesperrt", "LifeOrganizer kilitli", "LifeOrganizer está bloqueado")
+    val locked = Txt("LifeHub is locked", "LifeHub ist gesperrt", "LifeHub kilitli", "LifeHub está bloqueado")
     val unlock = Txt("Unlock", "Entsperren", "Kilidi aç", "Desbloquear")
     val unlockSubtitle = Txt(
         "Use your fingerprint, face or device PIN",

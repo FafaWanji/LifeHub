@@ -31,6 +31,7 @@ data class Release(val version: String, val items: List<Txt>)
 val CHANGELOG = listOf(
     Release(
         "0.10", listOf(
+            Txt("LifeOrganizer is now called LifeHub (new app – move your data once via backup)", "LifeOrganizer heißt jetzt LifeHub (neue App – Daten einmalig per Backup umziehen)", "LifeOrganizer artık LifeHub (yeni uygulama – verileri bir kez yedekle taşı)", "LifeOrganizer ahora es LifeHub (app nueva: mueve tus datos con una copia)"),
             Txt("App is much smaller (about 18 MB instead of 62 MB)", "App ist deutlich kleiner (ca. 18 MB statt 62 MB)", "Uygulama çok daha küçük (~18 MB)", "La app es mucho más pequeña (~18 MB)"),
             Txt("All texts translated – no more English mix", "Alle Texte übersetzt – kein Englisch-Mix mehr", "Tüm metinler çevrildi", "Todos los textos traducidos"),
             Txt("Backup now includes settings and documents attached to notes", "Backup enthält jetzt Einstellungen und an Notizen angehängte Dokumente", "Yedek artık ayarları ve notlara ekli belgeleri içerir", "La copia incluye ajustes y documentos de notas"),

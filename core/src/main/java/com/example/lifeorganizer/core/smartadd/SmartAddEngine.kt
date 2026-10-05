@@ -32,7 +32,7 @@ object SmartAddEngine {
             val waypointsStr = contextData.waypoints.joinToString(", ") { "'${it.first}' -> ${it.second}" }
 
             val systemPrompt = """
-                You are the intelligence engine of 'LifeOrganizer', an app that handles both Calendar Events and Notes.
+                You are the intelligence engine of 'LifeHub', an app that handles both Calendar Events and Notes.
                 Analyze the user's text and extract the data into a JSON array of items. 
                 Determine for each item whether it's an 'event' or a 'note'.
                 

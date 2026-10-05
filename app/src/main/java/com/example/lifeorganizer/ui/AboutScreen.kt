@@ -71,8 +71,8 @@ fun AboutScreen(onBack: () -> Unit) {
             Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("LifeOrganizer ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.titleLarge)
-            Text("github.com/FafaWanji/LifeOrganizer", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text("LifeHub ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.titleLarge)
+            Text("github.com/FafaWanji/LifeOrganizer · GPL-3.0", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             Text(Str.privacy.text(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 8.dp))
             PRIVACY.forEach { Text(it.text(), style = MaterialTheme.typography.bodyMedium) }

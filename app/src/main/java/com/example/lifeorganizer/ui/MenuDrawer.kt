@@ -165,7 +165,7 @@ private fun DrawerHeader() {
         }
         Spacer(Modifier.width(14.dp))
         Column {
-            Text("LifeOrganizer", style = MaterialTheme.typography.titleLarge)
+            Text("LifeHub", style = MaterialTheme.typography.titleLarge)
             Text(
                 Str.tagline.text(),
                 style = MaterialTheme.typography.bodySmall,

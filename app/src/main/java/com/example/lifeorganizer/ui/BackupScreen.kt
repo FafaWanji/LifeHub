@@ -139,7 +139,7 @@ fun BackupScreen(
                             modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
                         )
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Button(enabled = !busy, onClick = { exportLauncher.launch("lifeorganizer-backup-${LocalDate.now()}.json") }) {
+                            Button(enabled = !busy, onClick = { exportLauncher.launch("lifehub-backup-${LocalDate.now()}.json") }) {
                                 Icon(Icons.Default.FileUpload, null, Modifier.size(18.dp))
                                 Spacer(Modifier.width(8.dp))
                                 Text(BkStr.exportBtn.text())
@@ -221,7 +221,7 @@ fun BackupScreen(
 private fun describe(s: ImportSummary, lang: String): String {
     if (s.source == ImportSource.UNKNOWN) return BkStr.unknownFormat.of(lang)
     val source = when (s.source) {
-        ImportSource.LIFEORGANIZER_BACKUP -> "LifeOrganizer-Backup"
+        ImportSource.LIFEORGANIZER_BACKUP -> "LifeHub-Backup"
         ImportSource.ICS_CALENDAR -> "Kalender (.ics)"
         ImportSource.WAYPOINTS_IRL -> "Waypoints IRL"
         ImportSource.LIFEBASE -> "LifeBase"

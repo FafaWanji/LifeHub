@@ -64,7 +64,7 @@ object Updater {
     suspend fun download(context: Context, info: UpdateInfo, onProgress: (Float) -> Unit): File = withContext(Dispatchers.IO) {
         val dir = File(context.getExternalFilesDir(null) ?: context.filesDir, "updates").apply { mkdirs() }
         dir.listFiles()?.forEach { it.delete() }
-        val target = File(dir, "LifeOrganizer-${info.version}.apk")
+        val target = File(dir, "LifeHub-${info.version}.apk")
         val conn = URL(info.apkUrl).openConnection() as HttpURLConnection
         conn.instanceFollowRedirects = true
         conn.use { c ->

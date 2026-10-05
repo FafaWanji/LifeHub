@@ -71,7 +71,7 @@ object AutoBackup {
         resolver.query(children, arrayOf(android.provider.DocumentsContract.Document.COLUMN_DOCUMENT_ID, android.provider.DocumentsContract.Document.COLUMN_DISPLAY_NAME), null, null, null)?.use { c ->
             while (c.moveToNext()) {
                 val name = c.getString(1) ?: continue
-                if (name.startsWith("lifeorganizer-auto-")) existing += name to android.provider.DocumentsContract.buildDocumentUriUsingTree(tree, c.getString(0))
+                if (name.startsWith("lifehub-auto-")) existing += name to android.provider.DocumentsContract.buildDocumentUriUsingTree(tree, c.getString(0))
             }
         }
         // Same day again: overwrite instead of piling up copies
@@ -101,16 +101,16 @@ object AutoBackup {
     /** Writes one backup now and removes the oldest beyond [KEEP]. */
     suspend fun runNow(context: Context): File {
         val dir = folder(context)
-        var file = File(dir, "lifeorganizer-auto-${LocalDate.now()}.json")
+        var file = File(dir, "lifehub-auto-${LocalDate.now()}.json")
         val stream = try {
             file.outputStream()
         } catch (e: java.io.IOException) {
             // A single leftover file of an earlier installation cannot be overwritten: use another name
-            file = File(dir, "lifeorganizer-auto-${LocalDate.now()}-${System.currentTimeMillis() % 100000}.json")
+            file = File(dir, "lifehub-auto-${LocalDate.now()}-${System.currentTimeMillis() % 100000}.json")
             file.outputStream()
         }
         stream.use { BackupManager(context).export(it) }
-        dir.listFiles { f -> f.name.startsWith("lifeorganizer-auto-") && f.name.endsWith(".json") }
+        dir.listFiles { f -> f.name.startsWith("lifehub-auto-") && f.name.endsWith(".json") }
             ?.sortedByDescending { it.lastModified() }
             ?.drop(KEEP)
             ?.forEach { it.delete() }

@@ -74,10 +74,10 @@ object BkStr {
     val imported = Txt("Import finished", "Import abgeschlossen", "İçe aktarma tamamlandı", "Importación completada")
     val failed = Txt("Something went wrong", "Etwas ist schiefgelaufen", "Bir şeyler ters gitti", "Algo salió mal")
     val unknownFormat = Txt(
-        "This file wasn't recognised. Supported: LifeOrganizer backup, .ics, Waypoints IRL, LifeBase, Checklist.",
-        "Diese Datei wurde nicht erkannt. Unterstützt: LifeOrganizer-Backup, .ics, Waypoints IRL, LifeBase, Checklist.",
-        "Bu dosya tanınmadı. Desteklenenler: LifeOrganizer yedeği, .ics, Waypoints IRL, LifeBase, Checklist.",
-        "No se reconoció el archivo. Compatibles: copia de LifeOrganizer, .ics, Waypoints IRL, LifeBase, Checklist."
+        "This file wasn't recognised. Supported: LifeHub backup, .ics, Waypoints IRL, LifeBase, Checklist.",
+        "Diese Datei wurde nicht erkannt. Unterstützt: LifeHub-Backup, .ics, Waypoints IRL, LifeBase, Checklist.",
+        "Bu dosya tanınmadı. Desteklenenler: LifeHub yedeği, .ics, Waypoints IRL, LifeBase, Checklist.",
+        "No se reconoció el archivo. Compatibles: copia de LifeHub, .ics, Waypoints IRL, LifeBase, Checklist."
     )
     val clipboardEmpty = Txt("The clipboard is empty.", "Die Zwischenablage ist leer.", "Pano boş.", "El portapapeles está vacío.")
     val detected = Txt("Detected", "Erkannt", "Algılandı", "Detectado")
