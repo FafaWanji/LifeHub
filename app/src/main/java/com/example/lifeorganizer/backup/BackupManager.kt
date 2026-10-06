@@ -199,15 +199,6 @@ class BackupManager(context: Context) {
     suspend fun importText(text: String): ImportSummary = withContext(Dispatchers.IO) {
         when (val source = LegacyFormats.detect(text)) {
             ImportSource.ICS_CALENDAR -> importIcs(text)
-            ImportSource.WAYPOINTS_IRL -> {
-                val (labels, waypoints) = LegacyFormats.parseWaypointsIrl(text)
-                insertWaypoints(labels, waypoints, source)
-            }
-            ImportSource.LIFEBASE -> {
-                val (labels, notes) = LegacyFormats.parseLifeBase(text)
-                insertNotes(labels, notes, source).first
-            }
-            ImportSource.CHECKLIST -> insertNotes(emptyList(), LegacyFormats.parseChecklist(text), source).first
             ImportSource.LIFEORGANIZER_BACKUP -> importBackup(JSONObject(text))
             ImportSource.UNKNOWN -> ImportSummary(source)
         }

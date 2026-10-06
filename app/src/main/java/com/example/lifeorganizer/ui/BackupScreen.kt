@@ -55,7 +55,6 @@ private sealed interface BackupResult {
 @Composable
 fun BackupScreen(
     onClose: () -> Unit,
-    onOpenDokki: () -> Unit,
     pendingImport: Uri? = null,
     onPendingImportHandled: () -> Unit = {}
 ) {
@@ -99,12 +98,6 @@ fun BackupScreen(
         if (uri != null) importUri(uri)
     }
     val pickFile = { importLauncher.launch(arrayOf("application/json", "text/calendar", "text/*", "application/octet-stream", "*/*")) }
-    val paste = {
-        val clip = (context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager).primaryClip
-        val text = clip?.takeIf { it.itemCount > 0 }?.getItemAt(0)?.coerceToText(context)?.toString()
-        if (text.isNullOrBlank()) result = BackupResult.Failed(BkStr.clipboardEmpty.of(lang))
-        else run { BackupResult.Imported(manager.importText(text)) }
-    }
 
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(Modifier.fillMaxSize()) {
@@ -163,30 +156,6 @@ fun BackupScreen(
                     run { BackupResult.Exported(AutoBackup.runNow(context).absolutePath) }
                 }
 
-                // Old apps
-                Text(BkStr.fromOldApps.text(), style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 8.dp))
-                Text(BkStr.fromOldAppsDesc.text(), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-
-                SourceCard(Icons.Default.CalendarMonth, "PrivateCalendar", BkStr.calendarHow.text()) {
-                    FilledTonalButton(enabled = !busy, onClick = pickFile) { Text(BkStr.importBtn.text()) }
-                }
-                SourceCard(Icons.Default.Place, "Waypoints IRL", BkStr.waypointsHow.text()) {
-                    FilledTonalButton(enabled = !busy, onClick = pickFile) { Text(BkStr.importBtn.text()) }
-                }
-                SourceCard(Icons.AutoMirrored.Filled.Notes, "LifeBase", BkStr.lifeBaseHow.text()) {
-                    FilledTonalButton(enabled = !busy, onClick = paste) {
-                        Icon(Icons.Default.ContentPaste, null, Modifier.size(18.dp))
-                        Spacer(Modifier.width(8.dp))
-                        Text(BkStr.pasteBtn.text())
-                    }
-                }
-                SourceCard(Icons.Default.ChecklistRtl, "Checklist", BkStr.checklistHow.text()) {
-                    FilledTonalButton(enabled = !busy, onClick = pickFile) { Text(BkStr.importBtn.text()) }
-                    OutlinedButton(enabled = !busy, onClick = paste) { Text(BkStr.pasteBtn.text()) }
-                }
-                SourceCard(Icons.Default.Description, "DocPocket → ${Str.documents.text()}", BkStr.dokkiHow.text()) {
-                    FilledTonalButton(onClick = onOpenDokki) { Text(BkStr.openDokki.text()) }
-                }
                 Spacer(Modifier.height(24.dp))
             }
         }
@@ -223,9 +192,6 @@ private fun describe(s: ImportSummary, lang: String): String {
     val source = when (s.source) {
         ImportSource.LIFEORGANIZER_BACKUP -> "LifeHub-Backup"
         ImportSource.ICS_CALENDAR -> "Kalender (.ics)"
-        ImportSource.WAYPOINTS_IRL -> "Waypoints IRL"
-        ImportSource.LIFEBASE -> "LifeBase"
-        ImportSource.CHECKLIST -> "Checklist"
         ImportSource.UNKNOWN -> ""
     }
     return buildString {
@@ -239,35 +205,6 @@ private fun describe(s: ImportSummary, lang: String): String {
     }.trim()
 }
 
-@Composable
-private fun SourceCard(
-    icon: ImageVector,
-    name: String,
-    howTo: String,
-    actions: @Composable RowScope.() -> Unit
-) {
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
-        Column(Modifier.padding(16.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    Modifier.size(36.dp).background(MaterialTheme.colorScheme.secondaryContainer, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) { Icon(icon, null, Modifier.size(20.dp), tint = MaterialTheme.colorScheme.onSecondaryContainer) }
-                Spacer(Modifier.width(12.dp))
-                Text(name, style = MaterialTheme.typography.titleSmall)
-            }
-            SelectionContainer {
-                Text(
-                    howTo,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 8.dp, bottom = 12.dp)
-                )
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), content = actions)
-        }
-    }
-}
 
 @Composable
 private fun AutoBackupCard(busy: Boolean, refreshKey: Any?, onRun: () -> Unit) {

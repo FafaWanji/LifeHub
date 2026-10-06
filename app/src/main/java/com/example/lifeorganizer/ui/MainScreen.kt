@@ -517,10 +517,6 @@ fun MainScreen(
                 ) {
                     BackupScreen(
                         onClose = { showBackup = false },
-                        onOpenDokki = {
-                            showBackup = false
-                            activeView = ActiveView.DOCUMENTS
-                        },
                         pendingImport = importUri.takeIf { intentsEnabled },
                         onPendingImportHandled = onImportHandled
                     )
