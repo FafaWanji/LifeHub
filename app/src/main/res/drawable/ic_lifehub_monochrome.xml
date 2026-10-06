@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- LifeHub mark: a hub (centre) linked to four areas – calendar, notes, places, documents.
+     Kept inside the 66dp safe zone of the 108dp adaptive icon. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- spokes -->
+    <path android:strokeColor="#FF000000" android:strokeWidth="4" android:strokeLineCap="round"
+        android:pathData="M54,54L37,37M54,54L71,37M54,54L71,71M54,54L37,71" />
+    <!-- outer nodes -->
+    <path android:fillColor="#FF000000" android:pathData="M37,37m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
+    <path android:fillColor="#FF000000" android:pathData="M71,37m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
+    <path android:fillColor="#FF000000" android:pathData="M71,71m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
+    <path android:fillColor="#FF000000" android:pathData="M37,71m-7,0a7,7 0,1 1,14 0a7,7 0,1 1,-14 0" />
+    <!-- hub: ring with a filled centre -->
+    <path android:fillColor="#FF000000" android:pathData="M54,54m-13,0a13,13 0,1 1,26 0a13,13 0,1 1,-26 0" />
+    <path android:fillColor="#00000000" android:strokeColor="#FF000000" android:strokeWidth="3"
+        android:pathData="M54,54m-7.5,0a7.5,7.5 0,1 1,15 0a7.5,7.5 0,1 1,-15 0" />
+</vector>
