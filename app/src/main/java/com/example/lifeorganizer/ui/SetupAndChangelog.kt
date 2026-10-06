@@ -30,6 +30,11 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.0.1", listOf(
+            Txt("Backup screen tidied up: import from the old apps removed (LifeHub backup and .ics import remain)", "Backup-Bildschirm aufgeräumt: Import aus den alten Apps entfernt (LifeHub-Backup und .ics-Import bleiben)", "Yedek ekranı sadeleşti: eski uygulamalardan içe aktarma kaldırıldı", "Pantalla de copia simplificada: se quitó la importación de las apps antiguas")
+        )
+    ),
+    Release(
         "1.0", listOf(
             Txt("First stable version", "Erste stabile Version", "İlk kararlı sürüm", "Primera versión estable"),
             Txt("New app icon and logo", "Neues App-Icon und Logo", "Yeni uygulama simgesi ve logo", "Nuevo icono y logo"),
