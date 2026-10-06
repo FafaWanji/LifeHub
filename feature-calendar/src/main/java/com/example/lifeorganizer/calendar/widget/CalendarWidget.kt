@@ -56,20 +56,6 @@ class CalendarWidget : GlanceAppWidget() {
                 .clickable(actionRunCallback<OpenAppAction>()),
             verticalAlignment = Alignment.Vertical.Top
         ) {
-            // Header
-            Row(
-                modifier = GlanceModifier.fillMaxWidth().padding(bottom = 8.dp),
-                horizontalAlignment = Alignment.Horizontal.Start
-            ) {
-                Text(
-                    text = com.example.lifeorganizer.core.i18n.Str.upcomingAgenda.of(java.util.Locale.getDefault().language),
-                    style = TextStyle(
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = ColorProvider(Color(0xFFD0BCFF))
-                    )
-                )
-            }
 
             if (events.isEmpty()) {
                 Text(
@@ -89,12 +75,13 @@ class CalendarWidget : GlanceAppWidget() {
                     grouped.forEach { (date, dayEvents) ->
                         val today = LocalDate.now()
                         val daysLeft = ChronoUnit.DAYS.between(today, date)
+                        val S = com.example.lifeorganizer.core.i18n.Str
+                        val wl = java.util.Locale.getDefault().language
                         val relativeText = when {
-                            daysLeft == 0L -> " (Today)"
-                            daysLeft == 1L -> " (Tomorrow)"
-                            daysLeft > 1L -> " (in $daysLeft days)"
-                            daysLeft == -1L -> " (Yesterday)"
-                            else -> " (${-daysLeft} days ago)"
+                            daysLeft == 0L -> " (${S.widgetToday.of(wl)})"
+                            daysLeft == 1L -> " (${S.widgetTomorrow.of(wl)})"
+                            daysLeft > 1L -> " (${S.widgetInDays.of(wl).format(daysLeft)})"
+                            else -> ""
                         }
 
                         item {

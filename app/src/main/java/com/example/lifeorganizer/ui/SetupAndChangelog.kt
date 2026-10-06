@@ -30,6 +30,14 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.0", listOf(
+            Txt("First stable version", "Erste stabile Version", "İlk kararlı sürüm", "Primera versión estable"),
+            Txt("New app icon and logo", "Neues App-Icon und Logo", "Yeni uygulama simgesi ve logo", "Nuevo icono y logo"),
+            Txt("Agenda widget: more room for events, days translated", "Agenda-Widget: mehr Platz für Termine, Tage übersetzt", "Ajanda widget: etkinliklere daha fazla yer, günler çevrildi", "Widget de agenda: más espacio, días traducidos"),
+            Txt("Reminders and their notifications are shown in your language", "Erinnerungen und ihre Benachrichtigungen erscheinen in deiner Sprache", "Hatırlatıcılar ve bildirimleri kendi dilinde", "Recordatorios y avisos en tu idioma")
+        )
+    ),
+    Release(
         "0.10", listOf(
             Txt("LifeOrganizer is now called LifeHub (new app – move your data once via backup)", "LifeOrganizer heißt jetzt LifeHub (neue App – Daten einmalig per Backup umziehen)", "LifeOrganizer artık LifeHub (yeni uygulama – verileri bir kez yedekle taşı)", "LifeOrganizer ahora es LifeHub (app nueva: mueve tus datos con una copia)"),
             Txt("App is much smaller (about 18 MB instead of 62 MB)", "App ist deutlich kleiner (ca. 18 MB statt 62 MB)", "Uygulama çok daha küçük (~18 MB)", "La app es mucho más pequeña (~18 MB)"),

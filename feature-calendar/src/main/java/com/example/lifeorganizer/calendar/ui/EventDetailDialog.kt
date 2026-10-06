@@ -207,7 +207,7 @@ fun EventDetailDialog(
                     DetailRow(label = Translations.get(TransKey.REMINDERS, lang)) {
                         Column {
                             eventWithReminders.reminders.forEach { reminder ->
-                                Text("• ${reminder.type}")
+                                Text("• " + com.example.lifeorganizer.core.i18n.reminderLabel(eventWithReminders.event.startTimeMillis - reminder.reminderTimeMillis, lang))
                             }
                         }
                     }

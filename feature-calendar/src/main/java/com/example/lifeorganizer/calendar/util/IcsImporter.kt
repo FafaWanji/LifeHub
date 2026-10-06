@@ -88,7 +88,7 @@ object IcsImporter {
                     reminders.add(Reminder(
                         eventId = 0, // will be assigned on insert
                         reminderTimeMillis = reminderMillis,
-                        type = "$alarmTriggerMinutes min before"
+                        type = com.example.lifeorganizer.core.i18n.reminderLabel(alarmTriggerMinutes * 60000L, java.util.Locale.getDefault().language)
                     ))
                 }
                 continue

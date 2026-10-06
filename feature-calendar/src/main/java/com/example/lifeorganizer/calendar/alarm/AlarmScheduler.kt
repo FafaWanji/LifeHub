@@ -20,7 +20,12 @@ class AlarmScheduler(private val context: Context) {
     fun schedule(event: Event, reminder: Reminder, isSystemAlarmTrigger: Boolean = false) {
         val intent = Intent(context, AlarmReceiver::class.java).apply {
             putExtra("EVENT_TITLE", event.title)
-            putExtra("REMINDER_TYPE", reminder.type)
+            // Notification text in the phone language, independent of the stored (possibly English) label
+            putExtra(
+                "REMINDER_TYPE",
+                if (reminder.type == "Birthday at 23:59") reminder.type
+                else com.example.lifeorganizer.core.i18n.reminderLabel(event.startTimeMillis - reminder.reminderTimeMillis, Locale.getDefault().language)
+            )
             putExtra("IS_SYSTEM_ALARM_TRIGGER", isSystemAlarmTrigger)
             putExtra("REMINDER_TIME", reminder.reminderTimeMillis)
             putExtra("IS_BIRTHDAY", event.isBirthday)

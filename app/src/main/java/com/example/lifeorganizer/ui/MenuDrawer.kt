@@ -156,11 +156,12 @@ private fun DrawerHeader() {
                 ),
             contentAlignment = Alignment.Center
         ) {
+            // Same hub mark as the launcher icon
             Icon(
-                Icons.Filled.CalendarMonth,
+                androidx.compose.ui.res.painterResource(com.example.lifeorganizer.R.drawable.ic_lifehub_foreground),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(44.dp)
             )
         }
         Spacer(Modifier.width(14.dp))

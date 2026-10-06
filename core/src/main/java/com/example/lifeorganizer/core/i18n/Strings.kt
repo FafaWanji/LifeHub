@@ -164,9 +164,9 @@ object Str {
     val addEvent = Txt("Add event", "Termin hinzufügen", "Etkinlik ekle", "Añadir evento")
     val pinnedNote = Txt("Pinned note", "Angeheftete Notiz", "Sabitlenmiş not", "Nota fijada")
     val untitledNote = Txt("Untitled note", "Notiz ohne Titel", "Başlıksız not", "Nota sin título")
-    val minutes = Txt("Minutes", "Minuten", "Dakika", "Minutos")
-    val hours = Txt("Hours", "Stunden", "Saat", "Horas")
-    val days = Txt("Days", "Tage", "Gün", "Días")
+    val minutes = Txt("minutes", "Minuten", "dakika", "minutos")
+    val hours = Txt("hours", "Stunden", "saat", "horas")
+    val days = Txt("days", "Tage", "gün", "días")
     val exactTime = Txt("At start time", "Zur Startzeit", "Başlangıçta", "A la hora de inicio")
     val before = Txt("%s before", "%s vorher", "%s önce", "%s antes")
     val addReminder = Txt("Add reminder", "Erinnerung hinzufügen", "Hatırlatıcı ekle", "Añadir recordatorio")
@@ -228,6 +228,12 @@ object Str {
     val about = Txt("About & privacy", "Über die App & Datenschutz", "Hakkında ve gizlilik", "Acerca de y privacidad")
     val privacy = Txt("Privacy", "Datenschutz", "Gizlilik", "Privacidad")
     val openSource = Txt("Open-source licences", "Open-Source-Lizenzen", "Açık kaynak lisansları", "Licencias de código abierto")
+    val minute = Txt("minute", "Minute", "dakika", "minuto")
+    val hour = Txt("hour", "Stunde", "saat", "hora")
+    val day = Txt("day", "Tag", "gün", "día")
+    val widgetToday = Txt("Today", "Heute", "Bugün", "Hoy")
+    val widgetTomorrow = Txt("Tomorrow", "Morgen", "Yarın", "Mañana")
+    val widgetInDays = Txt("in %d days", "in %d Tagen", "%d gün sonra", "en %d días")
     val appSetupTitle = Txt("Welcome to LifeHub", "Willkommen bei LifeHub", "LifeHub'a hoş geldin", "Bienvenido a LifeHub")
     val checkUpdates = Txt("Check for updates", "Nach Updates suchen", "Güncellemeleri denetle", "Buscar actualizaciones")
     val updateAvailable = Txt("Version %s available", "Version %s verfügbar", "%s sürümü mevcut", "Versión %s disponible")
@@ -395,4 +401,17 @@ object Str {
         "Parmak izi, yüz ya da cihaz PIN'ini kullan",
         "Usa tu huella, rostro o PIN del dispositivo"
     )
+}
+
+/** Label of a reminder that fires [offsetMillis] before the start, e.g. "15 Minuten vorher". */
+fun reminderLabel(offsetMillis: Long, lang: String): String {
+    if (offsetMillis <= 0L) return Str.exactTime.of(lang)
+    val mins = offsetMillis / 60_000
+    fun unit(n: Long, one: Txt, many: Txt) = "$n ${(if (n == 1L) one else many).of(lang)}"
+    val amount = when {
+        mins % 1440 == 0L -> unit(mins / 1440, Str.day, Str.days)
+        mins % 60 == 0L -> unit(mins / 60, Str.hour, Str.hours)
+        else -> unit(mins, Str.minute, Str.minutes)
+    }
+    return Str.before.of(lang).format(amount)
 }

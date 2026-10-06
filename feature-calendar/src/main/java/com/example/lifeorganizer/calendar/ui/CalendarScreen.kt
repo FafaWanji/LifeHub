@@ -1874,14 +1874,13 @@ fun AddEventDialog(
         mutableStateListOf<Pair<String, Long>>().apply {
             if (prefilledSmartResult != null && prefilledSmartResult.reminderMinutesBefore.isNotEmpty()) {
                 prefilledSmartResult.reminderMinutesBefore.forEach { mins ->
-                    val typeStr = if (mins % 1440 == 0) "${mins / 1440} days before"
-                    else if (mins % 60 == 0) "${mins / 60} hours before"
-                    else "$mins minutes before"
-                    add(typeStr to mins * 60000L)
+                    add(com.example.lifeorganizer.core.i18n.reminderLabel(mins * 60000L, lang) to mins * 60000L)
                 }
             } else {
                 editingEvent?.reminders?.forEach {
-                    add(it.type to (editingEvent.event.startTimeMillis - it.reminderTimeMillis))
+                    val offset = editingEvent.event.startTimeMillis - it.reminderTimeMillis
+                    // Stored labels may be old English text – always show it in the current language
+                    add((if (it.type == "Birthday at 23:59") it.type else com.example.lifeorganizer.core.i18n.reminderLabel(offset, lang)) to offset)
                 }
             }
         }
