@@ -82,6 +82,25 @@ class MarkdownTest {
     }
 
     @Test
+    fun `keyboard committing autocorrected word with the newline still continues`() {
+        val old = "- Mlch"
+        val new = "- Milch \n"
+        assertEquals("- Milch \n- ", continueListOnNewline(old, new, new.length)!!.first)
+    }
+
+    @Test
+    fun `enter in the middle of a list continues it`() {
+        val old = "- eins\n- drei"
+        val new = "- eins\n\n- drei"
+        assertEquals("- eins\n- \n- drei", continueListOnNewline(old, new, 7)!!.first)
+    }
+
+    @Test
+    fun `pasting several lines is left alone`() {
+        assertNull(continueListOnNewline("- a", "- a\nb\n", 6))
+    }
+
+    @Test
     fun `normal newline is left alone`() {
         assertNull(continueListOnNewline("Hallo", "Hallo\n", 6))
     }

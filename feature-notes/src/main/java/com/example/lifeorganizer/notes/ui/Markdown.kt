@@ -427,7 +427,11 @@ class MarkdownHighlighter(
  * Pressing Enter on an empty item ends the list instead.
  */
 fun continueListOnNewline(old: String, new: String, cursor: Int): Pair<String, Int>? {
-    if (new.length != old.length + 1 || cursor <= 0 || new[cursor - 1] != '\n') return null
+    if (cursor <= 0 || cursor > new.length || new[cursor - 1] != '\n') return null
+    // Keyboards often commit the composing (auto-corrected) word together with the newline, so the
+    // edit can be longer than one char. Require exactly one new line break, typed at the cursor.
+    if (new.count { it == '\n' } != old.count { it == '\n' } + 1) return null
+    if (!old.endsWith(new.substring(cursor))) return null
     val lineStart = new.lastIndexOf('\n', cursor - 2) + 1
     val previous = new.substring(lineStart, cursor - 1)
 
