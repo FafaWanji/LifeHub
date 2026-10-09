@@ -1,6 +1,8 @@
 package com.example.lifeorganizer
 
 import androidx.compose.runtime.remember
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.OutlinedButton
@@ -88,6 +90,8 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         com.example.lifeorganizer.backup.AutoBackup.schedule(applicationContext)
+        com.example.lifeorganizer.money.work.RecurringWorker.schedule(applicationContext)
+        lifecycleScope.launch { com.example.lifeorganizer.money.data.MoneyRepository.get(applicationContext).bookDueRecurring() }
 
         // Check if we're restarting after a crash — show the crash info
         val prefs = getSharedPreferences("crash_reporter", MODE_PRIVATE)
