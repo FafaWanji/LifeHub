@@ -1,0 +1,12 @@
+"Volksbank Muster eG"
+"Umsatzanzeige"
+"BLZ:";"12345678";;"Datum:";"08.10.2026"
+"Konto:";"1234567";;"Uhrzeit:";"10:00:00"
+"Abfrage von:";"Max Muster";;"Kontoinhaber:";"Max Muster"
+;
+"Buchungstag";"Valuta";"Auftraggeber/Zahlungsempfänger";"Empfänger/Zahlungspflichtiger";"Konto-Nr.";"IBAN";"BLZ";"BIC";"Vorgang/Verwendungszweck";"Kundenreferenz";"Währung";"Umsatz";" "
+"02.10.2026";"02.10.2026";"Max Muster";"Stadtwerke Muster";"";"DE00999999990000000005";"";"TESTDEFFXXX";"Lastschrift Strom Oktober";"";"EUR";"85,00";"S"
+"01.10.2026";"01.10.2026";"Max Muster";"Muster AG";"";"DE00999999990000000002";"";"TESTDEFFXXX";"Gehalt Oktober";"";"EUR";"2.100,00";"H"
+;
+"01.10.2026";;;;;;;;;;"Anfangssaldo";"EUR";"1.000,00";"H"
+"08.10.2026";;;;;;;;;;"Endsaldo";"EUR";"3.015,00";"H"

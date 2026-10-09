@@ -1,0 +1,16 @@
+Umsatzanzeige;Datei erstellt am: 08.10.2026 10:00
+;
+IBAN;DE00 1234 5678 0000 0000 00
+Kontoname;Girokonto
+Bank;ING
+Kunde;Max Muster
+Zeitraum;01.10.2026 - 08.10.2026
+Saldo;1.234,56;EUR
+;
+Sortierung;Datum absteigend
+;
+In der CSV-Datei finden Sie alle bereits gebuchten Umsätze. Die vorgemerkten Umsätze werden nicht aufgenommen.
+;
+Buchung;Wertstellungsdatum;Auftraggeber/Empfänger;Buchungstext;Verwendungszweck;Saldo;Währung;Betrag;Währung
+05.10.2026;05.10.2026;Netflix International B.V.;Lastschrift;Netflix Abo;1.234,56;EUR;-13,99;EUR
+03.10.2026;03.10.2026;dm-drogerie markt;Lastschrift;dm sagt danke;1.248,55;EUR;-7,80;EUR

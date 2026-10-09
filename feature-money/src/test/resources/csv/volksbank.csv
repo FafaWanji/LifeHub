@@ -1,0 +1,2 @@
+Bezeichnung Auftragskonto;IBAN Auftragskonto;BIC Auftragskonto;Bankname Auftragskonto;Buchungstag;Valutadatum;Name Zahlungsbeteiligter;IBAN Zahlungsbeteiligter;BIC (SWIFT-Code) Zahlungsbeteiligter;Buchungstext;Verwendungszweck;Betrag;Waehrung;Saldo nach Buchung;Bemerkung;Kategorie;Steuerrelevant;Glaeubiger ID;Mandatsreferenz
+Girokonto;DE00123456780000000000;GENODEF1XXX;Volksbank Muster;04.10.2026;04.10.2026;Aral Tankstelle;DE00999999990000000004;TESTDEFFXXX;Kartenzahlung;Tanken;-65,10;EUR;934,90;;;;;

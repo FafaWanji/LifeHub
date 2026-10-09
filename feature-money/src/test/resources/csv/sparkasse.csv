@@ -1,0 +1,4 @@
+"Auftragskonto";"Buchungstag";"Valutadatum";"Buchungstext";"Verwendungszweck";"Glaeubiger ID";"Mandatsreferenz";"Kundenreferenz (End-to-End)";"Sammlerreferenz";"Lastschrift Ursprungsbetrag";"Auslagenersatz Ruecklastschrift";"Beguenstigter/Zahlungspflichtiger";"Kontonummer/IBAN";"BIC (SWIFT-Code)";"Betrag";"Waehrung";"Info"
+"DE00123456780000000000";"01.10.26";"01.10.26";"LASTSCHRIFT";"Miete Oktober";"";"";"";"";"";"";"Hausverwaltung Muster";"DE00999999990000000000";"TESTDEFFXXX";"-800,00";"EUR";"Umsatz gebucht"
+"DE00123456780000000000";"02.10.26";"02.10.26";"KARTENZAHLUNG";"REWE SAGT DANKE";"";"";"";"";"";"";"REWE Markt GmbH";"DE00999999990000000001";"TESTDEFFXXX";"-23,45";"EUR";"Umsatz gebucht"
+"DE00123456780000000000";"30.09.26";"30.09.26";"GUTSCHR. UEBERWEISUNG";"Gehalt September";"";"";"";"";"";"";"Muster AG";"DE00999999990000000002";"TESTDEFFXXX";"2.100,00";"EUR";"Umsatz gebucht"
