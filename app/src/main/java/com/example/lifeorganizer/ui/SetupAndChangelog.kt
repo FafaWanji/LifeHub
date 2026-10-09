@@ -30,6 +30,16 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.1", listOf(
+            Txt("New: Finance – income, expenses and what's left each month", "Neu: Finanzen – Einnahmen, Ausgaben und Rest pro Monat", "Yeni: Finans – aylık gelir, gider ve kalan", "Nuevo: Finanzas – ingresos, gastos y lo que queda cada mes"),
+            Txt("Categories with chart and monthly budgets", "Kategorien mit Diagramm und Budgets", "Grafikli kategoriler ve aylık bütçeler", "Categorías con gráfico y presupuestos mensuales"),
+            Txt("Fixed costs book themselves every month, optionally shown in the calendar", "Fixkosten buchen sich jeden Monat selbst, auf Wunsch im Kalender", "Sabit giderler her ay kendiliğinden kaydedilir, istersen takvimde", "Los gastos fijos se registran solos cada mes, opcionalmente en el calendario"),
+            Txt("Import bank statements as CSV (Sparkasse, ING, DKB, Volksbank, N26, Commerzbank and more)", "Kontoauszüge als CSV importieren (Sparkasse, ING, DKB, Volksbank, N26, Commerzbank u. a.)", "Banka hesap özetlerini CSV olarak içe aktar (Sparkasse, ING, DKB, Volksbank, N26, Commerzbank vb.)", "Importa extractos bancarios en CSV (Sparkasse, ING, DKB, Volksbank, N26, Commerzbank y más)"),
+            Txt("Smart Add understands expenses: “12,50 Döner gestern”", "Smart Add versteht Ausgaben: „12,50 Döner gestern“", "Akıllı Ekle harcamaları anlar: “12,50 Döner gestern”", "Añadir inteligente entiende gastos: «12,50 Döner gestern»"),
+            Txt("Notes: lists reliably continue after Enter", "Notizen: Listen werden nach Enter zuverlässig fortgesetzt", "Notlar: listeler Enter'dan sonra güvenilir şekilde devam eder", "Notas: las listas continúan correctamente tras Intro")
+        )
+    ),
+    Release(
         "1.0.1", listOf(
             Txt("Backup screen tidied up: import from the old apps removed (LifeHub backup and .ics import remain)", "Backup-Bildschirm aufgeräumt: Import aus den alten Apps entfernt (LifeHub-Backup und .ics-Import bleiben)", "Yedek ekranı sadeleşti: eski uygulamalardan içe aktarma kaldırıldı", "Pantalla de copia simplificada: se quitó la importación de las apps antiguas")
         )

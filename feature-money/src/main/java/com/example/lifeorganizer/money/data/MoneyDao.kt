@@ -32,10 +32,10 @@ interface MoneyDao {
     suspend fun findBookedRecurring(amount: Long, from: Long, to: Long): MoneyTransaction?
 
     // Categories
-    @Query("SELECT * FROM money_categories ORDER BY kind DESC, sortOrder, name")
+    @Query("SELECT * FROM money_categories ORDER BY kind ASC, sortOrder, name")
     fun categories(): Flow<List<MoneyCategory>>
 
-    @Query("SELECT * FROM money_categories ORDER BY kind DESC, sortOrder, name")
+    @Query("SELECT * FROM money_categories ORDER BY kind ASC, sortOrder, name")
     suspend fun categoriesSync(): List<MoneyCategory>
 
     @Insert suspend fun insertCategory(c: MoneyCategory): Long
