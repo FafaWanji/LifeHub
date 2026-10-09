@@ -45,12 +45,13 @@ data class ImportSummary(
     val notes: Int = 0,
     val waypoints: Int = 0,
     val documents: Int = 0,
+    val transactions: Int = 0,
     val skipped: Int = 0
 ) {
-    val total get() = events + notes + waypoints + documents
+    val total get() = events + notes + waypoints + documents + transactions
 }
 
-data class ExportSummary(val events: Int, val notes: Int, val waypoints: Int, val documents: Int)
+data class ExportSummary(val events: Int, val notes: Int, val waypoints: Int, val documents: Int, val transactions: Int = 0)
 
 /**
  * One backup file for all modules plus importers for the apps LifeOrganizer replaced.
@@ -62,6 +63,7 @@ class BackupManager(context: Context) {
     private val noteDao = NotesDatabase.getDatabase(appContext).noteDao()
     private val waypointDao = WaypointsDatabase.getDatabase(appContext).waypointDao()
     private val documentDao = DocumentsDatabase.getDatabase(appContext).documentDao()
+    private val moneyDao = com.example.lifeorganizer.money.data.MoneyDatabase.getDatabase(appContext).moneyDao()
 
     // ================================================================== export
 
@@ -122,6 +124,7 @@ class BackupManager(context: Context) {
                         .put("lastUsed", wp.lastUsed).put("lastEdited", wp.lastEdited)
                         .put("labels", JSONArray(w.labels.map { it.name }))
                 })))
+            .put("money", com.example.lifeorganizer.money.data.MoneyBackup.export(moneyDao))
             .put("settings", exportSettings(categories.associate { it.id to it.name }))
             .put("documents", JSONObject()
                 .put("documents", JSONArray(documents.map { d ->
@@ -133,7 +136,7 @@ class BackupManager(context: Context) {
         val writer = out.bufferedWriter()
         writer.write(root.toString(2))
         writer.flush()
-        ExportSummary(events.size, notes.size, waypoints.size, documents.size)
+        ExportSummary(events.size, notes.size, waypoints.size, documents.size, moneyDao.allTransactionsSync().size)
     }
 
     // ================================================================== settings
@@ -452,6 +455,7 @@ class BackupManager(context: Context) {
             val id = noteIds[n.optString("title") to n.optLong("createdAt")] ?: return@forEach
             noteDao.getNoteWithLabels(id)?.note?.takeIf { it.documentId == null }?.let { noteDao.updateNote(it.copy(documentId = doc.id)) }
         }
+        val transactions = root.optJSONObject("money")?.let { com.example.lifeorganizer.money.data.MoneyBackup.import(moneyDao, it) } ?: 0
         root.optJSONObject("settings")?.let { importSettings(it) }
 
         if (pendingDocuments.isNotEmpty()) {
@@ -470,6 +474,7 @@ class BackupManager(context: Context) {
             notes = noteSummary.notes,
             waypoints = wpSummary.waypoints,
             documents = documents,
+            transactions = transactions,
             skipped = skipped
         )
     }

@@ -7,6 +7,13 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.example.lifeorganizer.calendar.data.Category
 import com.example.lifeorganizer.calendar.data.Event
 import com.example.lifeorganizer.documents.data.local.Document
+import com.example.lifeorganizer.money.data.CategoryKind
+import com.example.lifeorganizer.money.data.MoneyCategory
+import com.example.lifeorganizer.money.data.MoneyDatabase
+import com.example.lifeorganizer.money.data.MoneyTransaction
+import com.example.lifeorganizer.money.data.PayeeRule
+import com.example.lifeorganizer.money.data.Recurring
+import com.example.lifeorganizer.money.data.TxSource
 import com.example.lifeorganizer.notes.data.Note
 import com.example.lifeorganizer.notes.data.NoteLabel
 import com.example.lifeorganizer.notes.data.NoteLabelCrossRef
@@ -32,9 +39,10 @@ class BackupRoundTripTest {
     private val notes = NotesDatabase.getDatabase(context)
     private val documents = DocumentsDatabase.getDatabase(context)
     private val waypoints = WaypointsDatabase.getDatabase(context)
+    private val money = MoneyDatabase.getDatabase(context)
 
     private fun wipe() {
-        calendar.clearAllTables(); notes.clearAllTables(); documents.clearAllTables(); waypoints.clearAllTables()
+        calendar.clearAllTables(); notes.clearAllTables(); documents.clearAllTables(); waypoints.clearAllTables(); money.clearAllTables()
     }
 
     @Test
@@ -55,6 +63,13 @@ class BackupRoundTripTest {
         notes.noteDao().insertCrossRef(NoteLabelCrossRef(noteId, labelId))
         context.getSharedPreferences("calendar_filter", Context.MODE_PRIVATE).edit()
             .putBoolean("hide_recurring", true).putStringSet("hidden_categories", setOf(catId.toString())).commit()
+
+        val moneyDao = money.moneyDao()
+        val foodId = moneyDao.insertCategory(MoneyCategory(name = "Essen", color = 1, icon = "cart", kind = CategoryKind.EXPENSE, monthlyBudgetCents = 30000))
+        val rentId = moneyDao.insertRecurring(Recurring(title = "Miete", amountCents = -80000, dayOfMonth = 1, startEpochDay = 20_000, nextDueEpochDay = 20_031, showInCalendar = false, calendarEventId = 99))
+        moneyDao.insertTransaction(MoneyTransaction(epochDay = 20_000, amountCents = -80000, title = "Miete", categoryId = foodId, source = TxSource.RECURRING, recurringId = rentId, recurringDueDay = 20_000))
+        moneyDao.insertTransaction(MoneyTransaction(epochDay = 20_001, amountCents = -350, title = "Café", importHash = "abc", source = TxSource.CSV))
+        moneyDao.upsertRule(PayeeRule("cafe", foodId))
 
         val file = File(context.cacheDir, "roundtrip.json")
         BackupManager(context).export(Uri.fromFile(file))
@@ -80,6 +95,20 @@ class BackupRoundTripTest {
         val filter = context.getSharedPreferences("calendar_filter", Context.MODE_PRIVATE)
         assertEquals(true, filter.getBoolean("hide_recurring", false))
         assertEquals(setOf(category.id.toString()), filter.getStringSet("hidden_categories", null))
+
+        val food = moneyDao.categoriesSync().single { it.name == "Essen" }
+        assertEquals(30000L, food.monthlyBudgetCents)
+        val rent = moneyDao.recurringSync().single()
+        assertEquals(20_031L, rent.nextDueEpochDay)
+        assertEquals(null, rent.calendarEventId)
+        val txs = moneyDao.allTransactionsSync()
+        assertEquals(2, txs.size)
+        assertEquals(rent.id, txs.single { it.title == "Miete" }.recurringId)
+        assertEquals(food.id, txs.single { it.title == "Miete" }.categoryId)
+        assertEquals(food.id, moneyDao.rulesSync().single().categoryId)
+        // Importing the same file again adds nothing
+        BackupManager(context).import(Uri.fromFile(file))
+        assertEquals(2, moneyDao.allTransactionsSync().size)
 
         wipe()
         filter.edit().clear().commit()

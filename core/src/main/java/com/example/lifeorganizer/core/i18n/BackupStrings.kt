@@ -48,4 +48,5 @@ object BkStr {
     val notes = Str.notes
     val waypoints = Str.waypoints
     val documents = Txt("Documents", "Dokumente", "Belgeler", "Documentos")
+    val transactions = Txt("Transactions", "Buchungen", "İşlemler", "Movimientos")
 }

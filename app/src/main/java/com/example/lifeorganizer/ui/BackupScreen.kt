@@ -90,7 +90,8 @@ fun BackupScreen(
             val s = manager.export(uri)
             BackupResult.Exported(
                 "${BkStr.events.of(lang)}: ${s.events} · ${BkStr.notes.of(lang)}: ${s.notes} · " +
-                    "${BkStr.waypoints.of(lang)}: ${s.waypoints} · ${BkStr.documents.of(lang)}: ${s.documents}"
+                    "${BkStr.waypoints.of(lang)}: ${s.waypoints} · ${BkStr.documents.of(lang)}: ${s.documents} · " +
+                    "${BkStr.transactions.of(lang)}: ${s.transactions}"
             )
         }
     }
@@ -200,6 +201,7 @@ private fun describe(s: ImportSummary, lang: String): String {
         if (s.notes > 0) append("${BkStr.notes.of(lang)}: ${s.notes} ${BkStr.added.of(lang)}\n")
         if (s.waypoints > 0) append("${BkStr.waypoints.of(lang)}: ${s.waypoints} ${BkStr.added.of(lang)}\n")
         if (s.documents > 0) append("${BkStr.documents.of(lang)}: ${s.documents} ${BkStr.added.of(lang)}\n")
+        if (s.transactions > 0) append("${BkStr.transactions.of(lang)}: ${s.transactions} ${BkStr.added.of(lang)}\n")
         if (s.total == 0 && s.skipped == 0) append("0 ${BkStr.added.of(lang)}\n")
         if (s.skipped > 0) append("${s.skipped} ${BkStr.skippedDup.of(lang)}")
     }.trim()
