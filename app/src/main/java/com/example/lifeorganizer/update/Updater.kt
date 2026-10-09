@@ -19,7 +19,7 @@ data class UpdateInfo(val version: String, val notes: String, val apkUrl: String
  * The release must carry an .apk asset signed with the same key as the installed app.
  */
 object Updater {
-    private const val LATEST = "https://api.github.com/repos/FafaWanji/LifeOrganizer/releases/latest"
+    private const val LATEST = "https://api.github.com/repos/FafaWanji/LifeHub/releases/latest"
 
     /** Null when the app is up to date or the check failed. */
     suspend fun check(): UpdateInfo? = withContext(Dispatchers.IO) {
