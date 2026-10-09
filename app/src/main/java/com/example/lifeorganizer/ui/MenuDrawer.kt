@@ -1,6 +1,7 @@
 package com.example.lifeorganizer.ui
 
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Computer
 import androidx.compose.material.icons.outlined.SystemUpdate
 import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.foundation.background
@@ -52,7 +53,8 @@ fun MenuDrawerSheet(
     onBackupClick: () -> Unit = {},
     onChangelogClick: () -> Unit = {},
     onUpdateClick: () -> Unit = {},
-    onAboutClick: () -> Unit = {}
+    onAboutClick: () -> Unit = {},
+    onWebAccessClick: () -> Unit = {}
 ) {
     ModalDrawerSheet(
         drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -103,6 +105,13 @@ fun MenuDrawerSheet(
                 label = Str.documents.text(),
                 selected = currentView == ActiveView.DOCUMENTS,
                 onClick = { onNavigate(ActiveView.DOCUMENTS) }
+            )
+            DrawerEntry(
+                selectedIcon = Icons.Outlined.Computer,
+                icon = Icons.Outlined.Computer,
+                label = com.example.lifeorganizer.web.WebStr.title.text(),
+                selected = false,
+                onClick = onWebAccessClick
             )
 
             Spacer(modifier = Modifier.weight(1f))

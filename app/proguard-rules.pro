@@ -7,3 +7,7 @@
 # Keep line numbers so shared crash reports stay readable
 -keepattributes SourceFile,LineNumberTable
 -renamesourcefileattribute SourceFile
+
+# Ktor (PC access server): JVM-only debug detector classes do not exist on Android
+-dontwarn java.lang.management.ManagementFactory
+-dontwarn java.lang.management.RuntimeMXBean

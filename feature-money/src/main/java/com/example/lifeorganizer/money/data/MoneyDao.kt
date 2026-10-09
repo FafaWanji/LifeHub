@@ -18,6 +18,9 @@ interface MoneyDao {
     @Query("SELECT * FROM transactions ORDER BY epochDay DESC, id DESC")
     suspend fun allTransactionsSync(): List<MoneyTransaction>
 
+    @Query("SELECT * FROM transactions WHERE id = :id")
+    suspend fun transactionById(id: Long): MoneyTransaction?
+
     /** Returns -1 when the row already exists (import hash or fixed-cost due date). */
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertTransaction(tx: MoneyTransaction): Long
