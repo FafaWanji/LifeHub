@@ -117,7 +117,7 @@ fun EventDetailDialog(
                 HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
 
                 // Time
-                val dateFormatter = DateTimeFormatter.ofPattern("EEEE, MMMM dd, yyyy", Locale.Builder().setLanguage(lang).build())
+                val dateFormatter = com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "EEEEMMMMddyyyy")
                 val timeFormatter = DateTimeFormatter.ofPattern("HH:mm", Locale.Builder().setLanguage(lang).build())
                 val startDateTime = Instant.ofEpochMilli(event.startTimeMillis)
                     .atZone(ZoneId.of(event.timezone))

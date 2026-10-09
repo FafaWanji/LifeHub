@@ -88,7 +88,7 @@ fun WeekView(
                 Icon(Icons.Default.ArrowBack, contentDescription = Str.previousWeek.text())
             }
             Text(
-                text = "${startOfWeek.month.getDisplayName(TextStyle.SHORT, Locale.Builder().setLanguage(lang).build())} ${startOfWeek.year}",
+                text = startOfWeek.format(com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "yyyyMMM")),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )

@@ -28,6 +28,7 @@ import com.example.lifeorganizer.calendar.util.RRuleExpander
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
+import kotlinx.coroutines.flow.first
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 
@@ -38,15 +39,17 @@ class CalendarWidget : GlanceAppWidget() {
         val configuredCategoryIds = CalendarWidgetConfigActivity.loadWidgetConfig(context, appWidgetId)
         
         val events = loadAgendaEvents(context, configuredCategoryIds)
-        
+        // The widget follows the in-app language, like the rest of LifeHub
+        val lang = com.example.lifeorganizer.core.settings.SettingsManager(context).languageCode.first()
+
         provideContent {
-            WidgetContent(events)
+            WidgetContent(events, lang)
         }
     }
 
     @Composable
-    private fun WidgetContent(events: List<WidgetEvent>) {
-        val dateFormatter = DateTimeFormatter.ofPattern("EEE, MMM dd")
+    private fun WidgetContent(events: List<WidgetEvent>, lang: String) {
+        val dateFormatter = com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "EEEMMMdd")
         
         Column(
             modifier = GlanceModifier
@@ -59,7 +62,7 @@ class CalendarWidget : GlanceAppWidget() {
 
             if (events.isEmpty()) {
                 Text(
-                    text = com.example.lifeorganizer.core.i18n.Str.noUpcoming.of(java.util.Locale.getDefault().language),
+                    text = com.example.lifeorganizer.core.i18n.Str.noUpcoming.of(lang),
                     style = TextStyle(
                         fontSize = 14.sp,
                         color = ColorProvider(Color(0xFFCAC4D0))
@@ -76,7 +79,7 @@ class CalendarWidget : GlanceAppWidget() {
                         val today = LocalDate.now()
                         val daysLeft = ChronoUnit.DAYS.between(today, date)
                         val S = com.example.lifeorganizer.core.i18n.Str
-                        val wl = java.util.Locale.getDefault().language
+                        val wl = lang
                         val relativeText = when {
                             daysLeft == 0L -> " (${S.widgetToday.of(wl)})"
                             daysLeft == 1L -> " (${S.widgetTomorrow.of(wl)})"
@@ -98,7 +101,7 @@ class CalendarWidget : GlanceAppWidget() {
                         
                         items(dayEvents) { event ->
                             val timeText = if (event.isAllDay) {
-                                com.example.lifeorganizer.core.i18n.Str.allDay.of(java.util.Locale.getDefault().language)
+                                com.example.lifeorganizer.core.i18n.Str.allDay.of(lang)
                             } else {
                                 Instant.ofEpochMilli(event.startTimeMillis)
                                     .atZone(ZoneId.of(event.timezone))

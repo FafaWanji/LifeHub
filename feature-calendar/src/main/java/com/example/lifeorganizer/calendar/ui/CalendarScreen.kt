@@ -470,7 +470,7 @@ fun CalendarScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "${visibleMonth.month.getDisplayName(TextStyle.FULL, Locale.Builder().setLanguage(lang).build())} ${visibleMonth.year}",
+                                text = visibleMonth.atDay(1).format(com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "yyyyLLLL")),
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold
                             )
@@ -515,7 +515,7 @@ fun CalendarScreen(
                         )
 
                         Text(
-                            text = selectedDate.format(DateTimeFormatter.ofPattern("EEEE, MMMM dd", Locale.Builder().setLanguage(lang).build())),
+                            text = selectedDate.format(com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "EEEEMMMMdd")),
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                             color = MaterialTheme.colorScheme.primary

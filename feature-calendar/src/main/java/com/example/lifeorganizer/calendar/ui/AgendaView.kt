@@ -44,8 +44,8 @@ fun AgendaView(
 ) {
     val haptic = LocalHapticFeedback.current
     val scope = rememberCoroutineScope()
-    val dateFormatter = DateTimeFormatter.ofPattern("EEEE, MMM dd", Locale.Builder().setLanguage(lang).build())
-    val monthFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.Builder().setLanguage(lang).build())
+    val dateFormatter = com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "EEEEMMMdd")
+    val monthFormatter = com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "yyyyLLLL")
 
     // Group events by month, then by day
     val groupedEvents = remember(events) {
