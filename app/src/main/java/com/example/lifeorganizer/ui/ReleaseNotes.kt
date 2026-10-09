@@ -13,14 +13,15 @@ object ReleaseNotes {
         "zh" to "**下载哪个文件？** 几乎所有手机：`LifeHub-%s-arm64-v8a.apk`。很旧的手机：`armeabi-v7a`。`x86_64` 仅用于模拟器。"
     )
 
-    fun markdown(version: String): String {
+    /** [splitApks]: the release has one APK per CPU type (from 0.10 on). */
+    fun markdown(version: String, splitApks: Boolean = true): String {
         val release = CHANGELOG.firstOrNull { it.version == version } ?: error("No changelog entry for $version")
         return buildString {
             append("## LifeHub ").append(version).append("\n")
             sections.forEach { (lang, name) ->
                 append("\n### ").append(name).append("\n\n")
                 release.items.forEach { append("- ").append(it.of(lang)).append("\n") }
-                append("\n").append(apkHint.getValue(lang).format(version)).append("\n")
+                if (splitApks) append("\n").append(apkHint.getValue(lang).format(version)).append("\n")
             }
         }
     }

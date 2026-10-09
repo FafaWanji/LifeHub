@@ -22,7 +22,10 @@ class ChangelogTest {
         listOf("### Deutsch", "### English", "### Türkçe", "### Español", "### 简体中文").forEach {
             assertTrue("missing $it", notes.contains(it))
         }
-        // Handy for the release: the generated notes end up in app/build/release-notes.md
-        File("build/release-notes.md").writeText(notes)
+        // Handy for releases: notes for every version end up in app/build/release-notes/<version>.md
+        val dir = File("build/release-notes").apply { mkdirs() }
+        CHANGELOG.forEach { r ->
+            File(dir, "${r.version}.md").writeText(ReleaseNotes.markdown(r.version, splitApks = r.version !in setOf("0.8", "0.9")))
+        }
     }
 }
