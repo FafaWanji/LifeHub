@@ -21,6 +21,20 @@ data class UpdateInfo(val version: String, val notes: String, val apkUrl: String
 object Updater {
     private const val LATEST = "https://api.github.com/repos/FafaWanji/LifeHub/releases/latest"
 
+    private val sectionTitles = mapOf("de" to "Deutsch", "en" to "English", "tr" to "Türkçe", "es" to "Español", "zh" to "简体中文")
+
+    /**
+     * Release notes carry one "### <language>" section per language (see ReleaseNotes);
+     * only the app language is shown, English if it is missing. Notes without sections stay whole.
+     */
+    fun notesFor(notes: String, lang: String): String {
+        val sections = notes.split(Regex("(?m)^### ")).drop(1).associate { block ->
+            block.substringBefore('\n').trim() to block.substringAfter('\n').trim()
+        }
+        if (sections.isEmpty()) return notes.trim()
+        return sections[sectionTitles[lang]] ?: sections["English"] ?: notes.trim()
+    }
+
     /** Null when the app is up to date or the check failed. */
     suspend fun check(): UpdateInfo? = withContext(Dispatchers.IO) {
         runCatching {

@@ -51,7 +51,8 @@ fun UpdateDialog(known: UpdateInfo? = null, onDismiss: () -> Unit) {
                 when {
                     checking -> LinearProgressIndicator(Modifier.fillMaxWidth())
                     info != null -> {
-                        if (info!!.notes.isNotBlank()) Text(info!!.notes, style = MaterialTheme.typography.bodyMedium)
+                        val notes = Updater.notesFor(info!!.notes, com.example.lifeorganizer.core.i18n.LocalAppLanguage.current)
+                        if (notes.isNotBlank()) Text(notes, style = MaterialTheme.typography.bodyMedium)
                         progress?.let { p ->
                             LinearProgressIndicator(progress = { p }, modifier = Modifier.fillMaxWidth().padding(top = 12.dp))
                         }
