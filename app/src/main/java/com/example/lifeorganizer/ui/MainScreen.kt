@@ -140,6 +140,9 @@ fun MainScreen(
 
     val geminiApiKey by calendarViewModel.geminiApiKey.collectAsState()
     val categories by calendarViewModel.categories.collectAsState()
+    val moneyContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
+    val moneyRepository = remember { com.example.lifeorganizer.money.data.MoneyRepository.get(moneyContext) }
+    val moneyCategories by moneyRepository.categories().collectAsState(initial = emptyList())
     val waypoints by waypointsViewModel.allWaypoints.collectAsState()
     val pinnedNotes by notesViewModel.pinnedToDateNotes.collectAsState()
     val templates by notesViewModel.templates.collectAsState()
@@ -482,7 +485,8 @@ fun MainScreen(
                         val contextData = SmartAddEngine.ContextData(
                             apiKey = geminiApiKey.orEmpty(),
                             categories = categories.map { it.id to it.name },
-                            waypoints = waypoints.map { it.waypoint.name to it.waypoint.address }
+                            waypoints = waypoints.map { it.waypoint.name to it.waypoint.address },
+                            moneyCategories = moneyCategories.map { it.name }
                         )
                         SmartAddDialog(
                             contextData = contextData,
@@ -492,10 +496,11 @@ fun MainScreen(
                             onDismiss = { showSmartAdd = false },
                             onResult = { results ->
                                 showSmartAdd = false
-                                saveSmartResults(results, calendarViewModel, notesViewModel)
+                                saveSmartResults(results, calendarViewModel, notesViewModel, moneyRepository, scope)
                                 val message = when {
                                     results.size > 1 -> "${results.size} ${Str.savedItems.of(lang)}"
                                     results.first() is SmartResult.Event -> Str.savedEvent.of(lang)
+                                    results.first() is SmartResult.Transaction -> Str.savedTransaction.of(lang)
                                     else -> Str.savedNote.of(lang)
                                 }
                                 // Jump to the day of the (first) new event so the result is visible.
@@ -563,10 +568,15 @@ fun MainScreen(
 private fun saveSmartResults(
     results: List<SmartResult>,
     calendarViewModel: CalendarViewModel,
-    notesViewModel: NotesViewModel
+    notesViewModel: NotesViewModel,
+    moneyRepository: com.example.lifeorganizer.money.data.MoneyRepository,
+    scope: kotlinx.coroutines.CoroutineScope
 ) {
     results.forEach { result ->
         when (result) {
+            is SmartResult.Transaction -> scope.launch {
+                moneyRepository.addFromSmartAdd(result.title, result.amountCents, result.epochDay, result.categoryName)
+            }
             is SmartResult.Event -> calendarViewModel.addEvent(
                 title = result.title,
                 description = result.description,

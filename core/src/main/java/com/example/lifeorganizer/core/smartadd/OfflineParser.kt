@@ -41,6 +41,8 @@ object OfflineParser {
     ): List<SmartResult> {
         val input = text.trim()
         if (input.isEmpty()) return emptyList()
+        // Single-line text with an amount is a transaction ("12,50 Döner gestern"); lists stay notes.
+        if ('\n' !in input) MoneyTextParser.parse(input, now.toLocalDate())?.let { return listOf(it) }
         var rest = input
         var date: LocalDate? = null
 

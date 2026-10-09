@@ -29,6 +29,7 @@ object Str {
     val notes = Txt("Notes", "Notizen", "Notlar", "Notas")
     val waypoints = Txt("Waypoints", "Waypoints", "Konumlar", "Lugares")
     val documents = Txt("Documents", "Dokumente", "Belgeler", "Documentos")
+    val finance = Txt("Finance", "Finanzen", "Finans", "Finanzas")
     val settings = Txt("Settings", "Einstellungen", "Ayarlar", "Ajustes")
     val menu = Txt("Menu", "Menü", "Menü", "Menú")
     val back = Txt("Back", "Zurück", "Geri", "Atrás")
@@ -390,6 +391,7 @@ object Str {
     val voiceUnavailable = Txt("Speech recognition isn't available on this device.", "Spracherkennung ist auf diesem Gerät nicht verfügbar.", "Bu cihazda konuşma tanıma yok.", "El reconocimiento de voz no está disponible.")
     val savedEvent = Txt("Event saved", "Termin gespeichert", "Etkinlik kaydedildi", "Evento guardado")
     val savedNote = Txt("Note saved", "Notiz gespeichert", "Not kaydedildi", "Nota guardada")
+    val savedTransaction = Txt("Transaction saved", "Buchung gespeichert", "İşlem kaydedildi", "Movimiento guardado")
     val savedItems = Txt("items saved", "Einträge gespeichert", "öğe kaydedildi", "elementos guardados")
 
     // App lock

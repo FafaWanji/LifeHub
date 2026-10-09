@@ -19,4 +19,12 @@ sealed class SmartResult {
         val isChecklist: Boolean = false,
         val colorLabel: Int? = null
     ) : SmartResult()
+
+    data class Transaction(
+        val title: String,
+        /** Negative = expense, positive = income. */
+        val amountCents: Long,
+        val epochDay: Long,
+        val categoryName: String? = null
+    ) : SmartResult()
 }

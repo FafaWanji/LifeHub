@@ -16,7 +16,8 @@ object SmartAddEngine {
     data class ContextData(
         val apiKey: String,
         val categories: List<Pair<Long, String>> = emptyList(), // ID to Name
-        val waypoints: List<Pair<String, String>> = emptyList() // Name to Address
+        val waypoints: List<Pair<String, String>> = emptyList(), // Name to Address
+        val moneyCategories: List<String> = emptyList()
     )
 
     suspend fun process(inputText: String, contextData: ContextData): List<SmartResult>? = withContext(Dispatchers.IO) {
@@ -32,18 +33,20 @@ object SmartAddEngine {
             val waypointsStr = contextData.waypoints.joinToString(", ") { "'${it.first}' -> ${it.second}" }
 
             val systemPrompt = """
-                You are the intelligence engine of 'LifeHub', an app that handles both Calendar Events and Notes.
-                Analyze the user's text and extract the data into a JSON array of items. 
-                Determine for each item whether it's an 'event' or a 'note'.
-                
+                You are the intelligence engine of 'LifeHub', an app that handles Calendar Events, Notes and money Transactions.
+                Analyze the user's text and extract the data into a JSON array of items.
+                Determine for each item whether it's an 'event', a 'note' or a 'transaction'.
+
                 - EVENT: Has a specific time, date, or relative timeframe (e.g., "tomorrow at 8pm", "dentist appointment", "party on sunday").
                 - NOTE: Just capturing information, ideas, lists, or thoughts without a specific timeframe.
+                - TRANSACTION: Money spent or received (e.g. "12,50 Döner gestern", "Gehalt 2100 bekommen"). Amount negative for spending, positive for income.
                 
                 Use the context to resolve relative dates and addresses:
                 Current Date and Time: $currentTimeStr
                 Timezone: $timeZone
                 Available Categories (ID: Name): $categoriesStr
                 Saved Waypoints (Name -> Address): $waypointsStr
+                Money Categories: ${contextData.moneyCategories.joinToString(", ")}
                 
                 JSON Format required:
                 {
@@ -65,6 +68,13 @@ object SmartAddEngine {
                       "title": "Short title",
                       "content": "Full content of the note",
                       "isChecklist": false
+                    },
+                    {
+                      "type": "transaction",
+                      "title": "Short title",
+                      "amount": -12.5,
+                      "date": "2026-07-10",
+                      "category": "One of the Money Categories or null"
                     }
                   ]
                 }
@@ -168,6 +178,19 @@ object SmartAddEngine {
                             birthYear = if (itemJson.has("birthYear") && !itemJson.isNull("birthYear")) itemJson.optInt("birthYear") else null
                         )
                     )
+                } else if (type == "transaction") {
+                    val amount = itemJson.optDouble("amount", Double.NaN)
+                    if (!amount.isNaN()) {
+                        val day = runCatching { java.time.LocalDate.parse(itemJson.optString("date")) }.getOrDefault(java.time.LocalDate.now())
+                        results.add(
+                            SmartResult.Transaction(
+                                title = itemJson.optString("title", ""),
+                                amountCents = Math.round(amount * 100),
+                                epochDay = day.toEpochDay(),
+                                categoryName = itemJson.optString("category").takeIf { it.isNotBlank() && it != "null" }
+                            )
+                        )
+                    }
                 } else {
                     results.add(
                         SmartResult.Note(
