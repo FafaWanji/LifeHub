@@ -36,4 +36,15 @@ object WebStr {
     val notifText = Txt("%1\$s · Code %2\$s", "%1\$s · Code %2\$s", "%1\$s · Kod %2\$s", "%1\$s · Código %2\$s")
     val stop = Txt("Stop", "Beenden", "Durdur", "Detener")
     val channel = Txt("PC access", "PC-Zugriff", "PC erişimi", "Acceso desde PC")
+    val fallback = Txt(
+        "If the name does not work in your network: %s",
+        "Falls der Name in deinem Netz nicht klappt: %s",
+        "Ad ağında çalışmazsa: %s",
+        "Si el nombre no funciona en tu red: %s"
+    )
+    val settings = Txt("Address settings", "Adresse anpassen", "Adres ayarları", "Ajustes de dirección")
+    val name = Txt("Name", "Name", "Ad", "Nombre")
+    val port = Txt("Port", "Port", "Port", "Puerto")
+    val portHint = Txt("1024–65535", "1024–65535", "1024–65535", "1024–65535")
+    val save = Txt("Save", "Speichern", "Kaydet", "Guardar")
 }

@@ -22,6 +22,9 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -85,7 +88,12 @@ fun WebAccessScreen(onBack: () -> Unit) {
                     Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Text(WebStr.address.text(), style = MaterialTheme.typography.labelLarge)
                         SelectionContainer {
-                            Text(state.address ?: WebStr.noWifi.text(), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
+                            Text(state.nameAddress ?: WebStr.noWifi.text(), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.SemiBold)
+                        }
+                        state.address?.let { ip ->
+                            SelectionContainer {
+                                Text(WebStr.fallback.text().format(ip), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            }
                         }
                         HorizontalDivider(Modifier.padding(vertical = 8.dp))
                         Text(WebStr.code.text(), style = MaterialTheme.typography.labelLarge)
@@ -95,6 +103,8 @@ fun WebAccessScreen(onBack: () -> Unit) {
                     }
                 }
             }
+
+            AddressSettings(onSaved = { WebAccessService.restart(context) })
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(Icons.Outlined.WarningAmber, null, tint = MaterialTheme.colorScheme.tertiary)
@@ -120,4 +130,35 @@ fun WebAccessScreen(onBack: () -> Unit) {
             }
         }
     }
+}
+
+/** Name for <name>.local and the port; saving restarts a running server with the new address. */
+@Composable
+private fun AddressSettings(onSaved: () -> Unit) {
+    val context = LocalContext.current
+    val settings = remember { WebSettings(context) }
+    var name by remember { mutableStateOf(settings.name) }
+    var port by remember { mutableStateOf(settings.port.toString()) }
+    val portValue = port.toIntOrNull()
+    val portOk = portValue != null && WebSettings.validPort(portValue)
+    val changed = WebSettings.sanitizeName(name) != settings.name || portValue != settings.port
+
+    Text(WebStr.settings.text(), style = MaterialTheme.typography.titleSmall)
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+        OutlinedTextField(
+            value = name, onValueChange = { name = it.take(40) }, label = { Text(WebStr.name.text()) },
+            suffix = { Text(".local") }, singleLine = true, modifier = Modifier.weight(2f)
+        )
+        OutlinedTextField(
+            value = port, onValueChange = { port = it.filter(Char::isDigit).take(5) }, label = { Text(WebStr.port.text()) },
+            supportingText = { Text(WebStr.portHint.text()) }, isError = !portOk, singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f)
+        )
+    }
+    TextButton(enabled = changed && portOk, onClick = {
+        settings.name = name
+        settings.port = portValue!!
+        name = settings.name
+        onSaved()
+    }) { Text(WebStr.save.text()) }
 }

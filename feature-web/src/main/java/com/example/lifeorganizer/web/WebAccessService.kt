@@ -27,12 +27,21 @@ import kotlinx.coroutines.runBlocking
 import java.net.Inet4Address
 import java.net.NetworkInterface
 
-data class WebAccessState(val running: Boolean = false, val address: String? = null, val code: String = "", val failed: Boolean = false)
+data class WebAccessState(
+    val running: Boolean = false,
+    val address: String? = null,
+    val nameAddress: String? = null,
+    val code: String = "",
+    val failed: Boolean = false
+)
 
 /** Keeps the local web server alive while PC access is on; shows address and code in a notification. */
 class WebAccessService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var server: WebServer? = null
+    private var mdns: MdnsResponder? = null
+    private var multicastLock: android.net.wifi.WifiManager.MulticastLock? = null
+    private var hostName = WebSettings.DEFAULT_NAME
     private var lang = "en"
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -52,13 +61,16 @@ class WebAccessService : Service() {
         lang = runBlocking { SettingsManager(this@WebAccessService).languageCode.first() }
         createChannel()
         startInForeground(buildNotification("…", ""))
-        val started = runCatching { WebServer(this).also { it.start() } }
+        val settings = WebSettings(this)
+        hostName = settings.name
+        val started = runCatching { WebServer(this, settings.port).also { it.start() } }
         server = started.getOrNull()
         if (server == null) {
             _state.value = WebAccessState(failed = true)
             stopSelf()
             return START_NOT_STICKY
         }
+        startMdns()
         publish()
         scope.launch {
             while (isActive) {
@@ -72,17 +84,30 @@ class WebAccessService : Service() {
         return START_NOT_STICKY
     }
 
+    /** Answers "<name>.local" in the Wi-Fi; needs a multicast lock or Android drops the queries. */
+    private fun startMdns() {
+        runCatching {
+            multicastLock = (applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager)
+                .createMulticastLock("lifehub-mdns").apply { setReferenceCounted(false); acquire() }
+            mdns = MdnsResponder(hostName) { localInet() }.also { it.start() }
+        }
+    }
+
     private fun publish() {
         val s = server ?: return
         val ip = localAddress()
         val address = ip?.let { "http://$it:${s.port}" }
-        _state.value = WebAccessState(running = true, address = address, code = s.auth.code)
+        val nameAddress = ip?.let { "http://$hostName.local:${s.port}" }
+        _state.value = WebAccessState(running = true, address = address, nameAddress = nameAddress, code = s.auth.code)
         getSystemService(NotificationManager::class.java)
-            .notify(NOTIFICATION_ID, buildNotification(address ?: WebStr.noWifi.of(lang), s.auth.code))
+            .notify(NOTIFICATION_ID, buildNotification(nameAddress ?: WebStr.noWifi.of(lang), s.auth.code))
     }
 
     override fun onDestroy() {
         scope.cancel()
+        mdns?.stop()
+        mdns = null
+        runCatching { multicastLock?.release() }
         server?.stop()
         server = null
         _state.value = WebAccessState()
@@ -145,12 +170,21 @@ class WebAccessService : Service() {
         }
 
         /** IPv4 address in the local network, Wi-Fi preferred. */
-        fun localAddress(): String? = runCatching {
+        fun localInet(): Inet4Address? = runCatching {
             NetworkInterface.getNetworkInterfaces().toList()
                 .filter { it.isUp && !it.isLoopback }
                 .sortedByDescending { it.name.startsWith("wlan") }
                 .flatMap { nif -> nif.inetAddresses.toList().filterIsInstance<Inet4Address>().filter { it.isSiteLocalAddress } }
-                .firstOrNull()?.hostAddress
+                .firstOrNull()
         }.getOrNull()
+
+        fun localAddress(): String? = localInet()?.hostAddress
+
+        /** Restart with new name/port settings (only when running). */
+        fun restart(context: Context) {
+            if (!_state.value.running) return
+            stop(context)
+            start(context)
+        }
     }
 }
