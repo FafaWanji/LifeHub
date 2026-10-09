@@ -71,7 +71,7 @@ import com.example.lifeorganizer.calendar.ui.MainViewModel as CalendarViewModel
 import com.example.lifeorganizer.waypoints.ui.MainViewModel as WaypointsViewModel
 
 enum class ActiveView {
-    CALENDAR, NOTES, NOTE_EDITOR, WAYPOINTS, DOCUMENTS
+    CALENDAR, NOTES, NOTE_EDITOR, WAYPOINTS, DOCUMENTS, MONEY
 }
 
 /** Sub-screens of the embedded Waypoints module. */
@@ -400,6 +400,7 @@ fun MainScreen(
                                 openDocumentId = documentToOpen,
                                 onDocumentOpened = { documentToOpen = null }
                             )
+                            ActiveView.MONEY -> com.example.lifeorganizer.money.ui.MoneyHost(onMenuClick = openMenu)
                         }
                     }
 }

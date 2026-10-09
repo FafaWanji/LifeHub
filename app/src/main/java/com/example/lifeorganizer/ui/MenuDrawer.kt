@@ -19,9 +19,11 @@ import androidx.compose.material.icons.automirrored.outlined.Notes
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Savings
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Place
+import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import com.example.lifeorganizer.core.i18n.BkStr
@@ -73,6 +75,13 @@ fun MenuDrawerSheet(
                 label = Str.notes.text(),
                 selected = currentView == ActiveView.NOTES || currentView == ActiveView.NOTE_EDITOR,
                 onClick = { onNavigate(ActiveView.NOTES) }
+            )
+            DrawerEntry(
+                selectedIcon = Icons.Filled.Savings,
+                icon = Icons.Outlined.Savings,
+                label = Str.finance.text(),
+                selected = currentView == ActiveView.MONEY,
+                onClick = { onNavigate(ActiveView.MONEY) }
             )
 
             HorizontalDivider(

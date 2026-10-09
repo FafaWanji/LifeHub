@@ -91,6 +91,7 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
         super.onCreate(savedInstanceState)
         com.example.lifeorganizer.backup.AutoBackup.schedule(applicationContext)
         com.example.lifeorganizer.money.work.RecurringWorker.schedule(applicationContext)
+        com.example.lifeorganizer.money.MoneyIntegration.calendar = com.example.lifeorganizer.money.FixedCostCalendarSync(applicationContext)
         lifecycleScope.launch { com.example.lifeorganizer.money.data.MoneyRepository.get(applicationContext).bookDueRecurring() }
 
         // Check if we're restarting after a crash — show the crash info

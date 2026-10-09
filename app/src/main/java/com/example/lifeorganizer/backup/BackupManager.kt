@@ -456,6 +456,8 @@ class BackupManager(context: Context) {
             noteDao.getNoteWithLabels(id)?.note?.takeIf { it.documentId == null }?.let { noteDao.updateNote(it.copy(documentId = doc.id)) }
         }
         val transactions = root.optJSONObject("money")?.let { com.example.lifeorganizer.money.data.MoneyBackup.import(moneyDao, it) } ?: 0
+        if (root.has("money")) com.example.lifeorganizer.money.FixedCostCalendarSync(appContext)
+            .syncAll(com.example.lifeorganizer.core.settings.SettingsManager(appContext).languageCode.first())
         root.optJSONObject("settings")?.let { importSettings(it) }
 
         if (pendingDocuments.isNotEmpty()) {

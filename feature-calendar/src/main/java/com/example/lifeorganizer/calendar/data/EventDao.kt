@@ -67,6 +67,9 @@ interface EventDao {
     @Query("DELETE FROM events WHERE id = :eventId")
     suspend fun deleteEventById(eventId: Long)
 
+    @Query("SELECT * FROM events WHERE id = :id")
+    suspend fun getEventById(id: Long): Event?
+
     @Query("SELECT * FROM categories ORDER BY name ASC")
     fun getCategories(): Flow<List<Category>>
 
