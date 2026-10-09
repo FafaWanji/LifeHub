@@ -67,6 +67,8 @@ class WebServer(context: Context, val port: Int = DEFAULT_PORT) {
             path == "/" || path == "/index.html" -> asset(call, "index.html", ContentType.Text.Html)
             path == "/app.js" -> asset(call, "app.js", ContentType.Text.JavaScript)
             path == "/app.css" -> asset(call, "app.css", ContentType.Text.CSS)
+            // Tab icon: the LifeHub logo (browsers also try /favicon.ico on their own)
+            path == "/favicon.svg" || path == "/favicon.ico" -> asset(call, "favicon.svg", ContentType.Image.SVG)
             path.startsWith("/api/") -> {
                 val method = call.request.httpMethod.value
                 val body = if (method == "POST" || method == "PUT") call.receiveText().take(MAX_BODY) else ""

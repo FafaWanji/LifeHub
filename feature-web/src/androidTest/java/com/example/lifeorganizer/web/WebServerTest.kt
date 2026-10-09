@@ -64,6 +64,13 @@ class WebServerTest {
         assertTrue(body.contains("<html"))
     }
 
+    @Test fun tabIconIsServed() {
+        val (code, body) = http("GET", "/favicon.svg")
+        assertEquals(200, code)
+        assertTrue(body.contains("<svg"))
+        assertTrue(http("GET", "/").second.contains("favicon.svg"))
+    }
+
     @Test fun apiNeedsToken() {
         assertEquals(401, http("GET", "/api/notes").first)
         assertEquals(401, http("GET", "/api/notes", token = "wrong").first)
