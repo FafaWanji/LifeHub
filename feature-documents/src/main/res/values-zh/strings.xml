@@ -1,0 +1,35 @@
+<resources>
+    <string name="pinned_docs">已置顶</string>
+    <string name="no_pinned_docs">没有置顶的文档</string>
+    <string name="all_docs">所有文档</string>
+    <string name="no_docs_added">还没有添加文档</string>
+    <string name="add_doc">添加文档</string>
+    <string name="new_doc">新建文档</string>
+    <string name="doc_not_found">未找到文档</string>
+    <string name="open_pdf">打开 PDF</string>
+    <string name="open_pdf_with">用…打开 PDF</string>
+    <string name="settings">设置</string>
+    <string name="design_style">设计风格</string>
+    <string name="dark_mode">深色模式</string>
+    <string name="accent_color">强调色</string>
+    <string name="home">首页</string>
+    <string name="documents">文档</string>
+    <string name="detail">详情</string>
+    <string name="edit_document">编辑文档</string>
+    <string name="title">标题</string>
+    <string name="group">分组</string>
+    <string name="save">保存</string>
+    <string name="cancel">取消</string>
+    <string name="new_group">新建分组</string>
+    <string name="group_name">分组名称</string>
+    <string name="add">添加</string>
+    <string name="all">全部</string>
+    <string name="general">常规</string>
+    <string name="work">工作</string>
+    <string name="private_group">私人</string>
+    <string name="delete_document">删除文档</string>
+    <string name="confirm_delete">确定要删除此文档吗？</string>
+    <string name="delete">删除</string>
+    <string name="language">语言</string>
+    <string name="system_default">跟随系统</string>
+</resources>

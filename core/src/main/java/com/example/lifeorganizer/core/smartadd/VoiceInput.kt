@@ -89,6 +89,7 @@ class VoiceInput(
             "de" -> "de-DE"
             "tr" -> "tr-TR"
             "es" -> "es-ES"
+            "zh" -> "zh-CN"
             else -> "en-US"
         }
     }

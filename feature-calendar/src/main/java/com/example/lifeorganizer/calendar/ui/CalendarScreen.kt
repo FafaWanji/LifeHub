@@ -1537,7 +1537,7 @@ fun SettingsDialog(
                                     .padding(horizontal = 16.dp, vertical = 4.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                mapOf("en" to "EN", "de" to "DE", "tr" to "TR", "es" to "ES").forEach { (code, label) ->
+                                mapOf("en" to "EN", "de" to "DE", "tr" to "TR", "es" to "ES", "zh" to "中文").forEach { (code, label) ->
                                     FilterChip(
                                         selected = lang == code,
                                         onClick = { viewModel.saveLanguageCode(code) },

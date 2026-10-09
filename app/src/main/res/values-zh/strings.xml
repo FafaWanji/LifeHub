@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">LifeHub</string>
+    <string name="shortcut_new_event_short">新建日程</string>
+    <string name="shortcut_new_event_long">创建新日程</string>
+    <string name="shortcut_new_note_short">新建笔记</string>
+    <string name="shortcut_new_note_long">创建新笔记</string>
+    <string name="shortcut_smart_add_short">智能添加</string>
+    <string name="shortcut_smart_add_long">用智能添加记录任何内容</string>
+    <string name="shortcut_waypoints_short">地点</string>
+    <string name="shortcut_waypoints_long">打开你的地点</string>
+    <string name="smart_entry_hint">添加任何内容…</string>
+    <string name="smart_entry_widget_description">通过输入、语音或相机快速添加日程或笔记</string>
+    <string name="note_widget_empty">置顶一条笔记以在此显示</string>
+    <string name="note_widget_untitled">无标题</string>
+    <string name="note_widget_description">你置顶的笔记，可直接勾选清单</string>
+</resources>

@@ -65,6 +65,22 @@ const T = {
     income: 'Ingresos', expenses: 'Gastos', left: 'Restante', expected: 'Aún previstos: {0} en gastos fijos', byCategory: 'Por categoría',
     transactions: 'Movimientos', add: 'Añadir', expense: 'Gasto', incomeOne: 'Ingreso', amount: 'Importe', auto: 'Automático',
     noTx: 'Sin movimientos este mes', budgetOf: '{0} de {1}', error: 'Algo salió mal'
+  },
+  zh: {
+    calendar: '日历', notes: '笔记', money: '财务', logout: '断开连接',
+    pairTitle: '连接 LifeHub', pairHint: '输入手机上 LifeHub 显示的 6 位代码（菜单 → 电脑访问）。',
+    connect: '连接', wrongCode: '代码错误。请核对手机上的代码。', offline: '无法连接手机。电脑访问是否仍开启？',
+    today: '今天', newEvent: '新建日程', editEvent: '编辑日程', title: '标题', allDay: '全天', date: '日期',
+    start: '开始', end: '结束', repeat: '重复', none: '无', daily: '每天', weekly: '每周', monthly: '每月', yearly: '每年',
+    asInApp: '与应用中设置相同', category: '分类', reminder: '提醒', atStart: '开始时', min10: '提前 10 分钟',
+    min30: '提前 30 分钟', hour1: '提前 1 小时', day1: '提前 1 天', location: '地点', description: '描述',
+    save: '保存', cancel: '取消', delete: '删除', confirmDelete: '确定删除？', seriesHint: '更改将应用于整个系列。',
+    birthdayHint: '生日只能在应用中编辑。', noEvents: '没有日程', saved: '已保存',
+    newNote: '新建笔记', search: '搜索', untitled: '无标题', preview: '预览', edit: '编辑', pin: '置顶', unpin: '取消置顶',
+    noNotes: '还没有笔记', pickNote: '选择一条笔记或新建一条。', saving: '正在保存…',
+    income: '收入', expenses: '支出', left: '结余', expected: '尚待支出：{0} 固定支出', byCategory: '按分类',
+    transactions: '交易', add: '添加', expense: '支出', incomeOne: '收入', amount: '金额', auto: '自动',
+    noTx: '本月没有交易', budgetOf: '{0} / {1}', error: '出了点问题'
   }
 };
 

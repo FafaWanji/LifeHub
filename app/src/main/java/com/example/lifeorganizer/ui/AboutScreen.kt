@@ -33,25 +33,25 @@ private val PRIVACY = listOf(
         "Your events, notes, places and documents are stored only on this phone. There is no account, no tracking and no advertising.",
         "Termine, Notizen, Orte und Dokumente werden nur auf diesem Handy gespeichert. Es gibt kein Konto, kein Tracking und keine Werbung.",
         "Etkinlikler, notlar, yerler ve belgeler yalnızca bu telefonda saklanır. Hesap, izleme veya reklam yok.",
-        "Eventos, notas, lugares y documentos se guardan solo en este teléfono. Sin cuenta, sin rastreo y sin publicidad."
+        "Eventos, notas, lugares y documentos se guardan solo en este teléfono. Sin cuenta, sin rastreo y sin publicidad.", "你的日程、笔记、地点和文档只保存在这部手机上。没有账户，没有追踪，也没有广告。"
     ),
     Txt(
         "Smart Add with an API key sends the entered text (and text read from images) to Groq to recognise date, time and place. Without a key everything is processed offline.",
         "Smart Add mit API-Key sendet den eingegebenen Text (und aus Bildern gelesenen Text) an Groq, um Datum, Zeit und Ort zu erkennen. Ohne Key läuft alles offline.",
         "API anahtarlı Akıllı Ekle, girilen metni (ve görsellerden okunan metni) Groq'a gönderir. Anahtar olmadan her şey çevrimdışı çalışır.",
-        "Smart Add con clave API envía el texto (y el leído de imágenes) a Groq. Sin clave todo funciona sin conexión."
+        "Smart Add con clave API envía el texto (y el leído de imágenes) a Groq. Sin clave todo funciona sin conexión.", "使用 API 密钥时，智能添加会将输入的文本（以及从图片中识别的文本）发送到 Groq，以识别日期、时间和地点。没有密钥时，一切都在本地离线处理。"
     ),
     Txt(
         "For travel times and places, addresses are sent to Google Maps. Location is only used when you choose \"current location\".",
         "Für Reisezeiten und Orte werden Adressen an Google Maps gesendet. Der Standort wird nur genutzt, wenn du „aktueller Standort“ wählst.",
         "Yol süreleri ve yerler için adresler Google Maps'e gönderilir. Konum yalnızca \"mevcut konum\" seçildiğinde kullanılır.",
-        "Para tiempos de viaje y lugares, las direcciones se envían a Google Maps. La ubicación solo se usa si eliges \"ubicación actual\"."
+        "Para tiempos de viaje y lugares, las direcciones se envían a Google Maps. La ubicación solo se usa si eliges \"ubicación actual\".", "为计算路程时间和查找地点，地址会发送到 Google 地图。只有当你选择“当前位置”时才会使用定位。"
     ),
     Txt(
         "Phone calendars, microphone and camera are only accessed after you allow it. Text recognition in images runs on the phone. Updates are checked on GitHub.",
         "Gerätekalender, Mikrofon und Kamera werden nur nach deiner Erlaubnis genutzt. Texterkennung in Bildern läuft auf dem Handy. Updates werden bei GitHub geprüft.",
         "Telefon takvimi, mikrofon ve kameraya yalnızca izin verdikten sonra erişilir. Görsellerde metin tanıma telefonda çalışır. Güncellemeler GitHub'da denetlenir.",
-        "Calendarios, micrófono y cámara solo se usan con tu permiso. El reconocimiento de texto funciona en el teléfono. Las actualizaciones se consultan en GitHub."
+        "Calendarios, micrófono y cámara solo se usan con tu permiso. El reconocimiento de texto funciona en el teléfono. Las actualizaciones se consultan en GitHub.", "只有在你允许后，才会访问手机日历、麦克风和相机。图片文字识别在手机上运行。更新通过 GitHub 检查。"
     )
 )
 

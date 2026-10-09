@@ -23,7 +23,8 @@ fun ProvideAppLocale(language: String, content: @Composable () -> Unit) {
     val baseConfiguration = LocalConfiguration.current
 
     val localized = remember(language, baseContext, baseConfiguration) {
-        val locale = Locale.forLanguageTag(language)
+        // "zh" means Simplified Chinese (mainland script and formats)
+        val locale = if (language == "zh") Locale.SIMPLIFIED_CHINESE else Locale.forLanguageTag(language)
         val configuration = Configuration(baseConfiguration).apply { setLocale(locale) }
         val resources = baseContext.createConfigurationContext(configuration).resources
         Triple(LocaleContext(baseContext, resources), configuration, resources)

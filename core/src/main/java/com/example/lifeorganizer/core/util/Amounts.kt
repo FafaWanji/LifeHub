@@ -47,6 +47,7 @@ object Amounts {
         "de" -> Locale.GERMANY
         "tr" -> Locale.forLanguageTag("tr-TR")
         "es" -> Locale.forLanguageTag("es-ES")
+        "zh" -> Locale.SIMPLIFIED_CHINESE
         else -> Locale.forLanguageTag("en-IE")
     }
 

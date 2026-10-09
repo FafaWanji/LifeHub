@@ -54,7 +54,8 @@ fun SettingsScreen(
         "de" to stringResource(R.string.german),
         "en" to stringResource(R.string.english),
         "es" to stringResource(R.string.spanish),
-        "tr" to stringResource(R.string.turkish)
+        "tr" to stringResource(R.string.turkish),
+        "zh" to stringResource(R.string.chinese)
     )
     var languageExpanded by remember { mutableStateOf(false) }
 

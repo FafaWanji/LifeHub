@@ -129,7 +129,12 @@ fun MonthSwitcher(month: YearMonth, lang: String, onShift: (Int) -> Unit) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         IconButton(onClick = { onShift(-1) }) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, MoneyStr.previousMonth.text()) }
         Text(
-            month.format(DateTimeFormatter.ofPattern("LLLL yyyy", Locale.forLanguageTag(lang))).replaceFirstChar { it.uppercase() },
+            run {
+                // Each language's own order: "Oktober 2026", "2026年10月"
+                val locale = if (lang == "zh") Locale.SIMPLIFIED_CHINESE else Locale.forLanguageTag(lang)
+                month.format(DateTimeFormatter.ofPattern(android.text.format.DateFormat.getBestDateTimePattern(locale, "yyyyLLLL"), locale))
+                    .replaceFirstChar { it.uppercase() }
+            },
             style = MaterialTheme.typography.titleMedium
         )
         IconButton(onClick = { onShift(1) }) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, MoneyStr.nextMonth.text()) }
