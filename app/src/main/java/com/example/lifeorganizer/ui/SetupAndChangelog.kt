@@ -30,6 +30,16 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.1.1", listOf(
+            Txt("Info hints (ⓘ) explain settings and features", "Info-Hinweise (ⓘ) erklären Einstellungen und Funktionen", "Bilgi ipuçları (ⓘ) ayarları ve özellikleri açıklar", "Pistas informativas (ⓘ) explican ajustes y funciones", "信息提示（ⓘ）解释设置和功能"),
+            Txt("Small phones: scrollable menu, wrapping buttons, Smart Add above the keyboard", "Kleine Handys: scrollbares Menü, umbrechende Buttons, Smart Add über der Tastatur", "Küçük telefonlar: kaydırılabilir menü, sığan düğmeler, klavyenin üstünde Akıllı Ekle", "Móviles pequeños: menú desplazable, botones que se ajustan, Añadir inteligente sobre el teclado", "小屏手机：菜单可滚动、按钮自动换行、智能添加显示在键盘上方"),
+            Txt("Delete buttons look the same everywhere", "Löschen-Buttons sehen überall gleich aus", "Silme düğmeleri her yerde aynı görünür", "Los botones de borrar se ven igual en todas partes", "删除按钮在各处外观统一"),
+            Txt("Status bar icons visible in the light theme", "Statusleisten-Symbole im hellen Design sichtbar", "Açık temada durum çubuğu simgeleri görünür", "Iconos de la barra de estado visibles en el tema claro", "浅色主题下状态栏图标清晰可见"),
+            Txt("PC access: LifeHub logo in the browser tab, input fields aligned", "PC-Zugriff: LifeHub-Logo im Browser-Tab, Eingabefelder gleich hoch", "PC erişimi: tarayıcı sekmesinde LifeHub logosu, giriş alanları hizalı", "Acceso desde PC: logo de LifeHub en la pestaña, campos alineados", "电脑访问：浏览器标签页显示 LifeHub 标志，输入框对齐"),
+            Txt("Missing Turkish and Spanish translation added", "Fehlende türkische und spanische Übersetzung ergänzt", "Eksik Türkçe ve İspanyolca çeviri eklendi", "Añadida la traducción al turco y al español que faltaba", "补充了缺失的土耳其语和西班牙语翻译")
+        )
+    ),
+    Release(
         "1.1", listOf(
             Txt("New language: Simplified Chinese; patch notes in all languages", "Neue Sprache: vereinfachtes Chinesisch; Patchnotes in allen Sprachen", "Yeni dil: Basitleştirilmiş Çince; sürüm notları tüm dillerde", "Nuevo idioma: chino simplificado; notas de versión en todos los idiomas", "新增语言：简体中文；更新说明提供所有语言版本"),
             Txt("New: Finance – income, expenses and what's left each month", "Neu: Finanzen – Einnahmen, Ausgaben und Rest pro Monat", "Yeni: Finans – aylık gelir, gider ve kalan", "Nuevo: Finanzas – ingresos, gastos y lo que queda cada mes", "新功能：财务 – 每月收入、支出和结余"),
