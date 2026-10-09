@@ -149,8 +149,20 @@ fun MainScreen(
     val templates by notesViewModel.templates.collectAsState()
     val allDocuments by documentViewModel.allDocuments.collectAsState()
     val appContextForUpdate = androidx.compose.ui.platform.LocalContext.current.applicationContext
-    // Quiet daily check for a newer release on GitHub
-    LaunchedEffect(Unit) { foundUpdate = com.example.lifeorganizer.update.dailyUpdateCheck(appContextForUpdate) }
+    // Quiet check for a newer release on GitHub: on start and after 10 min in the background
+    val updateLifecycle = androidx.lifecycle.compose.LocalLifecycleOwner.current.lifecycle
+    LaunchedEffect(updateLifecycle) {
+        var backgroundedAt: Long? = null
+        updateLifecycle.currentStateFlow.collect { state ->
+            if (state.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)) {
+                val found = com.example.lifeorganizer.update.AutoUpdateCheck.run(appContextForUpdate, backgroundedAt)
+                if (found != null && foundUpdate == null && !updateRequest) foundUpdate = found
+                backgroundedAt = null
+            } else if (state == androidx.lifecycle.Lifecycle.State.CREATED && backgroundedAt == null) {
+                backgroundedAt = System.currentTimeMillis()
+            }
+        }
+    }
     // Keep the note widget in sync with edits made in the app.
     val activeNotes by notesViewModel.allActiveNotes.collectAsState()
     val appContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
@@ -469,7 +481,10 @@ fun MainScreen(
                     com.example.lifeorganizer.web.WebAccessScreen(onBack = { showWebAccess = false })
                 }
                 if (updateRequest || foundUpdate != null) {
-                    com.example.lifeorganizer.update.UpdateDialog(known = foundUpdate) { updateRequest = false; foundUpdate = null }
+                    com.example.lifeorganizer.update.UpdateDialog(known = foundUpdate) {
+                        foundUpdate?.let { com.example.lifeorganizer.update.AutoUpdateCheck.snooze(appContextForUpdate, it.version) }
+                        updateRequest = false; foundUpdate = null
+                    }
                 }
 
                 if (showTemplatePicker) {

@@ -84,11 +84,36 @@ fun UpdateDialog(known: UpdateInfo? = null, onDismiss: () -> Unit) {
     )
 }
 
-/** At most one silent check per day on start; returns a newer release if there is one. */
-suspend fun dailyUpdateCheck(context: Context): UpdateInfo? {
-    val prefs = context.getSharedPreferences("updater", Context.MODE_PRIVATE)
-    val now = System.currentTimeMillis()
-    if (now - prefs.getLong("last_check", 0) < 24 * 3_600_000L) return null
-    prefs.edit().putLong("last_check", now).apply()
-    return Updater.check()
+/**
+ * When the app checks GitHub on its own: on every start and whenever it comes back after
+ * [IDLE_MS] in the background, but never more often than every [MIN_GAP_MS].
+ * A release the user put off with "Later" stays quiet for [SNOOZE_MS].
+ */
+object AutoUpdateCheck {
+    const val IDLE_MS = 10 * 60_000L
+    const val MIN_GAP_MS = 10 * 60_000L
+    const val SNOOZE_MS = 24 * 3_600_000L
+
+    /** [backgroundedAt] is null on a fresh start. */
+    fun shouldCheck(now: Long, lastCheck: Long, backgroundedAt: Long?): Boolean =
+        (backgroundedAt == null || now - backgroundedAt >= IDLE_MS) && now - lastCheck >= MIN_GAP_MS
+
+    fun shouldShow(version: String, snoozedVersion: String?, snoozedAt: Long, now: Long): Boolean =
+        version != snoozedVersion || now - snoozedAt >= SNOOZE_MS
+
+    private fun prefs(context: Context) = context.getSharedPreferences("updater", Context.MODE_PRIVATE)
+
+    /** Returns a newer release worth showing, or null. */
+    suspend fun run(context: Context, backgroundedAt: Long?): UpdateInfo? {
+        val p = prefs(context)
+        val now = System.currentTimeMillis()
+        if (!shouldCheck(now, p.getLong("last_check", 0), backgroundedAt)) return null
+        p.edit().putLong("last_check", now).apply()
+        val info = Updater.check() ?: return null
+        return info.takeIf { shouldShow(it.version, p.getString("snoozed_version", null), p.getLong("snoozed_at", 0), now) }
+    }
+
+    fun snooze(context: Context, version: String) {
+        prefs(context).edit().putString("snoozed_version", version).putLong("snoozed_at", System.currentTimeMillis()).apply()
+    }
 }
