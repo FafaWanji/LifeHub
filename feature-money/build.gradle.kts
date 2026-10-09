@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.lifeorganizer.core"
+    namespace = "com.example.lifeorganizer.money"
     compileSdk = 36
 
     defaultConfig {
@@ -23,8 +23,14 @@ android {
     }
 }
 
+ksp {
+    // Schemas are kept in git so migrations can be checked against older versions.
+    arg("room.schemaLocation", "$projectDir/schemas")
+}
+
 dependencies {
-    // Compose
+    implementation(project(":core"))
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material3)
     implementation(libs.androidx.compose.ui)
@@ -33,32 +39,20 @@ dependencies {
     implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.activity.compose)
 
-    // Core Android
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
 
-    // Room
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
-    // DataStore
-    implementation(libs.androidx.datastore.preferences)
+    implementation(libs.androidx.work.runtime)
 
-    // Retrofit (for Smart Add API)
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.gson)
-
-    // ML Kit & Image Cropper (for Smart Add OCR)
-    implementation(libs.mlkit.text.recognition)
-    implementation(libs.image.cropper)
-
-    // Testing
     testImplementation(libs.junit)
     // Real org.json for unit tests (the Android one is only a stub on the JVM)
     testImplementation("org.json:json:20240303")
     androidTestImplementation(libs.androidx.junit)
-    androidTestImplementation(libs.androidx.espresso.core)
+    androidTestImplementation(libs.androidx.test.runner)
 }

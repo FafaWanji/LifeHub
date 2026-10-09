@@ -84,6 +84,7 @@ dependencies {
     implementation(project(":feature-notes"))
     implementation(project(":feature-waypoints"))
     implementation(project(":feature-documents"))
+    implementation(project(":feature-money"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material3)
