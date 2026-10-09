@@ -313,7 +313,8 @@ object Translations {
         TransKey.WEEK_VIEW to "Hafta Görünümü",
         TransKey.CONFLICT_WARNING to "Çakışma Uyarısı",
         TransKey.CONFLICT_MESSAGE to "Uyarı: %s ile çakışıyor",
-        TransKey.ACCENT_COLOR to "Vurgu Rengi"
+        TransKey.ACCENT_COLOR to "Vurgu Rengi",
+        TransKey.USE_SYSTEM_ALARM to "Hatırlatıcılar için sistem alarmını kullan"
     )
 
     private val es = mapOf(
@@ -410,7 +411,8 @@ object Translations {
         TransKey.WEEK_VIEW to "Vista Semanal",
         TransKey.CONFLICT_WARNING to "Advertencia de conflicto",
         TransKey.CONFLICT_MESSAGE to "Advertencia: Conflicto con %s",
-        TransKey.ACCENT_COLOR to "Color de Acento"
+        TransKey.ACCENT_COLOR to "Color de Acento",
+        TransKey.USE_SYSTEM_ALARM to "Usar la alarma del sistema para recordatorios"
     )
 
     // Simplified Chinese
