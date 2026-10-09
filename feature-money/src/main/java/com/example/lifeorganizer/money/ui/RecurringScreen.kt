@@ -97,7 +97,8 @@ fun RecurringDialog(vm: MoneyViewModel, initial: Recurring, onDismiss: () -> Uni
                 KindSwitch(income) { income = it; categoryId = null }
                 AmountField(amountText, { amountText = it }, isError = amountText.isNotBlank() && cents == null)
                 CategoryChips(categories.filter { it.kind == kind }, categoryId, { categoryId = it }, allLabel = null)
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     RecurringInterval.entries.forEach { i ->
                         FilterChip(selected = interval == i, onClick = { interval = i }, label = { Text(intervalLabel(i)) })
                     }

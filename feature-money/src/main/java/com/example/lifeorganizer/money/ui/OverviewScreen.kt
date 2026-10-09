@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.lifeorganizer.core.i18n.LocalAppLanguage
 import com.example.lifeorganizer.core.i18n.text
@@ -146,7 +147,13 @@ private fun SummaryCard(label: String, value: String, color: Color, modifier: Mo
     Card(modifier) {
         Column(Modifier.fillMaxWidth().padding(12.dp)) {
             Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(value, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = color, maxLines = 1)
+            // Large amounts on small phones get smaller instead of being cut off
+            androidx.compose.foundation.text.BasicText(
+                value,
+                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, color = color),
+                maxLines = 1,
+                autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = MaterialTheme.typography.titleSmall.fontSize)
+            )
         }
     }
 }

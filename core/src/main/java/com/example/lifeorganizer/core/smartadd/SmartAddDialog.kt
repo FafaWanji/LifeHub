@@ -21,6 +21,7 @@ import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -243,13 +244,20 @@ fun SmartAddDialog(
 
     Dialog(
         onDismissRequest = { if (!isLoading) onDismiss() },
-        properties = DialogProperties(usePlatformDefaultWidth = false)
+        // The dialog draws behind the keyboard itself, so it can move up instead of being covered
+        properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)
     ) {
+        Box(
+            Modifier.fillMaxSize().systemBarsPadding().imePadding()
+                .clickable(interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null) { if (!isLoading) onDismiss() },
+            contentAlignment = Alignment.Center
+        ) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
-                .imePadding(),
+                // Taps inside the card must not close the dialog
+                .clickable(interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }, indication = null) { },
             shape = MaterialTheme.shapes.extraLarge,
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             tonalElevation = 6.dp
@@ -382,6 +390,7 @@ fun SmartAddDialog(
                     }
                 }
             }
+        }
         }
     }
 }

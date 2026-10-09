@@ -132,7 +132,9 @@ fun BackupScreen(
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
                         )
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        // Wraps on small phones instead of squeezing the second button
+                        @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                        androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Button(enabled = !busy, onClick = { exportLauncher.launch("lifehub-backup-${LocalDate.now()}.json") }) {
                                 Icon(Icons.Default.FileUpload, null, Modifier.size(18.dp))
                                 Spacer(Modifier.width(8.dp))

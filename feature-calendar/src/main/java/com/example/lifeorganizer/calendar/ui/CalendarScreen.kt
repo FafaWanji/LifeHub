@@ -310,7 +310,10 @@ fun CalendarScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text("LifeHub", fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
+                    // Small phones: the action icons need the room, a cut-off "LifeH…" helps nobody
+                    if (androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 400) {
+                        Text("LifeHub", fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = onMenuClick) {
@@ -1411,10 +1414,10 @@ fun SettingsDialog(
                                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                             )
                             val designStyle by viewModel.designStyle.collectAsState()
-                            Row(
+                            @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                            androidx.compose.foundation.layout.FlowRow(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .horizontalScroll(rememberScrollState())
                                     .padding(horizontal = 16.dp, vertical = 4.dp),
                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
