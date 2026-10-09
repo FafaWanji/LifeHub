@@ -182,7 +182,7 @@ fun NotesMainView(
                             viewModel.softDeleteNotes(selectedIds)
                             selectedIds = emptySet()
                         }) {
-                            Icon(Icons.Outlined.Delete, contentDescription = Str.delete.text())
+                            Icon(Icons.Outlined.Delete, contentDescription = Str.delete.text(), tint = MaterialTheme.colorScheme.error)
                         }
                     }
                 )
@@ -419,7 +419,7 @@ fun TrashView(viewModel: NotesViewModel, onBack: () -> Unit) {
         onBack = onBack,
         actions = {
             if (trashNotes.isNotEmpty()) {
-                TextButton(onClick = { confirmEmpty = true }) { Text(Str.emptyTrash.text()) }
+                com.example.lifeorganizer.core.theme.DeleteButton(Str.emptyTrash.text(), onClick = { confirmEmpty = true })
             }
         }
     ) { padding ->
@@ -440,9 +440,7 @@ fun TrashView(viewModel: NotesViewModel, onBack: () -> Unit) {
                             IconButton(onClick = { viewModel.restoreNote(n.note.id) }) {
                                 Icon(Icons.Default.Restore, contentDescription = Str.restore.text(), tint = MaterialTheme.colorScheme.primary)
                             }
-                            IconButton(onClick = { confirmDelete = n }) {
-                                Icon(Icons.Default.DeleteForever, contentDescription = Str.deleteForever.text(), tint = MaterialTheme.colorScheme.error)
-                            }
+                            com.example.lifeorganizer.core.theme.DeleteIconButton(Str.deleteForever.text(), onClick = { confirmDelete = n })
                         }
                     }
                 }
@@ -470,7 +468,7 @@ private fun ConfirmDialog(message: String, confirm: String, onDismiss: () -> Uni
         onDismissRequest = onDismiss,
         text = { Text(message) },
         confirmButton = {
-            TextButton(onClick = onConfirm) { Text(confirm, color = MaterialTheme.colorScheme.error) }
+            com.example.lifeorganizer.core.theme.ConfirmDeleteButton(confirm, onClick = onConfirm)
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(Str.cancel.text()) } }
     )
@@ -546,9 +544,7 @@ fun LabelsManagerView(viewModel: NotesViewModel, onBack: () -> Unit) {
                         )
                     },
                     trailingContent = {
-                        IconButton(onClick = { viewModel.deleteLabel(label) }) {
-                            Icon(Icons.Default.Delete, contentDescription = Str.delete.text())
-                        }
+                        com.example.lifeorganizer.core.theme.DeleteIconButton(Str.delete.text(), onClick = { viewModel.deleteLabel(label) })
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
@@ -646,9 +642,7 @@ fun TemplatesManagerView(viewModel: NotesViewModel, onBack: () -> Unit) {
                                     )
                                 }
                             }
-                            IconButton(onClick = { viewModel.deleteTemplate(template) }) {
-                                Icon(Icons.Default.Delete, contentDescription = Str.delete.text())
-                            }
+                            com.example.lifeorganizer.core.theme.DeleteIconButton(Str.delete.text(), onClick = { viewModel.deleteTemplate(template) })
                         }
                         // Standard label for notes created from this template
                         if (labels.isNotEmpty()) {

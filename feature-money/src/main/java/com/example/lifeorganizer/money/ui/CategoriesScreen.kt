@@ -120,7 +120,7 @@ fun CategoryDialog(vm: MoneyViewModel, initial: MoneyCategory, onDismiss: () -> 
                     AmountField(budgetText, { budgetText = it }, isError = budgetText.isNotBlank() && budget == null, label = MoneyStr.budget.text())
                 }
                 if (initial.id != 0L && !initial.isFallback) {
-                    TextButton(onClick = { confirmDelete = true }) { Text(MoneyStr.delete.text(), color = MaterialTheme.colorScheme.error) }
+                    com.example.lifeorganizer.core.theme.DeleteButton(MoneyStr.delete.text(), onClick = { confirmDelete = true })
                 }
             }
         },
@@ -144,9 +144,7 @@ fun CategoryDialog(vm: MoneyViewModel, initial: MoneyCategory, onDismiss: () -> 
             title = { Text(MoneyStr.deleteFixedTitle.text().format(initial.name)) },
             text = { Text(MoneyStr.deleteCategoryBody.text().format(vm.fallbackName(initial.kind))) },
             confirmButton = {
-                TextButton(onClick = { vm.deleteCategory(initial); confirmDelete = false; onDismiss() }) {
-                    Text(MoneyStr.delete.text(), color = MaterialTheme.colorScheme.error)
-                }
+                com.example.lifeorganizer.core.theme.ConfirmDeleteButton(MoneyStr.delete.text(), onClick = { vm.deleteCategory(initial); confirmDelete = false; onDismiss() })
             },
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(MoneyStr.cancel.text()) } }
         )

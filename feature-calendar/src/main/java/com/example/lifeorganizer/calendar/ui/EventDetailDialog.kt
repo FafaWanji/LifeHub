@@ -271,18 +271,7 @@ fun EventDetailDialog(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(Translations.get(TransKey.EDIT, lang))
                     }
-                    Button(
-                        onClick = onDelete,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error,
-                            contentColor = MaterialTheme.colorScheme.onError
-                        )
-                    ) {
-                        Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(Translations.get(TransKey.DELETE, lang))
-                    }
+                    com.example.lifeorganizer.core.theme.DeleteButton(Translations.get(TransKey.DELETE, lang), onClick = onDelete, modifier = Modifier.fillMaxWidth())
                 }
             }
         }

@@ -262,7 +262,7 @@ private fun AutoBackupCard(busy: Boolean, refreshKey: Any?, onRun: () -> Unit) {
                     modifier = Modifier.weight(1f)
                 )
                 if (folder != null) {
-                    TextButton(onClick = { AutoBackup.setExternalFolder(context, null); folder = null }) { Text(Str.delete.text()) }
+                    com.example.lifeorganizer.core.theme.DeleteButton(Str.delete.text(), onClick = { AutoBackup.setExternalFolder(context, null); folder = null })
                 }
                 TextButton(onClick = { folderPicker.launch(null) }) { Text(BkStr.chooseFolder.text()) }
             }

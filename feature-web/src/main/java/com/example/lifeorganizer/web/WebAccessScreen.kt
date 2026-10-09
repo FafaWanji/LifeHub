@@ -144,17 +144,22 @@ private fun AddressSettings(onSaved: () -> Unit) {
     val changed = WebSettings.sanitizeName(name) != settings.name || portValue != settings.port
 
     Text(WebStr.settings.text(), style = MaterialTheme.typography.titleSmall)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+    // Both fields on one line with the same height; the port range hint sits below them
+    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
         OutlinedTextField(
             value = name, onValueChange = { name = it.take(40) }, label = { Text(WebStr.name.text()) },
             suffix = { Text(".local") }, singleLine = true, modifier = Modifier.weight(2f)
         )
         OutlinedTextField(
             value = port, onValueChange = { port = it.filter(Char::isDigit).take(5) }, label = { Text(WebStr.port.text()) },
-            supportingText = { Text(WebStr.portHint.text()) }, isError = !portOk, singleLine = true,
+            isError = !portOk, singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.weight(1f)
         )
     }
+    Text(
+        "${WebStr.port.text()}: ${WebStr.portHint.text()}", style = MaterialTheme.typography.bodySmall,
+        color = if (portOk) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
+    )
     TextButton(enabled = changed && portOk, onClick = {
         settings.name = name
         settings.port = portValue!!

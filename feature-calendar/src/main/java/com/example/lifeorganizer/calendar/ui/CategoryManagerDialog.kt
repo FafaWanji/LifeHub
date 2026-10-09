@@ -69,9 +69,7 @@ fun CategoryManagerDialog(
                             },
                             trailingContent = {
                                 if (!category.isDefault) {
-                                    IconButton(onClick = { onDelete(category) }) {
-                                        Icon(Icons.Default.Delete, contentDescription = Str.delete2.text(), tint = MaterialTheme.colorScheme.error)
-                                    }
+                                    com.example.lifeorganizer.core.theme.DeleteIconButton(Str.delete2.text(), onClick = { onDelete(category) })
                                 }
                             },
                             colors = ListItemDefaults.colors(containerColor = Color.Transparent)

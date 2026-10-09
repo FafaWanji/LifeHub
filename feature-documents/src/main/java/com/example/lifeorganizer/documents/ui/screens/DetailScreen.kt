@@ -145,13 +145,11 @@ fun DetailScreen(
             title = { Text(stringResource(R.string.delete_document)) },
             text = { Text(stringResource(R.string.confirm_delete)) },
             confirmButton = {
-                Button(onClick = {
+                com.example.lifeorganizer.core.theme.ConfirmDeleteButton(stringResource(R.string.delete), onClick = {
                     viewModel.deleteDocument(document)
                     showDeleteDialog = false
                     navController.popBackStack()
-                }) {
-                    Text(stringResource(R.string.delete))
-                }
+                })
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
@@ -190,13 +188,7 @@ fun DetailScreen(
                         tint = MaterialTheme.colorScheme.primary
                     )
                 }
-                IconButton(onClick = { showDeleteDialog = true }) {
-                    Icon(
-                        imageVector = Icons.Filled.Delete,
-                        contentDescription = stringResource(R.string.delete_document),
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
+                com.example.lifeorganizer.core.theme.DeleteIconButton(stringResource(R.string.delete_document), onClick = { showDeleteDialog = true })
             }
         }
         

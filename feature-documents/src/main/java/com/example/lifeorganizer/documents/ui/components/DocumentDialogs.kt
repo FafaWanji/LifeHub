@@ -115,9 +115,7 @@ fun DeleteDocumentDialog(
         title = { Text(stringResource(R.string.delete_document)) },
         text = { Text(stringResource(R.string.confirm_delete)) },
         confirmButton = {
-            Button(onClick = onConfirm) {
-                Text(stringResource(R.string.delete))
-            }
+            com.example.lifeorganizer.core.theme.ConfirmDeleteButton(stringResource(R.string.delete), onClick = onConfirm)
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {

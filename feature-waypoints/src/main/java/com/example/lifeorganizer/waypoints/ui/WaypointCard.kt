@@ -231,15 +231,10 @@ fun WaypointCard(
             title = { Text(WpStr.deleteTitle.text().format(waypoint.name)) },
             text = { Text(WpStr.deleteMessage.text()) },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteConfirm = false
-                        onDelete()
-                    },
-                    colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text(Str.delete.text())
-                }
+                com.example.lifeorganizer.core.theme.ConfirmDeleteButton(Str.delete.text(), onClick = {
+                    showDeleteConfirm = false
+                    onDelete()
+                })
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteConfirm = false }) {

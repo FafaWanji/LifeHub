@@ -112,7 +112,7 @@ fun RecurringDialog(vm: MoneyViewModel, initial: Recurring, onDismiss: () -> Uni
                     Switch(checked = calendar, onCheckedChange = { calendar = it })
                 }
                 if (initial.id != 0L) {
-                    TextButton(onClick = { confirmDelete = true }) { Text(MoneyStr.delete.text(), color = MaterialTheme.colorScheme.error) }
+                    com.example.lifeorganizer.core.theme.DeleteButton(MoneyStr.delete.text(), onClick = { confirmDelete = true })
                 }
             }
         },
@@ -139,9 +139,7 @@ fun RecurringDialog(vm: MoneyViewModel, initial: Recurring, onDismiss: () -> Uni
             title = { Text(MoneyStr.deleteFixedTitle.text().format(initial.title)) },
             text = { Text(MoneyStr.deleteFixedBody.text()) },
             confirmButton = {
-                TextButton(onClick = { vm.deleteRecurring(initial); confirmDelete = false; onDismiss() }) {
-                    Text(MoneyStr.delete.text(), color = MaterialTheme.colorScheme.error)
-                }
+                com.example.lifeorganizer.core.theme.ConfirmDeleteButton(MoneyStr.delete.text(), onClick = { vm.deleteRecurring(initial); confirmDelete = false; onDismiss() })
             },
             dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text(MoneyStr.cancel.text()) } }
         )

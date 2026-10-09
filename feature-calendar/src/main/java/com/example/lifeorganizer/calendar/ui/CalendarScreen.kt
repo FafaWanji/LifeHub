@@ -797,23 +797,19 @@ fun CalendarScreen(
                 title = { Text(Translations.get(TransKey.CONFIRM_DELETE, lang)) },
                 text = { Text(eventToDelete.event.title) },
                 confirmButton = {
-                    TextButton(
-                        onClick = {
-                            viewModel.deleteEvent(eventToDelete)
-                            showDeleteConfirm = null
-                            showSnackbarMessage(
-                                Translations.get(TransKey.EVENT_DELETED, lang)
-                            ) {
-                                viewModel.restoreEvent(eventToDelete)
-                            }
+                    com.example.lifeorganizer.core.theme.ConfirmDeleteButton(Translations.get(TransKey.DELETE, lang), onClick = {
+                        viewModel.deleteEvent(eventToDelete)
+                        showDeleteConfirm = null
+                        showSnackbarMessage(
+                            Translations.get(TransKey.EVENT_DELETED, lang)
+                        ) {
+                            viewModel.restoreEvent(eventToDelete)
                         }
-                    ) {
-                        Text(Translations.get(TransKey.YES, lang), color = MaterialTheme.colorScheme.error)
-                    }
+                    })
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteConfirm = null }) {
-                        Text(Translations.get(TransKey.NO, lang))
+                        Text(Translations.get(TransKey.CANCEL, lang))
                     }
                 }
             )
@@ -1975,9 +1971,7 @@ fun AddEventDialog(
                                 DropdownMenuItem(
                                     text = { Text(template.name) },
                                     trailingIcon = {
-                                        IconButton(onClick = { onDeleteTemplate(template) }) {
-                                            Icon(Icons.Default.Delete, contentDescription = Str.deleteTemplate.text(), tint = MaterialTheme.colorScheme.error)
-                                        }
+                                        com.example.lifeorganizer.core.theme.DeleteIconButton(Str.deleteTemplate.text(), onClick = { onDeleteTemplate(template) })
                                     },
                                     onClick = {
                                         title = template.title
@@ -2175,9 +2169,7 @@ fun AddEventDialog(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Text(reminder.first, style = MaterialTheme.typography.bodyMedium)
-                        IconButton(onClick = { reminders.remove(reminder) }) {
-                            Icon(Icons.Default.Delete, contentDescription = Str.delete2.text(), tint = MaterialTheme.colorScheme.error)
-                        }
+                        com.example.lifeorganizer.core.theme.DeleteIconButton(Str.delete2.text(), onClick = { reminders.remove(reminder) })
                     }
                 }
                 Row(
@@ -2564,14 +2556,21 @@ private fun SeriesScopeDialog(isDelete: Boolean, onDismiss: () -> Unit, onPick: 
         text = {
             Column {
                 // "From here on" is the usual choice, so it comes first and stands out.
-                Button(onClick = { onPick(SeriesScope.FOLLOWING) }, modifier = Modifier.fillMaxWidth()) {
-                    Text(Str.thisAndFollowing.text())
+                if (isDelete) {
+                    com.example.lifeorganizer.core.theme.ConfirmDeleteButton(Str.thisAndFollowing.text(), onClick = { onPick(SeriesScope.FOLLOWING) }, modifier = Modifier.fillMaxWidth())
+                } else {
+                    Button(onClick = { onPick(SeriesScope.FOLLOWING) }, modifier = Modifier.fillMaxWidth()) {
+                        Text(Str.thisAndFollowing.text())
+                    }
                 }
                 listOf(
                     SeriesScope.THIS to Str.thisEventOnly,
                     SeriesScope.ALL to Str.allEvents
                 ).forEach { (scope, label) ->
-                    TextButton(onClick = { onPick(scope) }, modifier = Modifier.fillMaxWidth()) {
+                    TextButton(
+                        onClick = { onPick(scope) }, modifier = Modifier.fillMaxWidth(),
+                        colors = if (isDelete) ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.error) else ButtonDefaults.textButtonColors()
+                    ) {
                         Text(label.text(), modifier = Modifier.fillMaxWidth())
                     }
                 }
