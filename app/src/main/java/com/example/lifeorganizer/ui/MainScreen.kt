@@ -125,6 +125,8 @@ fun MainScreen(
     var showChangelog by remember { mutableStateOf(false) }
     var showAbout by rememberSaveable { mutableStateOf(false) }
     var showWebAccess by rememberSaveable { mutableStateOf(false) }
+    var showDevMode by rememberSaveable { mutableStateOf(false) }
+    val devModeOn by com.example.lifeorganizer.dev.DevMode.enabled.collectAsState()
     var updateRequest by remember { mutableStateOf(false) }
     var foundUpdate by remember { mutableStateOf<com.example.lifeorganizer.update.UpdateInfo?>(null) }
     // A shared/opened backup file (.ics/.json) jumps straight into the import screen.
@@ -212,6 +214,7 @@ fun MainScreen(
                 MainActivity.ACTION_WAYPOINTS -> navigate(ActiveView.WAYPOINTS)
                 MainActivity.ACTION_SEARCH -> showUniversalSearch = true
                 MainActivity.ACTION_AGENDA -> activeView = ActiveView.CALENDAR
+                MainActivity.ACTION_DEV_MODE -> showDevMode = true
                 else -> return@LaunchedEffect
             }
         }
@@ -273,6 +276,11 @@ fun MainScreen(
                 },
                 onWebAccessClick = {
                     showWebAccess = true
+                    scope.launch { drawerState.close() }
+                },
+                showDevMode = devModeOn,
+                onDevModeClick = {
+                    showDevMode = true
                     scope.launch { drawerState.close() }
                 },
                 onUpdateClick = {
@@ -477,6 +485,9 @@ fun MainScreen(
 
                 if (showChangelog) ChangelogDialog(onDismiss = { showChangelog = false })
                 if (showAbout) AboutScreen(onBack = { showAbout = false })
+                if (showDevMode) Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+                    com.example.lifeorganizer.dev.DevModeScreen(onBack = { showDevMode = false })
+                }
                 if (showWebAccess) Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     com.example.lifeorganizer.web.WebAccessScreen(onBack = { showWebAccess = false })
                 }

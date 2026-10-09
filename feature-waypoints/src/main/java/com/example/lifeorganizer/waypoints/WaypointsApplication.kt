@@ -3,7 +3,7 @@ package com.example.lifeorganizer.waypoints
 import android.app.Application
 import com.google.android.libraries.places.api.Places
 
-class WaypointsApplication : Application() {
+open class WaypointsApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         // Initialize the SDK
