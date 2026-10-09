@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -55,10 +56,13 @@ fun RecurringScreen(vm: MoneyViewModel, onEdit: (Recurring) -> Unit) {
     val perMonth = list.sumOf { RecurringScheduler.monthlyEquivalentCents(it.amountCents, it.interval) }
     LazyColumn(contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 88.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         item {
-            Text(
-                if (list.isEmpty()) MoneyStr.noFixed.text() else MoneyStr.fixedSum.text().format(Amounts.format(abs(perMonth), lang)),
-                style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(bottom = 8.dp)
-            )
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(bottom = 8.dp)) {
+                Text(
+                    if (list.isEmpty()) MoneyStr.noFixed.text() else MoneyStr.fixedSum.text().format(Amounts.format(abs(perMonth), lang)),
+                    style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f, fill = false)
+                )
+                com.example.lifeorganizer.core.theme.InfoTip(com.example.lifeorganizer.core.theme.Tips.fixedCosts)
+            }
         }
         items(list, key = { it.id }) { r ->
             Row(Modifier.fillMaxWidth().clickable { onEdit(r) }.padding(vertical = 10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -108,7 +112,9 @@ fun RecurringDialog(vm: MoneyViewModel, initial: Recurring, onDismiss: () -> Uni
                     singleLine = true, isError = day == null, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth()
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(MoneyStr.showInCalendar.text(), Modifier.weight(1f))
+                    Text(MoneyStr.showInCalendar.text(), Modifier.weight(1f, fill = false))
+                    com.example.lifeorganizer.core.theme.InfoTip(com.example.lifeorganizer.core.theme.Tips.fixedInCalendar)
+                    Spacer(Modifier.weight(1f))
                     Switch(checked = calendar, onCheckedChange = { calendar = it })
                 }
                 if (initial.id != 0L) {

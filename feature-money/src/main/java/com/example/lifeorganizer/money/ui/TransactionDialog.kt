@@ -57,9 +57,13 @@ internal fun KindSwitch(income: Boolean, onChange: (Boolean) -> Unit) {
 }
 
 @Composable
-internal fun AmountField(text: String, onChange: (String) -> Unit, isError: Boolean, label: String = MoneyStr.amount.text()) {
+internal fun AmountField(
+    text: String, onChange: (String) -> Unit, isError: Boolean, label: String = MoneyStr.amount.text(),
+    tip: com.example.lifeorganizer.core.i18n.Txt? = null
+) {
     OutlinedTextField(
         value = text, onValueChange = onChange, label = { Text(label) }, suffix = { Text("€") },
+        leadingIcon = tip?.let { { com.example.lifeorganizer.core.theme.InfoTip(it) } },
         singleLine = true, isError = isError,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth()
     )

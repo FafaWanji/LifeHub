@@ -66,7 +66,10 @@ fun CategoriesScreen(vm: MoneyViewModel, onEdit: (MoneyCategory) -> Unit) {
         }
         item {
             HorizontalDivider(Modifier.padding(vertical = 12.dp))
-            Text(MoneyStr.rules.text(), style = MaterialTheme.typography.titleSmall)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(MoneyStr.rules.text(), style = MaterialTheme.typography.titleSmall)
+                com.example.lifeorganizer.core.theme.InfoTip(com.example.lifeorganizer.core.theme.Tips.learnedPayees)
+            }
             if (rules.isEmpty()) Text(MoneyStr.noRules.text(), color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         items(rules, key = { it.normalizedPayee }) { rule ->
@@ -117,7 +120,7 @@ fun CategoryDialog(vm: MoneyViewModel, initial: MoneyCategory, onDismiss: () -> 
                     }
                 }
                 if (kind == CategoryKind.EXPENSE) {
-                    AmountField(budgetText, { budgetText = it }, isError = budgetText.isNotBlank() && budget == null, label = MoneyStr.budget.text())
+                    AmountField(budgetText, { budgetText = it }, isError = budgetText.isNotBlank() && budget == null, label = MoneyStr.budget.text(), tip = com.example.lifeorganizer.core.theme.Tips.budget)
                 }
                 if (initial.id != 0L && !initial.isFallback) {
                     com.example.lifeorganizer.core.theme.DeleteButton(MoneyStr.delete.text(), onClick = { confirmDelete = true })

@@ -143,7 +143,10 @@ private fun AddressSettings(onSaved: () -> Unit) {
     val portOk = portValue != null && WebSettings.validPort(portValue)
     val changed = WebSettings.sanitizeName(name) != settings.name || portValue != settings.port
 
-    Text(WebStr.settings.text(), style = MaterialTheme.typography.titleSmall)
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(WebStr.settings.text(), style = MaterialTheme.typography.titleSmall)
+        com.example.lifeorganizer.core.theme.InfoTip(com.example.lifeorganizer.core.theme.Tips.webAddress)
+    }
     // Both fields on one line with the same height; the port range hint sits below them
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.Top) {
         OutlinedTextField(

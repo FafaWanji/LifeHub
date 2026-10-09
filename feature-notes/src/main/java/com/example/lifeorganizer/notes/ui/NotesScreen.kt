@@ -584,6 +584,7 @@ private fun LabelTemplateEditor(label: NoteLabel, onChange: (String) -> Unit) {
             value = value,
             onValueChange = { update(it) },
             label = { Text(Str.labelTemplate.text()) },
+            trailingIcon = { com.example.lifeorganizer.core.theme.InfoTip(com.example.lifeorganizer.core.theme.Tips.labelTemplate) },
             supportingText = { Text(Str.placeholderHint.text()) },
             placeholder = { Text("- [ ] …") },
             minLines = 3,

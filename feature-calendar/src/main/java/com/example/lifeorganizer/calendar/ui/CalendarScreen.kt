@@ -1564,6 +1564,7 @@ fun SettingsDialog(
                                 value = homeAddressInput,
                                 onValueChange = { homeAddressInput = it },
                                 label = { Text(Translations.get(TransKey.HOME_ADDRESS, lang)) },
+                                leadingIcon = { com.example.lifeorganizer.core.theme.InfoTip(com.example.lifeorganizer.core.theme.Tips.homeAddress) },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp, vertical = 4.dp),
@@ -1701,6 +1702,7 @@ fun SettingsDialog(
                                 value = geminiKeyInput,
                                 onValueChange = { geminiKeyInput = it },
                                 label = { Text(Str.groqKey.of(lang)) },
+                                leadingIcon = { com.example.lifeorganizer.core.theme.InfoTip(com.example.lifeorganizer.core.theme.Tips.groqKey) },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp, vertical = 4.dp),
@@ -1719,9 +1721,11 @@ fun SettingsDialog(
                             ) {
                                 Text(
                                     text = Str.enableSmartAlarms.of(lang),
-                                    modifier = Modifier.weight(1f),
+                                    modifier = Modifier.weight(1f, fill = false),
                                     style = MaterialTheme.typography.bodyLarge
                                 )
+                                com.example.lifeorganizer.core.theme.InfoTip(com.example.lifeorganizer.core.theme.Tips.smartAlarm)
+                                Spacer(Modifier.weight(1f))
                                 Switch(
                                     checked = smartAlarmsEnabled,
                                     onCheckedChange = {
@@ -1739,9 +1743,11 @@ fun SettingsDialog(
                             ) {
                                 Text(
                                     text = Translations.get(TransKey.USE_SYSTEM_ALARM, lang),
-                                    modifier = Modifier.weight(1f),
+                                    modifier = Modifier.weight(1f, fill = false),
                                     style = MaterialTheme.typography.bodyLarge
                                 )
+                                com.example.lifeorganizer.core.theme.InfoTip(com.example.lifeorganizer.core.theme.Tips.systemAlarm)
+                                Spacer(Modifier.weight(1f))
                                 Switch(
                                     checked = systemAlarmEnabled,
                                     onCheckedChange = {
@@ -2293,6 +2299,7 @@ fun AddEventDialog(
                         value = arrivalBuffer,
                         onValueChange = { if (it.all { c -> c.isDigit() }) arrivalBuffer = it },
                         label = { Text(Translations.get(TransKey.ARR_BUFFER, lang), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis) },
+                        leadingIcon = { com.example.lifeorganizer.core.theme.InfoTip(com.example.lifeorganizer.core.theme.Tips.travelBuffer) },
                         modifier = Modifier.fillMaxWidth(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         singleLine = true

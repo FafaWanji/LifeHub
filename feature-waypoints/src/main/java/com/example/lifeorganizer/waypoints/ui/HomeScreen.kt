@@ -94,7 +94,12 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(WpStr.title.text()) },
+                title = {
+                    androidx.compose.foundation.layout.Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Text(WpStr.title.text())
+                        com.example.lifeorganizer.core.theme.InfoTip(com.example.lifeorganizer.core.theme.Tips.waypoints)
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onMenuClick) {
                         Icon(Icons.Default.Menu, contentDescription = Str.menu.text())
