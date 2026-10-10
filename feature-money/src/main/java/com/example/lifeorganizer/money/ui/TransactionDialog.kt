@@ -71,7 +71,8 @@ internal fun AmountField(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TransactionDialog(vm: MoneyViewModel, initial: MoneyTransaction, onDismiss: () -> Unit) {
+/** [onDelete] is set for an existing entry and shows the delete button. */
+fun TransactionDialog(vm: MoneyViewModel, initial: MoneyTransaction, onDismiss: () -> Unit, onDelete: (() -> Unit)? = null) {
     val lang = LocalAppLanguage.current
     val categories by vm.categories.collectAsStateWithLifecycle()
     var amountText by remember { mutableStateOf(editableAmount(initial.amountCents)) }
@@ -98,6 +99,9 @@ fun TransactionDialog(vm: MoneyViewModel, initial: MoneyTransaction, onDismiss: 
                     Text(LocalDate.ofEpochDay(epochDay).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.forLanguageTag(lang))))
                 }
                 OutlinedTextField(value = note, onValueChange = { note = it }, label = { Text(MoneyStr.note.text()) }, modifier = Modifier.fillMaxWidth())
+                if (onDelete != null) com.example.lifeorganizer.core.theme.DeleteButton(
+                    MoneyStr.delete.text(), onClick = { onDelete(); onDismiss() }, modifier = Modifier.fillMaxWidth()
+                )
             }
         },
         confirmButton = {

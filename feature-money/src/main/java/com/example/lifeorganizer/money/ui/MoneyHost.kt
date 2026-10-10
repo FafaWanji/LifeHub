@@ -52,6 +52,13 @@ fun MoneyHost(onMenuClick: () -> Unit, vm: MoneyViewModel = viewModel()) {
     var editCategory by remember { mutableStateOf<MoneyCategory?>(null) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    // Deleted from the list (swipe) or the edit dialog: a moment to take it back
+    val offerUndo: (MoneyTransaction) -> Unit = { tx ->
+        scope.launch {
+            val r = snackbar.showSnackbar(MoneyStr.deleted.of(lang), MoneyStr.undo.of(lang), duration = SnackbarDuration.Short)
+            if (r == SnackbarResult.ActionPerformed) vm.restoreTransaction(tx)
+        }
+    }
 
     if (showImport) {
         ImportScreen(vm, onClose = { showImport = false })
@@ -106,12 +113,7 @@ fun MoneyHost(onMenuClick: () -> Unit, vm: MoneyViewModel = viewModel()) {
                 MoneyTab.TRANSACTIONS -> TransactionsScreen(
                     vm,
                     onEdit = { editTx = it },
-                    onDeleted = { tx ->
-                        scope.launch {
-                            val r = snackbar.showSnackbar(MoneyStr.deleted.of(lang), MoneyStr.undo.of(lang), duration = SnackbarDuration.Short)
-                            if (r == SnackbarResult.ActionPerformed) vm.restoreTransaction(tx)
-                        }
-                    }
+                    onDeleted = offerUndo
                 )
                 MoneyTab.FIXED -> RecurringScreen(vm, onEdit = { editRecurring = it })
                 MoneyTab.CATEGORIES -> CategoriesScreen(vm, onEdit = { editCategory = it })
@@ -119,7 +121,12 @@ fun MoneyHost(onMenuClick: () -> Unit, vm: MoneyViewModel = viewModel()) {
         }
     }
 
-    editTx?.let { tx -> TransactionDialog(vm, tx, onDismiss = { editTx = null }) }
+    editTx?.let { tx ->
+        TransactionDialog(
+            vm, tx, onDismiss = { editTx = null },
+            onDelete = if (tx.id == 0L) null else ({ vm.deleteTransaction(tx); offerUndo(tx) })
+        )
+    }
     editRecurring?.let { r -> RecurringDialog(vm, r, onDismiss = { editRecurring = null }) }
     editCategory?.let { c -> CategoryDialog(vm, c, onDismiss = { editCategory = null }) }
 }
