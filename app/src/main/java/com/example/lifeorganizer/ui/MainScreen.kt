@@ -58,6 +58,8 @@ import com.example.lifeorganizer.core.smartadd.SmartAddDialog
 import com.example.lifeorganizer.core.smartadd.SmartAddEngine
 import com.example.lifeorganizer.core.smartadd.SmartAddStart
 import com.example.lifeorganizer.core.smartadd.SmartResult
+import com.example.lifeorganizer.core.settings.AppModule
+import com.example.lifeorganizer.core.settings.rememberEnabledModules
 import com.example.lifeorganizer.documents.ui.screens.DocumentViewModel
 import com.example.lifeorganizer.notes.ui.NoteEditorScreen
 import com.example.lifeorganizer.notes.ui.NotesScreen
@@ -171,6 +173,23 @@ fun MainScreen(
     LaunchedEffect(activeNotes) { com.example.lifeorganizer.widgets.NoteWidget.refresh(appContext) }
     val noteLabels by notesViewModel.labels.collectAsState()
 
+    // Switched-off modules are hidden everywhere; their data is untouched.
+    val enabledModules = rememberEnabledModules()
+    val waypointsOn = AppModule.WAYPOINTS in enabledModules
+    val documentsOn = AppModule.DOCUMENTS in enabledModules
+    val financeOn = AppModule.FINANCE in enabledModules
+    val linkableDocuments = if (documentsOn) allDocuments.map { it.id to it.title } else emptyList()
+    val placeWaypoints = if (waypointsOn) waypoints else emptyList()
+    fun moduleOf(view: ActiveView): AppModule? = when (view) {
+        ActiveView.WAYPOINTS -> AppModule.WAYPOINTS
+        ActiveView.DOCUMENTS -> AppModule.DOCUMENTS
+        ActiveView.MONEY -> AppModule.FINANCE
+        else -> null
+    }
+    LaunchedEffect(activeView, enabledModules) {
+        if (moduleOf(activeView)?.let { it !in enabledModules } == true) activeView = ActiveView.CALENDAR
+    }
+
     fun openSmartAdd(text: String = "", image: Uri? = null, start: SmartAddStart = SmartAddStart.NONE) {
         smartAddInitialText = text
         smartAddImageUri = image
@@ -192,6 +211,7 @@ fun MainScreen(
     }
 
     fun navigate(view: ActiveView) {
+        if (moduleOf(view)?.let { it !in enabledModules } == true) return
         if (view == ActiveView.WAYPOINTS) waypointRoute = WaypointRoute.List
         activeView = view
     }
@@ -279,6 +299,7 @@ fun MainScreen(
                     scope.launch { drawerState.close() }
                 },
                 showDevMode = devModeOn,
+                enabledModules = enabledModules,
                 onDevModeClick = {
                     showDevMode = true
                     scope.launch { drawerState.close() }
@@ -324,7 +345,7 @@ fun MainScreen(
                                     )
                                 },
                                 onNoteClick = { noteId -> openNoteEditor(noteId) },
-                                documents = allDocuments.map { it.id to it.title },
+                                documents = linkableDocuments,
                                 onOpenDocument = { id ->
                                     activeView = ActiveView.DOCUMENTS
                                     documentToOpen = id
@@ -353,9 +374,9 @@ fun MainScreen(
                                 // Calendar and waypoints share places: names on cards, suggestions in the dialog.
                                 placeName = { address ->
                                     val key = com.example.lifeorganizer.core.util.Places.key(address)
-                                    key?.let { k -> waypoints.firstOrNull { com.example.lifeorganizer.core.util.Places.key(it.waypoint.address) == k }?.waypoint?.name }
+                                    key?.let { k -> placeWaypoints.firstOrNull { com.example.lifeorganizer.core.util.Places.key(it.waypoint.address) == k }?.waypoint?.name }
                                 },
-                                placeSuggestions = waypoints
+                                placeSuggestions = placeWaypoints
                                     .sortedWith(compareByDescending<com.example.lifeorganizer.waypoints.data.WaypointWithLabels> { it.waypoint.isPinned }
                                         .thenByDescending { it.waypoint.lastUsed })
                                     .filter { com.example.lifeorganizer.core.util.Places.hasPlace(it.waypoint.address) }
@@ -378,7 +399,7 @@ fun MainScreen(
                                 templateId = editorTemplateId,
                                 labelId = editorLabelId,
                                 onBack = { activeView = editorReturnView },
-                                documents = allDocuments.map { it.id to it.title },
+                                documents = linkableDocuments,
                                 onOpenDocument = { id ->
                                     activeView = ActiveView.DOCUMENTS
                                     documentToOpen = id
@@ -520,8 +541,9 @@ fun MainScreen(
                         val contextData = SmartAddEngine.ContextData(
                             apiKey = geminiApiKey.orEmpty(),
                             categories = categories.map { it.id to it.name },
-                            waypoints = waypoints.map { it.waypoint.name to it.waypoint.address },
-                            moneyCategories = moneyCategories.map { it.name }
+                            waypoints = placeWaypoints.map { it.waypoint.name to it.waypoint.address },
+                            moneyCategories = if (financeOn) moneyCategories.map { it.name } else emptyList(),
+                            financeEnabled = financeOn
                         )
                         SmartAddDialog(
                             contextData = contextData,
@@ -572,6 +594,8 @@ fun MainScreen(
                         notesViewModel = notesViewModel,
                         waypointsViewModel = waypointsViewModel,
                         documentViewModel = documentViewModel,
+                        showWaypoints = waypointsOn,
+                        showDocuments = documentsOn,
                         onClose = { showUniversalSearch = false },
                         onEventClick = { eventId, startMillis ->
                             showUniversalSearch = false

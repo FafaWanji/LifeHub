@@ -205,12 +205,14 @@ function browserName() {
 // ---------------------------------------------------------------- shell
 
 let tab = 'calendar';
+let financeOn = true; // the finance module can be switched off in the app
 let render = () => {};
 let busy = () => false; // a view with unsaved input says so, then polling does not reload it
 
 function start() {
   $('#top').hidden = false;
   document.querySelectorAll('#tabs button').forEach(b => {
+    b.hidden = b.dataset.tab === 'money' && !financeOn;
     b.textContent = t(b.dataset.tab);
     b.onclick = () => { location.hash = b.dataset.tab; };
   });
@@ -221,7 +223,7 @@ function start() {
 }
 
 function route() {
-  tab = ['calendar', 'notes', 'money'].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'calendar';
+  tab = ['calendar', 'notes', ...(financeOn ? ['money'] : [])].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'calendar';
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   busy = () => false;
   ({ calendar: Calendar, notes: Notes, money: Money })[tab].mount();
@@ -628,6 +630,7 @@ const Money = {
   try {
     const info = await (await fetch('/api/info')).json();
     if (T[info.lang]) lang = info.lang;
+    financeOn = info.finance !== false;
   } catch (e) { /* default language */ }
   document.documentElement.lang = lang;
   document.title = 'LifeHub';

@@ -17,10 +17,23 @@ object SmartAddEngine {
         val apiKey: String,
         val categories: List<Pair<Long, String>> = emptyList(), // ID to Name
         val waypoints: List<Pair<String, String>> = emptyList(), // Name to Address
-        val moneyCategories: List<String> = emptyList()
+        val moneyCategories: List<String> = emptyList(),
+        /** With the finance module switched off, money mentions are kept as notes instead. */
+        val financeEnabled: Boolean = true
     )
 
-    suspend fun process(inputText: String, contextData: ContextData): List<SmartResult>? = withContext(Dispatchers.IO) {
+    suspend fun process(inputText: String, contextData: ContextData): List<SmartResult>? =
+        parse(inputText, contextData)?.let { results ->
+            if (contextData.financeEnabled) results else results.map { if (it is SmartResult.Transaction) it.asNote() else it }
+        }
+
+    private fun SmartResult.Transaction.asNote() = SmartResult.Note(
+        title = title,
+        content = com.example.lifeorganizer.core.util.Amounts.formatSigned(amountCents, java.util.Locale.getDefault().language) +
+            " · " + java.time.LocalDate.ofEpochDay(epochDay)
+    )
+
+    private suspend fun parse(inputText: String, contextData: ContextData): List<SmartResult>? = withContext(Dispatchers.IO) {
         // Without an API key, Smart Add works offline with simple rules.
         if (contextData.apiKey.isBlank()) return@withContext OfflineParser.parse(inputText, contextData.waypoints).ifEmpty { null }
         try {

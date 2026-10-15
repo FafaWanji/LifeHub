@@ -64,6 +64,8 @@ fun UniversalSearchScreen(
     notesViewModel: NotesViewModel,
     waypointsViewModel: WaypointsViewModel,
     documentViewModel: DocumentViewModel,
+    showWaypoints: Boolean = true,
+    showDocuments: Boolean = true,
     onClose: () -> Unit,
     onEventClick: (eventId: Long, startMillis: Long) -> Unit,
     onNoteClick: (Long) -> Unit,
@@ -120,16 +122,16 @@ fun UniversalSearchScreen(
                 ) { onNoteClick(n.note.id) }
             }
     }
-    val waypointHits = remember(q, allWaypoints) {
-        if (q.isEmpty()) emptyList() else allWaypoints
+    val waypointHits = remember(q, allWaypoints, showWaypoints) {
+        if (q.isEmpty() || !showWaypoints) emptyList() else allWaypoints
             .filter {
                 it.waypoint.name.contains(q, true) || it.waypoint.address.contains(q, true) ||
                     it.waypoint.notes.contains(q, true)
             }
             .map { w -> SearchHit(w.waypoint.id, w.waypoint.name, w.waypoint.address) { onWaypointClick(w.waypoint.id) } }
     }
-    val documentHits = remember(q, allDocuments) {
-        if (q.isEmpty()) emptyList() else allDocuments
+    val documentHits = remember(q, allDocuments, showDocuments) {
+        if (q.isEmpty() || !showDocuments) emptyList() else allDocuments
             .filter { it.title.contains(q, true) || it.category.contains(q, true) }
             .map { d -> SearchHit(d.id, d.title, d.category) { onDocumentClick(d.id) } }
     }

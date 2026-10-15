@@ -1,7 +1,9 @@
 package com.example.lifeorganizer.web
 
 import android.content.Context
+import com.example.lifeorganizer.core.settings.AppModule
 import com.example.lifeorganizer.core.settings.SettingsManager
+import com.example.lifeorganizer.core.settings.enabledModules
 import com.example.lifeorganizer.money.data.MoneyDatabase
 import com.example.lifeorganizer.money.data.MoneyRepository
 import com.example.lifeorganizer.money.data.MoneyTransaction
@@ -36,7 +38,11 @@ class WebApi(context: Context) {
 
     private suspend fun lang() = settings.languageCode.first()
 
-    suspend fun info(): ApiResponse = ApiResponse.ok(JSONObject().put("app", "LifeHub").put("lang", lang()))
+    private suspend fun financeOn() = AppModule.FINANCE in settings.enabledModules.first()
+
+    suspend fun info(): ApiResponse = ApiResponse.ok(
+        JSONObject().put("app", "LifeHub").put("lang", lang()).put("finance", financeOn())
+    )
 
     suspend fun handle(method: String, path: String, query: Map<String, String>, body: String): ApiResponse = runCatching {
         val parts = path.removePrefix("/api/").trim('/').split('/')
@@ -45,6 +51,8 @@ class WebApi(context: Context) {
             parts == listOf("changes") -> ApiResponse.ok(JSONObject().put("version", changes.version.get()))
             parts[0] == "calendar" -> calendar(method, parts, id, query, body)
             parts[0] == "notes" -> notes(method, parts.getOrNull(1)?.toLongOrNull(), body)
+            // Switched off in the app: hidden here too, the data itself stays
+            parts[0] == "money" && !financeOn() -> ApiResponse.error(404, "not_found")
             parts[0] == "money" -> money(method, parts, id, query, body)
             else -> ApiResponse.error(404, "not_found")
         }

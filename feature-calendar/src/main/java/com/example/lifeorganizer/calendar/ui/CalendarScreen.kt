@@ -1547,6 +1547,44 @@ fun SettingsDialog(
                         }
                     }
 
+                    // Optional modules: switching off only hides them, the data stays
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    ) {
+                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                            Text(
+                                text = Str.modules.of(lang),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            )
+                            Text(
+                                text = Str.modulesHint.of(lang),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(horizontal = 16.dp)
+                            )
+                            val enabledModules = com.example.lifeorganizer.core.settings.rememberEnabledModules()
+                            val moduleScope = rememberCoroutineScope()
+                            val moduleSettings = remember { com.example.lifeorganizer.core.settings.SettingsManager(context.applicationContext) }
+                            com.example.lifeorganizer.core.settings.AppModule.entries.forEach { module ->
+                                ListItem(
+                                    headlineContent = { Text(module.label.of(lang)) },
+                                    trailingContent = {
+                                        Switch(
+                                            checked = module in enabledModules,
+                                            onCheckedChange = { on ->
+                                                moduleScope.launch { moduleSettings.saveModuleEnabled(module.key, on) }
+                                            }
+                                        )
+                                    },
+                                    colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                                )
+                            }
+                        }
+                    }
+
                     // Location & Navigation
                     Card(
                         modifier = Modifier.fillMaxWidth(),

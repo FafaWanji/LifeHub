@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.example.lifeorganizer.core.i18n.Str
+import com.example.lifeorganizer.core.settings.AppModule
 import com.example.lifeorganizer.core.i18n.text
 
 @Composable
@@ -59,7 +60,8 @@ fun MenuDrawerSheet(
     onAboutClick: () -> Unit = {},
     onWebAccessClick: () -> Unit = {},
     showDevMode: Boolean = false,
-    onDevModeClick: () -> Unit = {}
+    onDevModeClick: () -> Unit = {},
+    enabledModules: Set<AppModule> = AppModule.entries.toSet()
 ) {
     ModalDrawerSheet(
         drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -84,7 +86,7 @@ fun MenuDrawerSheet(
                 selected = currentView == ActiveView.NOTES || currentView == ActiveView.NOTE_EDITOR,
                 onClick = { onNavigate(ActiveView.NOTES) }
             )
-            DrawerEntry(
+            if (AppModule.FINANCE in enabledModules) DrawerEntry(
                 selectedIcon = Icons.Filled.Savings,
                 icon = Icons.Outlined.Savings,
                 label = Str.finance.text(),
@@ -98,14 +100,14 @@ fun MenuDrawerSheet(
             )
 
             SectionLabel(Str.tools.text())
-            DrawerEntry(
+            if (AppModule.WAYPOINTS in enabledModules) DrawerEntry(
                 selectedIcon = Icons.Filled.Place,
                 icon = Icons.Outlined.Place,
                 label = Str.waypoints.text(),
                 selected = currentView == ActiveView.WAYPOINTS,
                 onClick = { onNavigate(ActiveView.WAYPOINTS) }
             )
-            DrawerEntry(
+            if (AppModule.DOCUMENTS in enabledModules) DrawerEntry(
                 selectedIcon = Icons.Filled.Description,
                 icon = Icons.Outlined.Description,
                 label = Str.documents.text(),

@@ -33,6 +33,14 @@ object Str {
     val documents = Txt("Documents", "Dokumente", "Belgeler", "Documentos", "文档")
     val finance = Txt("Finance", "Finanzen", "Finans", "Finanzas", "财务")
     val settings = Txt("Settings", "Einstellungen", "Ayarlar", "Ajustes", "设置")
+    val modules = Txt("Modules", "Module", "Modüller", "Módulos", "模块")
+    val modulesHint = Txt(
+        "Switched-off modules are hidden. Their data stays saved and is back when you switch them on again.",
+        "Ausgeschaltete Module werden ausgeblendet. Ihre Daten bleiben gespeichert und sind beim Einschalten wieder da.",
+        "Kapatılan modüller gizlenir. Verileri kayıtlı kalır ve tekrar açtığınızda geri gelir.",
+        "Los módulos desactivados se ocultan. Sus datos se conservan y vuelven al activarlos de nuevo.",
+        "关闭的模块会被隐藏。其数据仍会保存，重新开启后即可恢复。"
+    )
     val menu = Txt("Menu", "Menü", "Menü", "Menú", "菜单")
     val back = Txt("Back", "Zurück", "Geri", "Atrás", "返回")
     val tagline = Txt("Your day, organised.", "Dein Alltag, organisiert.", "Günün, düzenli.", "Tu día, organizado.", "你的日常，井井有条。")

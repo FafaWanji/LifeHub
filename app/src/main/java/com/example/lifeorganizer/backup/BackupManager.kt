@@ -157,6 +157,7 @@ class BackupManager(context: Context) {
             .put("useHomeAsOrigin", settings.useHomeAsOrigin.first())
             .put("enableSmartAlarms", settings.enableSmartAlarms.first())
             .put("useSystemAlarm", settings.useSystemAlarmForReminders.first())
+            .put("disabledModules", JSONArray(settings.disabledModuleKeys.first().toList()))
             .put("hideRecurring", filter.getBoolean("hide_recurring", false))
             .put("hiddenCategories", JSONArray(filter.getStringSet("hidden_categories", emptySet()).orEmpty()
                 .mapNotNull { it.toLongOrNull()?.let(categoryNames::get) }))
@@ -174,6 +175,10 @@ class BackupManager(context: Context) {
         if (j.has("useHomeAsOrigin")) settings.saveUseHomeAsOrigin(j.optBoolean("useHomeAsOrigin"))
         if (j.has("enableSmartAlarms")) settings.saveEnableSmartAlarms(j.optBoolean("enableSmartAlarms"))
         if (j.has("useSystemAlarm")) settings.saveUseSystemAlarmForReminders(j.optBoolean("useSystemAlarm"))
+        j.optJSONArray("disabledModules")?.let { a ->
+            val off = (0 until a.length()).map { a.optString(it) }.toSet()
+            com.example.lifeorganizer.core.settings.AppModule.entries.forEach { settings.saveModuleEnabled(it.key, it.key !in off) }
+        }
         val byName = eventDao.getCategoriesSync().associate { it.name.lowercase() to it.id }
         val hidden = j.optJSONArray("hiddenCategories")?.let { a -> (0 until a.length()).mapNotNull { byName[a.optString(it).lowercase()]?.toString() } }.orEmpty()
         prefs("calendar_filter").edit().putBoolean("hide_recurring", j.optBoolean("hideRecurring")).putStringSet("hidden_categories", hidden.toSet()).apply()
