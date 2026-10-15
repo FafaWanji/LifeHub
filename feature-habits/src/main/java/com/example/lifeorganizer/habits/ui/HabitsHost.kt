@@ -249,7 +249,7 @@ private fun HabitItem(row: HabitRow, lang: String, showSchedule: Boolean = false
         }),
         trailingContent = if (row.streak > 0) ({
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Outlined.LocalFireDepartment, HabitsStr.streakDays.of(lang).format(row.streak), tint = MaterialTheme.colorScheme.tertiary)
+                Icon(Icons.Outlined.LocalFireDepartment, if (row.streak == 1) HabitsStr.streakOneDay.of(lang) else HabitsStr.streakDays.of(lang).format(row.streak), tint = MaterialTheme.colorScheme.tertiary)
                 Text(row.streak.toString(), style = MaterialTheme.typography.labelLarge)
             }
         }) else null

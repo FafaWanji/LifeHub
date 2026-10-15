@@ -25,6 +25,7 @@ object HabitsStr {
     val later = Txt("Later", "Später", "Daha sonra", "Más adelante", "以后")
     val done = Txt("Done", "Erledigt", "Tamamlandı", "Hecho", "已完成")
     val markDone = Txt("Done", "Erledigt", "Tamamlandı", "Hecho", "完成")
+    val streakOneDay = Txt("1 day in a row", "1 Tag in Folge", "Art arda 1 gün", "1 día seguido", "连续 1 天")
     val streakDays = Txt("%d days in a row", "%d Tage in Folge", "Art arda %d gün", "%d días seguidos", "连续 %d 天")
     val nothingToday = Txt(
         "Nothing due today. Add a habit or a task with +.",
