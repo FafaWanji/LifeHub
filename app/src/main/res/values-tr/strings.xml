@@ -12,4 +12,5 @@
     <string name="note_widget_empty">Burada görmek için bir notu sabitle</string>
     <string name="note_widget_untitled">Başlıksız</string>
     <string name="note_widget_description">Sabitlenen notun, işaretlenebilir listeyle</string>
+    <string name="habits_widget_description">İşaretlenecek sıradaki alışkanlıkların ve görevlerin</string>
 </resources>

@@ -12,4 +12,5 @@
     <string name="note_widget_empty">Hefte eine Notiz an, um sie hier zu sehen</string>
     <string name="note_widget_untitled">Ohne Titel</string>
     <string name="note_widget_description">Deine angeheftete Notiz mit abhakbarer Liste</string>
+    <string name="habits_widget_description">Deine nächsten Gewohnheiten und Aufgaben zum Abhaken</string>
 </resources>

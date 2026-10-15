@@ -34,6 +34,8 @@ data class TaskItem(
     val note: String = "",
     /** Deadline day, null = no deadline. */
     val dueEpochDay: Long? = null,
+    /** When to send a reminder (epoch millis), null = none. */
+    val reminderAt: Long? = null,
     /** When it was ticked off, null = still open. */
     val doneAt: Long? = null,
     val createdAt: Long = System.currentTimeMillis()

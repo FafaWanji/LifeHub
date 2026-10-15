@@ -12,4 +12,5 @@
     <string name="note_widget_empty">Fija una nota para verla aquí</string>
     <string name="note_widget_untitled">Sin título</string>
     <string name="note_widget_description">Tu nota fijada con lista marcable</string>
+    <string name="habits_widget_description">Tus próximos hábitos y tareas para marcar</string>
 </resources>

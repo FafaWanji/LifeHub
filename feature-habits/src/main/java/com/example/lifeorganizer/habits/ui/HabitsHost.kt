@@ -263,13 +263,27 @@ private fun TaskItemRow(task: TaskItem, today: LocalDate, lang: String, onToggle
     val due = task.dueEpochDay?.let {
         LocalDate.ofEpochDay(it).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.forLanguageTag(lang)))
     }
+    // Upcoming reminder of an open task, e.g. "18.10. 09:00"
+    val remind = task.reminderAt?.takeIf { !done && it > System.currentTimeMillis() }?.let {
+        val at = java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
+        at.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(Locale.forLanguageTag(lang)))
+    }
     val details = listOfNotNull(due, task.note.lineSequence().firstOrNull()?.takeIf { it.isNotBlank() }).joinToString(" · ")
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
         leadingContent = { Checkbox(checked = done, onCheckedChange = { onToggle() }) },
         headlineContent = { Text(task.title, textDecoration = if (done) TextDecoration.LineThrough else null) },
-        supportingContent = if (details.isEmpty()) null else ({
-            Text(details, color = if (overdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+        supportingContent = if (details.isEmpty() && remind == null) null else ({
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (details.isNotEmpty()) Text(
+                    details, color = if (overdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1, modifier = Modifier.weight(1f, fill = false)
+                )
+                if (remind != null) {
+                    Icon(Icons.Outlined.Notifications, null, Modifier.size(16.dp))
+                    Text(remind, maxLines = 1)
+                }
+            }
         })
     )
 }

@@ -49,6 +49,17 @@ object HabitsStr {
         "还没有任务——例如带截止日期的「第 5 题」。"
     )
     val notToday = Txt("Not due today", "Heute nicht dran", "Bugün değil", "Hoy no toca", "今天不需要")
+    // Home-screen widget
+    val all = Txt("All", "Alle", "Tümü", "Todo", "全部")
+    val tomorrow = Txt("Tomorrow", "Morgen", "Yarın", "Mañana", "明天")
+    val allDone = Txt("All done for now 🎉", "Alles erledigt 🎉", "Hepsi tamam 🎉", "Todo hecho 🎉", "全部完成 🎉")
+    val moduleOff = Txt(
+        "Habits & tasks is switched off in the settings.",
+        "Gewohnheiten & Aufgaben ist in den Einstellungen ausgeschaltet.",
+        "Alışkanlıklar ve görevler ayarlarda kapalı.",
+        "Hábitos y tareas está desactivado en los ajustes.",
+        "习惯与任务已在设置中关闭。"
+    )
     val save = Txt("Save", "Speichern", "Kaydet", "Guardar", "保存")
     val cancel = Txt("Cancel", "Abbrechen", "İptal", "Cancelar", "取消")
     val delete = Txt("Delete", "Löschen", "Sil", "Eliminar", "删除")
@@ -57,6 +68,8 @@ object HabitsStr {
     val habitDeleted = Txt("Habit deleted", "Gewohnheit gelöscht", "Alışkanlık silindi", "Hábito eliminado", "习惯已删除")
     val channel = Txt("Habits & tasks", "Gewohnheiten & Aufgaben", "Alışkanlıklar ve görevler", "Hábitos y tareas", "习惯与任务")
     val habitReminderText = Txt("Time for your habit", "Zeit für deine Gewohnheit", "Alışkanlığının zamanı", "Hora de tu hábito", "该做这个习惯了")
+    val dueOn = Txt("Due %s", "Fällig am %s", "Son tarih %s", "Vence el %s", "%s 到期")
+    val overdueSince = Txt("Overdue since %s", "Überfällig seit %s", "%s tarihinden beri gecikmiş", "Vencida desde %s", "自 %s 起逾期")
     val taskReminderText = Txt("Due today", "Heute fällig", "Bugün son gün", "Vence hoy", "今天到期")
     /** One letter per weekday, Monday first. */
     val weekdayLetters = Txt("MTWTFSS", "MDMDFSS", "PSÇPCCP", "LMXJVSD", "一二三四五六日")

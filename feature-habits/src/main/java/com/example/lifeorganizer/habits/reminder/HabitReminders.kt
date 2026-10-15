@@ -29,7 +29,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 
 /**
- * Habit reminders (daily at the chosen time on due days) and task reminders (morning of the deadline).
+ * Habit reminders (daily at the chosen time on due days) and task reminders (at the time set on the task).
  * Only the next alarm of each item is set; the receiver sets the following one when it fires.
  */
 object HabitReminders {
@@ -39,8 +39,6 @@ object HabitReminders {
     private const val ACTION_HABIT_DONE = "com.example.lifeorganizer.habits.HABIT_DONE"
     private const val ACTION_TASK_DONE = "com.example.lifeorganizer.habits.TASK_DONE"
     private const val CHANNEL_ID = "habits"
-    /** Task reminders come on the morning of the deadline. */
-    private const val TASK_REMINDER_HOUR = 9
 
     private fun alarms(context: Context) = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
@@ -82,6 +80,8 @@ object HabitReminders {
         val dao = HabitDatabase.getDatabase(context).habitDao()
         val today = LocalDate.now().toEpochDay()
         val doneToday = dao.checksSync().any { it.habitId == habit.id && it.epochDay == today }
+        // Ticked off in the app or widget: today's reminder is no longer needed
+        if (doneToday) NotificationManagerCompatSafe.cancel(context, notificationId("habit", habit.id))
         nextHabitTrigger(habit, doneToday)?.let { setAlarm(context, it, op) }
     }
 
@@ -93,10 +93,13 @@ object HabitReminders {
     fun scheduleTask(context: Context, task: TaskItem) {
         val op = pending(context, ACTION_TASK, "task", task.id)
         alarms(context).cancel(op)
-        val due = task.dueEpochDay ?: return
-        if (task.doneAt != null) return
-        val at = LocalDate.ofEpochDay(due).atTime(TASK_REMINDER_HOUR, 0)
-        if (at.isAfter(LocalDateTime.now())) setAlarm(context, at, op)
+        if (task.doneAt != null) {
+            NotificationManagerCompatSafe.cancel(context, notificationId("task", task.id))
+            return
+        }
+        val at = task.reminderAt ?: return
+        if (at <= System.currentTimeMillis()) return
+        setAlarm(context, java.time.Instant.ofEpochMilli(at).atZone(ZoneId.systemDefault()).toLocalDateTime(), op)
     }
 
     fun cancelTask(context: Context, taskId: Long) {
@@ -140,6 +143,19 @@ object HabitReminders {
         NotificationManagerCompatSafe.notify(context, nid, notification)
     }
 
+    /** "Due today", "Due 18 Oct", "Overdue since …" or just "Reminder" without a deadline. */
+    private fun taskReminderText(task: TaskItem, today: LocalDate, lang: String): String {
+        val due = task.dueEpochDay ?: return HabitsStr.reminder.of(lang)
+        val date = LocalDate.ofEpochDay(due)
+        val formatted = date.format(java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM)
+            .withLocale(java.util.Locale.forLanguageTag(lang)))
+        return when {
+            date == today -> HabitsStr.taskReminderText.of(lang)
+            date.isAfter(today) -> HabitsStr.dueOn.of(lang).format(formatted)
+            else -> HabitsStr.overdueSince.of(lang).format(formatted)
+        }
+    }
+
     internal suspend fun handle(context: Context, intent: Intent) {
         val app = context.applicationContext
         if (intent.action == Intent.ACTION_BOOT_COMPLETED || intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
@@ -163,15 +179,17 @@ object HabitReminders {
             }
             ACTION_TASK -> {
                 val task = dao.taskById(id) ?: return
-                if (moduleOn && task.doneAt == null) notify(app, lang, "task", id, task.title, HabitsStr.taskReminderText.of(lang), ACTION_TASK_DONE)
+                if (moduleOn && task.doneAt == null) notify(app, lang, "task", id, task.title, taskReminderText(task, today, lang), ACTION_TASK_DONE)
             }
             ACTION_HABIT_DONE -> {
                 dao.insertCheck(HabitCheck(id, today.toEpochDay()))
                 NotificationManagerCompatSafe.cancel(app, notificationId("habit", id))
+                com.example.lifeorganizer.habits.HabitsIntegration.changed(app)
             }
             ACTION_TASK_DONE -> {
                 dao.taskById(id)?.let { dao.updateTask(it.copy(doneAt = System.currentTimeMillis())) }
                 NotificationManagerCompatSafe.cancel(app, notificationId("task", id))
+                com.example.lifeorganizer.habits.HabitsIntegration.changed(app)
             }
         }
     }

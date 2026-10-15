@@ -15,7 +15,7 @@ object HabitBackup {
             }))
             .put("tasks", JSONArray(dao.tasksSync().map { t ->
                 JSONObject().put("title", t.title).put("note", t.note).put("due", t.dueEpochDay)
-                    .put("doneAt", t.doneAt).put("createdAt", t.createdAt)
+                    .put("reminderAt", t.reminderAt).put("doneAt", t.doneAt).put("createdAt", t.createdAt)
             }))
     }
 
@@ -44,7 +44,7 @@ object HabitBackup {
             val key = t.optString("title") to t.optLong("createdAt")
             if (key.first.isBlank() || key in known) return@forEach
             dao.insertTask(
-                TaskItem(title = key.first, note = t.optString("note"), dueEpochDay = t.longOrNull("due"), doneAt = t.longOrNull("doneAt"), createdAt = key.second)
+                TaskItem(title = key.first, note = t.optString("note"), dueEpochDay = t.longOrNull("due"), reminderAt = t.longOrNull("reminderAt"), doneAt = t.longOrNull("doneAt"), createdAt = key.second)
             )
             added++
         }

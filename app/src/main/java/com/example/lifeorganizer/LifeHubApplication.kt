@@ -11,5 +11,7 @@ class LifeHubApplication : WaypointsApplication() {
         DebugLogger.init(this)
         DevMode.load(this)
         CrashLog.install(this)
+        // Ticking things off in the app or a notification updates the home-screen widget
+        com.example.lifeorganizer.habits.HabitsIntegration.onChanged = { com.example.lifeorganizer.widgets.HabitsWidget.refresh(it) }
     }
 }

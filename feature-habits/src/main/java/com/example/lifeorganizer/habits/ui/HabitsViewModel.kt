@@ -3,6 +3,7 @@ package com.example.lifeorganizer.habits.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.lifeorganizer.habits.HabitsIntegration
 import com.example.lifeorganizer.habits.data.Habit
 import com.example.lifeorganizer.habits.data.HabitCheck
 import com.example.lifeorganizer.habits.data.HabitDatabase
@@ -42,6 +43,7 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
         if (row.doneToday) dao.deleteCheck(check) else dao.insertCheck(check)
         // Done before the reminder time: today's reminder is skipped (and comes back when unticked)
         HabitReminders.scheduleHabit(app, row.habit)
+        HabitsIntegration.changed(app)
     }
 
     fun saveHabit(habit: Habit) = viewModelScope.launch {
@@ -51,16 +53,19 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
             dao.updateHabit(habit); habit
         }
         HabitReminders.scheduleHabit(app, saved)
+        HabitsIntegration.changed(app)
     }
 
     fun deleteHabit(habit: Habit) = viewModelScope.launch {
         HabitReminders.cancelHabit(app, habit.id)
         dao.deleteHabit(habit)
+        HabitsIntegration.changed(app)
     }
 
     fun saveTask(task: TaskItem) = viewModelScope.launch {
         val saved = if (task.id == 0L) task.copy(id = dao.insertTask(task)) else { dao.updateTask(task); task }
         HabitReminders.scheduleTask(app, saved)
+        HabitsIntegration.changed(app)
     }
 
     fun toggleTask(task: TaskItem) = saveTask(task.copy(doneAt = if (task.doneAt == null) System.currentTimeMillis() else null))
@@ -68,11 +73,13 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
     fun deleteTask(task: TaskItem) = viewModelScope.launch {
         HabitReminders.cancelTask(app, task.id)
         dao.deleteTask(task)
+        HabitsIntegration.changed(app)
     }
 
     /** Undo after a delete: the task comes back with its id, so its reminder too. */
     fun restoreTask(task: TaskItem) = viewModelScope.launch {
         dao.insertTask(task)
         HabitReminders.scheduleTask(app, task)
+        HabitsIntegration.changed(app)
     }
 }
