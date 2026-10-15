@@ -73,7 +73,7 @@ import com.example.lifeorganizer.calendar.ui.MainViewModel as CalendarViewModel
 import com.example.lifeorganizer.waypoints.ui.MainViewModel as WaypointsViewModel
 
 enum class ActiveView {
-    CALENDAR, NOTES, NOTE_EDITOR, WAYPOINTS, DOCUMENTS, MONEY
+    CALENDAR, NOTES, NOTE_EDITOR, WAYPOINTS, DOCUMENTS, MONEY, HABITS
 }
 
 /** Sub-screens of the embedded Waypoints module. */
@@ -184,6 +184,7 @@ fun MainScreen(
         ActiveView.WAYPOINTS -> AppModule.WAYPOINTS
         ActiveView.DOCUMENTS -> AppModule.DOCUMENTS
         ActiveView.MONEY -> AppModule.FINANCE
+        ActiveView.HABITS -> AppModule.HABITS
         else -> null
     }
     LaunchedEffect(activeView, enabledModules) {
@@ -232,6 +233,7 @@ fun MainScreen(
                     addEventRequest++
                 }
                 MainActivity.ACTION_WAYPOINTS -> navigate(ActiveView.WAYPOINTS)
+                MainActivity.ACTION_HABITS -> navigate(ActiveView.HABITS)
                 MainActivity.ACTION_SEARCH -> showUniversalSearch = true
                 MainActivity.ACTION_AGENDA -> activeView = ActiveView.CALENDAR
                 MainActivity.ACTION_DEV_MODE -> showDevMode = true
@@ -256,7 +258,7 @@ fun MainScreen(
     }
 
     // Secondary modules return to the calendar instead of closing the app.
-    BackHandler(enabled = activeView == ActiveView.NOTES || activeView == ActiveView.DOCUMENTS ||
+    BackHandler(enabled = activeView == ActiveView.NOTES || activeView == ActiveView.DOCUMENTS || activeView == ActiveView.HABITS ||
         (activeView == ActiveView.WAYPOINTS && waypointRoute == WaypointRoute.List)
     ) {
         activeView = ActiveView.CALENDAR
@@ -447,6 +449,7 @@ fun MainScreen(
                                 onDocumentOpened = { documentToOpen = null }
                             )
                             ActiveView.MONEY -> com.example.lifeorganizer.money.ui.MoneyHost(onMenuClick = openMenu)
+                            ActiveView.HABITS -> com.example.lifeorganizer.habits.ui.HabitsHost(onMenuClick = openMenu)
                         }
                     }
 }

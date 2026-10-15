@@ -118,6 +118,16 @@
             </intent-filter>
         </receiver>
 
+        <!-- Habit & task reminders; re-armed after a reboot or an app update -->
+        <receiver
+            android:name="com.example.lifeorganizer.habits.reminder.HabitReminderReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
+
         <!-- Agenda Widget (Migrated from feature-calendar) -->
         <receiver
             android:name="com.example.lifeorganizer.calendar.widget.CalendarWidgetReceiver"

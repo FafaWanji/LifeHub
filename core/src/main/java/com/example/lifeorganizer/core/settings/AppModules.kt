@@ -18,7 +18,8 @@ import kotlinx.coroutines.flow.map
 enum class AppModule(val key: String, val label: Txt) {
     WAYPOINTS("waypoints", Str.waypoints),
     DOCUMENTS("documents", Str.documents),
-    FINANCE("finance", Str.finance)
+    FINANCE("finance", Str.finance),
+    HABITS("habits", Str.habitsTasks)
 }
 
 /** The modules that are switched on. */

@@ -64,6 +64,7 @@ class BackupManager(context: Context) {
     private val waypointDao = WaypointsDatabase.getDatabase(appContext).waypointDao()
     private val documentDao = DocumentsDatabase.getDatabase(appContext).documentDao()
     private val moneyDao = com.example.lifeorganizer.money.data.MoneyDatabase.getDatabase(appContext).moneyDao()
+    private val habitDao = com.example.lifeorganizer.habits.data.HabitDatabase.getDatabase(appContext).habitDao()
 
     // ================================================================== export
 
@@ -125,6 +126,7 @@ class BackupManager(context: Context) {
                         .put("labels", JSONArray(w.labels.map { it.name }))
                 })))
             .put("money", com.example.lifeorganizer.money.data.MoneyBackup.export(moneyDao))
+            .put("habits", com.example.lifeorganizer.habits.data.HabitBackup.export(habitDao))
             .put("settings", exportSettings(categories.associate { it.id to it.name }))
             .put("documents", JSONObject()
                 .put("documents", JSONArray(documents.map { d ->
@@ -463,6 +465,10 @@ class BackupManager(context: Context) {
         val transactions = root.optJSONObject("money")?.let { com.example.lifeorganizer.money.data.MoneyBackup.import(moneyDao, it) } ?: 0
         if (root.has("money")) com.example.lifeorganizer.money.FixedCostCalendarSync(appContext)
             .syncAll(com.example.lifeorganizer.core.settings.SettingsManager(appContext).languageCode.first())
+        root.optJSONObject("habits")?.let {
+            com.example.lifeorganizer.habits.data.HabitBackup.import(habitDao, it)
+            com.example.lifeorganizer.habits.reminder.HabitReminders.scheduleAll(appContext)
+        }
         root.optJSONObject("settings")?.let { importSettings(it) }
 
         if (pendingDocuments.isNotEmpty()) {

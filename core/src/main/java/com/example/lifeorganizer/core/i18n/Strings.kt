@@ -32,6 +32,7 @@ object Str {
     val waypoints = Txt("Waypoints", "Waypoints", "Konumlar", "Lugares", "地点")
     val documents = Txt("Documents", "Dokumente", "Belgeler", "Documentos", "文档")
     val finance = Txt("Finance", "Finanzen", "Finans", "Finanzas", "财务")
+    val habitsTasks = Txt("Habits & tasks", "Gewohnheiten & Aufgaben", "Alışkanlıklar ve görevler", "Hábitos y tareas", "习惯与任务")
     val settings = Txt("Settings", "Einstellungen", "Ayarlar", "Ajustes", "设置")
     val modules = Txt("Modules", "Module", "Modüller", "Módulos", "模块")
     val modulesHint = Txt(

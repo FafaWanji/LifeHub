@@ -28,6 +28,8 @@ import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Savings
+import androidx.compose.material.icons.filled.TaskAlt
+import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
 import com.example.lifeorganizer.core.i18n.BkStr
@@ -85,6 +87,13 @@ fun MenuDrawerSheet(
                 label = Str.notes.text(),
                 selected = currentView == ActiveView.NOTES || currentView == ActiveView.NOTE_EDITOR,
                 onClick = { onNavigate(ActiveView.NOTES) }
+            )
+            if (AppModule.HABITS in enabledModules) DrawerEntry(
+                selectedIcon = Icons.Filled.TaskAlt,
+                icon = Icons.Outlined.TaskAlt,
+                label = Str.habitsTasks.text(),
+                selected = currentView == ActiveView.HABITS,
+                onClick = { onNavigate(ActiveView.HABITS) }
             )
             if (AppModule.FINANCE in enabledModules) DrawerEntry(
                 selectedIcon = Icons.Filled.Savings,
