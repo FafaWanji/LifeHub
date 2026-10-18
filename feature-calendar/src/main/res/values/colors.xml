@@ -7,4 +7,10 @@
     <color name="teal_700">#FF018786</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <!-- Agenda widget; same names and values as the app's widgets, which take precedence -->
+    <color name="widget_surface">#FFF2F3F7</color>
+    <color name="widget_on_surface">#FF1B1D24</color>
+    <color name="widget_muted">#FF6B6E78</color>
+    <color name="widget_chip">#FFE3E6EE</color>
+    <color name="widget_accent">#FF4A7FB5</color>
 </resources>

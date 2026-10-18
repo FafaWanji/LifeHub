@@ -11,6 +11,8 @@ import androidx.glance.action.ActionParameters
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.AppWidgetId
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.cornerRadius
+import com.example.lifeorganizer.calendar.R
 import androidx.glance.appwidget.action.ActionCallback
 import androidx.glance.appwidget.action.actionRunCallback
 import androidx.glance.appwidget.lazy.LazyColumn
@@ -49,97 +51,110 @@ class CalendarWidget : GlanceAppWidget() {
 
     @Composable
     private fun WidgetContent(events: List<WidgetEvent>, lang: String) {
+        val S = com.example.lifeorganizer.core.i18n.Str
         val dateFormatter = com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "EEEMMMdd")
-        
+        val surface = ColorProvider(R.color.widget_surface)
+        val onSurface = ColorProvider(R.color.widget_on_surface)
+        val muted = ColorProvider(R.color.widget_muted)
+        val accent = ColorProvider(R.color.widget_accent)
+        val card = ColorProvider(R.color.widget_chip)
+        val zone = ZoneId.systemDefault()
+        val today = LocalDate.now()
+        val now = System.currentTimeMillis()
+        val grouped = events.groupBy { Instant.ofEpochMilli(it.startTimeMillis).atZone(zone).toLocalDate() }
+        val open = actionRunCallback<OpenAppAction>()
+
+        fun dayLabel(date: LocalDate): String = when (val d = ChronoUnit.DAYS.between(today, date)) {
+            0L -> S.widgetToday.of(lang)
+            1L -> S.widgetTomorrow.of(lang)
+            else -> S.widgetInDays.of(lang).format(d).replaceFirstChar { it.uppercase() }
+        }
+
         Column(
-            modifier = GlanceModifier
-                .fillMaxSize()
-                .background(ColorProvider(Color(0xFF1C1B1F))) // Dark theme background
-                .padding(12.dp)
-                .clickable(actionRunCallback<OpenAppAction>()),
-            verticalAlignment = Alignment.Vertical.Top
+            modifier = GlanceModifier.fillMaxSize().background(surface).cornerRadius(20.dp).padding(14.dp)
         ) {
+            // Header: today's date, "+" for a new event
+            Row(modifier = GlanceModifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Column(modifier = GlanceModifier.defaultWeight().clickable(open)) {
+                    Text(S.widgetToday.of(lang), style = TextStyle(color = accent, fontSize = 16.sp, fontWeight = FontWeight.Bold))
+                    Text(today.format(dateFormatter), style = TextStyle(color = muted, fontSize = 12.sp))
+                }
+                Text(
+                    "+",
+                    style = TextStyle(color = accent, fontSize = 24.sp, fontWeight = FontWeight.Bold),
+                    modifier = GlanceModifier.padding(horizontal = 6.dp).clickable(actionRunCallback<NewEventAction>())
+                )
+            }
 
             if (events.isEmpty()) {
-                Text(
-                    text = com.example.lifeorganizer.core.i18n.Str.noUpcoming.of(lang),
-                    style = TextStyle(
-                        fontSize = 14.sp,
-                        color = ColorProvider(Color(0xFFCAC4D0))
-                    )
-                )
+                Text(S.noUpcoming.of(lang), style = TextStyle(color = muted, fontSize = 14.sp), modifier = GlanceModifier.clickable(open))
             } else {
                 LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
-                    // Group by date
-                    val grouped = events.groupBy { 
-                        Instant.ofEpochMilli(it.startTimeMillis).atZone(ZoneId.systemDefault()).toLocalDate()
-                    }
-                    
                     grouped.forEach { (date, dayEvents) ->
-                        val today = LocalDate.now()
-                        val daysLeft = ChronoUnit.DAYS.between(today, date)
-                        val S = com.example.lifeorganizer.core.i18n.Str
-                        val wl = lang
-                        val relativeText = when {
-                            daysLeft == 0L -> " (${S.widgetToday.of(wl)})"
-                            daysLeft == 1L -> " (${S.widgetTomorrow.of(wl)})"
-                            daysLeft > 1L -> " (${S.widgetInDays.of(wl).format(daysLeft)})"
-                            else -> ""
-                        }
-
-                        item {
+                        // Today is already in the header; later days get a small label
+                        if (date != today) item {
                             Text(
-                                text = date.format(dateFormatter) + relativeText,
-                                style = TextStyle(
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = ColorProvider(Color(0xFFE6E0E9))
-                                ),
-                                modifier = GlanceModifier.padding(top = 8.dp, bottom = 4.dp)
+                                dayLabel(date) + " · " + date.format(dateFormatter),
+                                style = TextStyle(color = muted, fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                                modifier = GlanceModifier.padding(top = 10.dp, bottom = 4.dp)
                             )
                         }
-                        
                         items(dayEvents) { event ->
-                            val timeText = if (event.isAllDay) {
-                                com.example.lifeorganizer.core.i18n.Str.allDay.of(lang)
-                            } else {
-                                Instant.ofEpochMilli(event.startTimeMillis)
-                                    .atZone(ZoneId.of(event.timezone))
-                                    .toLocalTime()
-                                    .format(DateTimeFormatter.ofPattern("HH:mm"))
-                            }
-                            
-                            Row(
-                                modifier = GlanceModifier
-                                    .fillMaxWidth()
-                                    .padding(vertical = 2.dp)
-                                    .clickable(actionRunCallback<OpenAppAction>()),
-                                horizontalAlignment = Alignment.Horizontal.Start
-                            ) {
-                                // A small colored circle for category
-                                Box(
-                                    modifier = GlanceModifier
-                                        .size(8.dp)
-                                        .background(ColorProvider(Color(event.color)))
-                                ) { }
-                                
-                                Spacer(modifier = GlanceModifier.width(8.dp))
-                                
-                                Text(
-                                    text = "${event.title} — $timeText",
-                                    style = TextStyle(
-                                        fontSize = 12.sp,
-                                        color = ColorProvider(Color(0xFFCAC4D0))
-                                    )
-                                )
-                            }
-
+                            EventRow(event, lang, now, onSurface, muted, accent, card)
                         }
                     }
                 }
             }
         }
     }
+
+    @Composable
+    private fun EventRow(
+        event: WidgetEvent, lang: String, now: Long,
+        onSurface: ColorProvider, muted: ColorProvider, accent: ColorProvider, card: ColorProvider
+    ) {
+        val S = com.example.lifeorganizer.core.i18n.Str
+        val zone = ZoneId.of(event.timezone)
+        val hhmm = DateTimeFormatter.ofPattern("HH:mm")
+        val running = !event.isAllDay && event.startTimeMillis <= now && now < event.endTimeMillis
+        // Second line: running now, otherwise the place (only its first part, addresses get long)
+        val subtitle = when {
+            running -> nowLabel.of(lang)
+            !event.location.isNullOrBlank() -> event.location.substringBefore(',').trim()
+            else -> null
+        }
+        Column(modifier = GlanceModifier.fillMaxWidth().padding(vertical = 3.dp)) {
+            Row(
+                modifier = GlanceModifier.fillMaxWidth().background(card).cornerRadius(12.dp)
+                    .padding(horizontal = 10.dp, vertical = 8.dp).clickable(actionRunCallback<OpenAppAction>()),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(modifier = GlanceModifier.width(4.dp).height(34.dp).cornerRadius(2.dp).background(ColorProvider(Color(event.color)))) {}
+                Spacer(GlanceModifier.width(10.dp))
+                Column(modifier = GlanceModifier.width(46.dp)) {
+                    if (event.isAllDay) {
+                        Text(S.allDay.of(lang), maxLines = 2, style = TextStyle(color = muted, fontSize = 11.sp))
+                    } else {
+                        Text(
+                            Instant.ofEpochMilli(event.startTimeMillis).atZone(zone).format(hhmm),
+                            style = TextStyle(color = onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                        )
+                        Text(Instant.ofEpochMilli(event.endTimeMillis).atZone(zone).format(hhmm), style = TextStyle(color = muted, fontSize = 11.sp))
+                    }
+                }
+                Spacer(GlanceModifier.width(8.dp))
+                Column(modifier = GlanceModifier.defaultWeight()) {
+                    Text(event.title, maxLines = 1, style = TextStyle(color = onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium))
+                    if (subtitle != null) Text(
+                        subtitle, maxLines = 1,
+                        style = TextStyle(color = if (running) accent else muted, fontSize = 12.sp, fontWeight = if (running) FontWeight.Bold else FontWeight.Normal)
+                    )
+                }
+            }
+        }
+    }
+
+    private val nowLabel = com.example.lifeorganizer.core.i18n.Txt("Now", "Jetzt", "Şimdi", "Ahora", "进行中")
 
     private suspend fun loadAgendaEvents(context: Context, categoryIds: Set<Long>): List<WidgetEvent> {
         val db = AppDatabase.getDatabase(context)
@@ -176,6 +191,8 @@ class CalendarWidget : GlanceAppWidget() {
                     id = e.event.id,
                     title = e.event.title,
                     startTimeMillis = e.event.startTimeMillis,
+                    endTimeMillis = e.event.endTimeMillis ?: (e.event.startTimeMillis + 3_600_000),
+                    location = e.event.targetAddress,
                     isAllDay = e.event.isAllDay,
                     isBirthday = e.event.isBirthday,
                     birthYear = e.event.birthYear,
@@ -191,12 +208,25 @@ class CalendarWidget : GlanceAppWidget() {
         val id: Long,
         val title: String,
         val startTimeMillis: Long,
+        val endTimeMillis: Long,
+        val location: String?,
         val isAllDay: Boolean,
         val isBirthday: Boolean,
         val birthYear: Int?,
         val timezone: String,
         val color: Int
     )
+}
+
+/** "+" in the widget: opens LifeHub with the new-event dialog. */
+class NewEventAction : ActionCallback {
+    override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
+        val intent = Intent(context, Class.forName("com.example.lifeorganizer.MainActivity")).apply {
+            action = "com.example.lifeorganizer.ACTION_NEW_EVENT"
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        }
+        context.startActivity(intent)
+    }
 }
 
 class OpenAppAction : ActionCallback {
