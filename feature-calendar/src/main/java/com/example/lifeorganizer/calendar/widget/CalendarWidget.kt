@@ -71,32 +71,19 @@ class CalendarWidget : GlanceAppWidget() {
         }
 
         Column(
-            modifier = GlanceModifier.fillMaxSize().background(surface).cornerRadius(20.dp).padding(14.dp)
+            modifier = GlanceModifier.fillMaxSize().background(surface).cornerRadius(20.dp).padding(12.dp)
         ) {
-            // Header: today's date, "+" for a new event
-            Row(modifier = GlanceModifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
-                Column(modifier = GlanceModifier.defaultWeight().clickable(open)) {
-                    Text(S.widgetToday.of(lang), style = TextStyle(color = accent, fontSize = 16.sp, fontWeight = FontWeight.Bold))
-                    Text(today.format(dateFormatter), style = TextStyle(color = muted, fontSize = 12.sp))
-                }
-                Text(
-                    "+",
-                    style = TextStyle(color = accent, fontSize = 24.sp, fontWeight = FontWeight.Bold),
-                    modifier = GlanceModifier.padding(horizontal = 6.dp).clickable(actionRunCallback<NewEventAction>())
-                )
-            }
-
             if (events.isEmpty()) {
                 Text(S.noUpcoming.of(lang), style = TextStyle(color = muted, fontSize = 14.sp), modifier = GlanceModifier.clickable(open))
             } else {
                 LazyColumn(modifier = GlanceModifier.fillMaxSize()) {
                     grouped.forEach { (date, dayEvents) ->
-                        // Today is already in the header; later days get a small label
-                        if (date != today) item {
+                        // Small day label above each day's events: "Heute · Di., 20. Okt."
+                        item {
                             Text(
                                 dayLabel(date) + " · " + date.format(dateFormatter),
                                 style = TextStyle(color = muted, fontSize = 12.sp, fontWeight = FontWeight.Bold),
-                                modifier = GlanceModifier.padding(top = 10.dp, bottom = 4.dp)
+                                modifier = GlanceModifier.padding(top = if (date == grouped.keys.first()) 0.dp else 10.dp, bottom = 4.dp)
                             )
                         }
                         items(dayEvents) { event ->
@@ -219,17 +206,6 @@ class CalendarWidget : GlanceAppWidget() {
         val timezone: String,
         val color: Int
     )
-}
-
-/** "+" in the widget: opens LifeHub with the new-event dialog. */
-class NewEventAction : ActionCallback {
-    override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val intent = Intent(context, Class.forName("com.example.lifeorganizer.MainActivity")).apply {
-            action = "com.example.lifeorganizer.ACTION_NEW_EVENT"
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
-        }
-        context.startActivity(intent)
-    }
 }
 
 class OpenAppAction : ActionCallback {
