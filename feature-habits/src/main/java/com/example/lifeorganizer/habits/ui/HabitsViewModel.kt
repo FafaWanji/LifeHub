@@ -3,6 +3,7 @@ package com.example.lifeorganizer.habits.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.lifeorganizer.core.settings.SettingsManager
 import com.example.lifeorganizer.habits.HabitsIntegration
 import com.example.lifeorganizer.habits.TaskActions
 import com.example.lifeorganizer.habits.data.Habit
@@ -83,6 +84,19 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
 
     /** Ticks off (points if in time) or back on (points taken back); see [TaskActions]. */
     fun toggleTask(task: TaskItem) = viewModelScope.launch { TaskActions.setDone(app, task.id, done = task.doneAt == null) }
+
+    private val settings = SettingsManager(application)
+
+    /** Ask before "I did it on time"; the very first time twice. Switched back on in the settings. */
+    val confirmOnTimeClaim: StateFlow<Boolean> = settings.confirmOnTimeClaim.stateIn(viewModelScope, SharingStarted.Eagerly, true)
+    val onTimeClaimUsed: StateFlow<Boolean> = settings.onTimeClaimUsed.stateIn(viewModelScope, SharingStarted.Eagerly, false)
+
+    /** "I did it on time but forgot to tick it off"; [dontAskAgain] comes from the box in the dialog. */
+    fun claimOnTime(task: TaskItem, dontAskAgain: Boolean = false) = viewModelScope.launch {
+        TaskActions.claimOnTime(app, task.id)
+        settings.saveOnTimeClaimUsed()
+        if (dontAskAgain) settings.saveConfirmOnTimeClaim(false)
+    }
 
     /** After notifications or exact alarms were allowed in the system settings. */
     fun rescheduleAll() = viewModelScope.launch { HabitReminders.scheduleAll(app) }

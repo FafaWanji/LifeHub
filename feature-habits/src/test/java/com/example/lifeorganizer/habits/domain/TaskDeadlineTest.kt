@@ -78,6 +78,18 @@ class TaskDeadlineTest {
     }
 
     @Test
+    fun onTimeClaimOnlyForLateTasks() {
+        // Open: only once the deadline has passed
+        assertFalse(TaskDeadline.canClaimOnTime(deadline, null, deadline.minusHours(1)))
+        assertTrue(TaskDeadline.canClaimOnTime(deadline, null, deadline.plusHours(1)))
+        // Done: only when ticked off late, whenever you look
+        assertTrue(TaskDeadline.canClaimOnTime(deadline, deadline.plusMinutes(5), deadline.plusDays(3)))
+        assertFalse(TaskDeadline.canClaimOnTime(deadline, deadline.minusMinutes(5), deadline.plusDays(3)))
+        // Old tasks without a deadline earn nothing either way
+        assertFalse(TaskDeadline.canClaimOnTime(null, null, deadline))
+    }
+
+    @Test
     fun oldReminderTimeBecomesAnOffset() {
         val zone = ZoneOffset.UTC
         // Old default: 09:00 on the deadline day, deadline now 23:59 → 14 h 59 min before

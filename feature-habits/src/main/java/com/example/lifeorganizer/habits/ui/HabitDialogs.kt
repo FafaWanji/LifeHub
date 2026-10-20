@@ -1,5 +1,6 @@
 package com.example.lifeorganizer.habits.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -11,6 +12,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -25,6 +27,7 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -118,7 +121,11 @@ fun HabitDialog(initial: Habit, onDismiss: () -> Unit, onSave: (Habit) -> Unit, 
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun TaskDialog(initial: TaskItem, onDismiss: () -> Unit, onSave: (TaskItem) -> Unit, onDelete: (() -> Unit)?) {
+fun TaskDialog(
+    initial: TaskItem, onDismiss: () -> Unit, onSave: (TaskItem) -> Unit, onDelete: (() -> Unit)?,
+    /** Shown for late tasks: "I did it on time – forgot to tick it off". */
+    onClaimOnTime: (() -> Unit)? = null
+) {
     val lang = LocalAppLanguage.current
     val today = LocalDate.now()
     var title by remember { mutableStateOf(initial.title) }
@@ -176,6 +183,9 @@ fun TaskDialog(initial: TaskItem, onDismiss: () -> Unit, onSave: (TaskItem) -> U
                     value = note, onValueChange = { note = it }, label = { Text(HabitsStr.note.text()) },
                     modifier = Modifier.fillMaxWidth()
                 )
+                if (onClaimOnTime != null) OutlinedButton(onClick = onClaimOnTime, modifier = Modifier.fillMaxWidth()) {
+                    Text(HabitsStr.claimOnTime.text(), textAlign = TextAlign.Center)
+                }
                 if (onDelete != null) com.example.lifeorganizer.core.theme.DeleteButton(
                     HabitsStr.delete.text(), onClick = onDelete, modifier = Modifier.fillMaxWidth()
                 )
@@ -224,6 +234,48 @@ fun TaskDialog(initial: TaskItem, onDismiss: () -> Unit, onSave: (TaskItem) -> U
     }
 
     if (ownOffset) OwnOffsetDialog(onDismiss = { ownOffset = false }, onAdd = { offsets = offsets + it; ownOffset = false })
+}
+
+/**
+ * Confirms "I did it on time": the very first time twice ("Are you sure?", "Are you really sure?"), after that once
+ * with a "Don't ask again" box. With [ask] off (box ticked earlier) it goes through without a question.
+ */
+@Composable
+fun ClaimOnTimeDialogs(task: TaskItem, ask: Boolean, firstTime: Boolean, onConfirm: (dontAskAgain: Boolean) -> Unit, onDismiss: () -> Unit) {
+    val lang = LocalAppLanguage.current
+    if (!ask && !firstTime) {
+        LaunchedEffect(task.id) { onConfirm(false) }
+        return
+    }
+    var step by remember { mutableIntStateOf(1) }
+    var dontAskAgain by remember { mutableStateOf(false) }
+    val deadline = TaskDeadline.deadline(task.dueEpochDay, task.dueMinute)
+    val claim = HabitsStr.claimText.of(lang).format(
+        deadline?.let { deadlineLabel(it, LocalDate.now(), lang) }.orEmpty(), TaskDeadline.POINTS_ON_TIME
+    )
+    val reallySure = firstTime && step == 2
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (reallySure) HabitsStr.areYouReallySure.text() else HabitsStr.areYouSure.text()) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(task.title, style = MaterialTheme.typography.titleSmall)
+                Text(if (reallySure) HabitsStr.claimReallyText.text() else claim)
+                // The box only comes once the double question of the first time is behind you
+                if (!firstTime) Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().clickable { dontAskAgain = !dontAskAgain }
+                ) {
+                    Checkbox(checked = dontAskAgain, onCheckedChange = { dontAskAgain = it })
+                    Text(HabitsStr.dontAskAgain.text(), style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { if (firstTime && step == 1) step = 2 else onConfirm(dontAskAgain) }) { Text(HabitsStr.yes.text()) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(HabitsStr.cancel.text()) } }
+    )
 }
 
 /** Own reminder like "90 minutes" or "4 days" before the deadline. */

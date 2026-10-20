@@ -69,6 +69,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lifeorganizer.core.i18n.LocalAppLanguage
 import com.example.lifeorganizer.core.i18n.Str
 import com.example.lifeorganizer.core.i18n.text
+import com.example.lifeorganizer.habits.TaskActions
 import com.example.lifeorganizer.habits.data.Habit
 import com.example.lifeorganizer.habits.data.TaskItem
 import com.example.lifeorganizer.habits.domain.HabitSchedule
@@ -96,6 +97,17 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
     var showAddMenu by remember { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val confirmOnTimeClaim by vm.confirmOnTimeClaim.collectAsStateWithLifecycle()
+    val onTimeClaimUsed by vm.onTimeClaimUsed.collectAsStateWithLifecycle()
+    var claimTask by remember { mutableStateOf<TaskItem?>(null) }
+    // Ticked off after the deadline: 0 points, unless it was only the ticking that came late
+    val toggleTask: (TaskItem) -> Unit = { task ->
+        vm.toggleTask(task)
+        if (task.doneAt == null && TaskActions.canClaimOnTime(task)) scope.launch {
+            val r = snackbar.showSnackbar(HabitsStr.doneLate.of(lang), HabitsStr.wasOnTime.of(lang), duration = SnackbarDuration.Short)
+            if (r == SnackbarResult.ActionPerformed) claimTask = task
+        }
+    }
     // Ticks every minute, so a task moves to "Overdue" right when its deadline has passed
     var now by remember { mutableStateOf(LocalDateTime.now()) }
     LaunchedEffect(Unit) {
@@ -158,8 +170,8 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
                                 HabitItem(row, lang, onToggle = { vm.toggleHabit(row) }, onClick = { editHabit = row.habit })
                             }
                         }
-                        taskSection(HabitsStr.overdue.of(lang), urgent.filter { taskGroup(it.dueEpochDay, it.dueMinute, now) == TaskGroup.OVERDUE }, now, lang, vm) { editTask = it }
-                        taskSection(HabitsStr.dueToday.of(lang), urgent.filter { taskGroup(it.dueEpochDay, it.dueMinute, now) == TaskGroup.TODAY }, now, lang, vm) { editTask = it }
+                        taskSection(HabitsStr.overdue.of(lang), urgent.filter { taskGroup(it.dueEpochDay, it.dueMinute, now) == TaskGroup.OVERDUE }, now, lang, toggleTask) { editTask = it }
+                        taskSection(HabitsStr.dueToday.of(lang), urgent.filter { taskGroup(it.dueEpochDay, it.dueMinute, now) == TaskGroup.TODAY }, now, lang, toggleTask) { editTask = it }
                     }
                     HabitsTab.TASKS -> {
                         item(key = "points") { PointsHeader(totalPoints, lang) }
@@ -177,12 +189,12 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
                                 TaskGroup.LATER -> HabitsStr.later
                                 TaskGroup.NO_DEADLINE -> HabitsStr.noDeadline
                             }.of(lang)
-                            taskSection(title, groups[g].orEmpty(), now, lang, vm) { editTask = it }
+                            taskSection(title, groups[g].orEmpty(), now, lang, toggleTask) { editTask = it }
                         }
                         // Recently done, newest first; older ones stay saved but out of the way
                         taskSection(
                             HabitsStr.done.of(lang),
-                            tasks.filter { it.doneAt != null }.sortedByDescending { it.doneAt }.take(30), now, lang, vm
+                            tasks.filter { it.doneAt != null }.sortedByDescending { it.doneAt }.take(30), now, lang, toggleTask
                         ) { editTask = it }
                     }
                     HabitsTab.HABITS -> {
@@ -212,6 +224,7 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
             initial = t,
             onDismiss = { editTask = null },
             onSave = { vm.saveTask(it); editTask = null },
+            onClaimOnTime = if (t.id != 0L && TaskActions.canClaimOnTime(t)) ({ editTask = null; claimTask = t }) else null,
             onDelete = if (t.id == 0L) null else ({
                 vm.deleteTask(t); editTask = null
                 scope.launch {
@@ -219,6 +232,13 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
                     if (r == SnackbarResult.ActionPerformed) vm.restoreTask(t)
                 }
             })
+        )
+    }
+    claimTask?.let { t ->
+        ClaimOnTimeDialogs(
+            task = t, ask = confirmOnTimeClaim, firstTime = !onTimeClaimUsed,
+            onConfirm = { dontAskAgain -> vm.claimOnTime(t, dontAskAgain); claimTask = null },
+            onDismiss = { claimTask = null }
         )
     }
 }
@@ -233,11 +253,11 @@ private fun LazyListScope.header(title: String) = item(key = "header_$title") {
 }
 
 private fun LazyListScope.taskSection(
-    title: String, tasks: List<TaskItem>, now: LocalDateTime, lang: String, vm: HabitsViewModel, onClick: (TaskItem) -> Unit
+    title: String, tasks: List<TaskItem>, now: LocalDateTime, lang: String, onToggle: (TaskItem) -> Unit, onClick: (TaskItem) -> Unit
 ) {
     if (tasks.isEmpty()) return
     header(title)
-    items(tasks, key = { "t${it.id}" }) { task -> TaskItemRow(task, now, lang, onToggle = { vm.toggleTask(task) }, onClick = { onClick(task) }) }
+    items(tasks, key = { "t${it.id}" }) { task -> TaskItemRow(task, now, lang, onToggle = { onToggle(task) }, onClick = { onClick(task) }) }
 }
 
 /** Total at the top of the tasks tab. */

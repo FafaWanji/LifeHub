@@ -51,6 +51,13 @@ object TaskDeadline {
     fun points(deadline: LocalDateTime?, doneAt: LocalDateTime): Int =
         if (deadline != null && !isMissed(deadline, doneAt)) POINTS_ON_TIME else 0
 
+    /**
+     * "I did it on time but forgot to tick it off" is offered only for late tasks: open past the deadline
+     * ([doneAt] null) or ticked off after it.
+     */
+    fun canClaimOnTime(deadline: LocalDateTime?, doneAt: LocalDateTime?, now: LocalDateTime): Boolean =
+        deadline != null && points(deadline, doneAt ?: now) == 0
+
     /** Old fixed reminder time as minutes before the deadline; null if it was not before it. */
     fun legacyOffset(dueEpochDay: Long, dueMinute: Int, reminderAt: Long, zone: ZoneId = ZoneId.systemDefault()): Int? {
         val due = deadline(dueEpochDay, dueMinute) ?: return null

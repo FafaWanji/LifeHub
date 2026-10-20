@@ -35,6 +35,20 @@ object Str {
     val habitsTasks = Txt("Habits & tasks", "Gewohnheiten & Aufgaben", "Alışkanlıklar ve görevler", "Hábitos y tareas", "习惯与任务")
     val settings = Txt("Settings", "Einstellungen", "Ayarlar", "Ajustes", "设置")
     val modules = Txt("Modules", "Module", "Modüller", "Módulos", "模块")
+    val confirmOnTimeClaim = Txt(
+        "Ask before “I did it on time”",
+        "Nachfragen bei „Rechtzeitig erledigt“",
+        "“Zamanında yaptım” öncesi sor",
+        "Preguntar antes de «Lo hice a tiempo»",
+        "“我按时完成了”前先确认"
+    )
+    val confirmOnTimeClaimHint = Txt(
+        "A late task can still get its points if you only forgot to tick it off – after an “Are you sure?”.",
+        "Eine verspätete Aufgabe bekommt ihre Punkte doch, wenn du nur das Abhaken vergessen hast – nach einem „Bist du sicher?“.",
+        "Sadece işaretlemeyi unuttuysan geciken bir görev yine de puanını alır – bir “Emin misin?” sorusundan sonra.",
+        "Una tarea tardía puede recibir sus puntos si solo olvidaste marcarla, tras un «¿Seguro?».",
+        "如果只是忘了勾选，逾期任务仍可获得积分 – 需先确认“你确定吗？”。"
+    )
     val modulesHint = Txt(
         "Switched-off modules are hidden. Their data stays saved and is back when you switch them on again.",
         "Ausgeschaltete Module werden ausgeblendet. Ihre Daten bleiben gespeichert und sind beim Einschalten wieder da.",

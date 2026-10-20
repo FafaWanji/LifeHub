@@ -1585,6 +1585,36 @@ fun SettingsDialog(
                         }
                     }
 
+                    // Habits & tasks: only while the module is on
+                    val habitsModuleOn = com.example.lifeorganizer.core.settings.AppModule.HABITS in com.example.lifeorganizer.core.settings.rememberEnabledModules()
+                    if (habitsModuleOn) Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    ) {
+                        val habitsScope = rememberCoroutineScope()
+                        val habitsSettings = remember { com.example.lifeorganizer.core.settings.SettingsManager(context.applicationContext) }
+                        val confirmOnTime by habitsSettings.confirmOnTimeClaim.collectAsState(initial = true)
+                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
+                            Text(
+                                text = Str.habitsTasks.of(lang),
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                            )
+                            ListItem(
+                                headlineContent = { Text(Str.confirmOnTimeClaim.of(lang)) },
+                                supportingContent = { Text(Str.confirmOnTimeClaimHint.of(lang)) },
+                                trailingContent = {
+                                    Switch(
+                                        checked = confirmOnTime,
+                                        onCheckedChange = { on -> habitsScope.launch { habitsSettings.saveConfirmOnTimeClaim(on) } }
+                                    )
+                                },
+                                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                            )
+                        }
+                    }
+
                     // Location & Navigation
                     Card(
                         modifier = Modifier.fillMaxWidth(),

@@ -33,6 +33,10 @@ class SettingsManager(private val context: Context) {
         private val DESIGN_STYLE = stringPreferencesKey("design_style")
         // Keys of switched-off modules (AppModule.key); unknown/new modules are on
         private val DISABLED_MODULES = stringSetPreferencesKey("disabled_modules")
+
+        // Habits & tasks
+        private val CONFIRM_ON_TIME_CLAIM = booleanPreferencesKey("confirm_on_time_claim")
+        private val ON_TIME_CLAIM_USED = booleanPreferencesKey("on_time_claim_used")
     }
 
     // Theme & Appearance
@@ -53,6 +57,10 @@ class SettingsManager(private val context: Context) {
 
     // Optional modules
     val disabledModuleKeys: Flow<Set<String>> = context.dataStore.data.map { it[DISABLED_MODULES] ?: emptySet() }
+
+    // Habits & tasks: ask before "I did it on time" (twice the very first time)
+    val confirmOnTimeClaim: Flow<Boolean> = context.dataStore.data.map { it[CONFIRM_ON_TIME_CLAIM] ?: true }
+    val onTimeClaimUsed: Flow<Boolean> = context.dataStore.data.map { it[ON_TIME_CLAIM_USED] ?: false }
 
     // Calendar-specific
     val homeAddress: Flow<String?> = context.dataStore.data.map { it[HOME_ADDRESS] }
@@ -79,6 +87,8 @@ class SettingsManager(private val context: Context) {
     suspend fun saveGeminiApiKey(key: String?) = context.dataStore.edit { if (key == null) it.remove(GEMINI_API_KEY) else it[GEMINI_API_KEY] = key }
     suspend fun saveEnableSmartAlarms(enable: Boolean) = context.dataStore.edit { it[ENABLE_SMART_ALARMS] = enable }
     suspend fun saveUseSystemAlarmForReminders(enable: Boolean) = context.dataStore.edit { it[USE_SYSTEM_ALARM] = enable }
+    suspend fun saveConfirmOnTimeClaim(confirm: Boolean) = context.dataStore.edit { it[CONFIRM_ON_TIME_CLAIM] = confirm }
+    suspend fun saveOnTimeClaimUsed() = context.dataStore.edit { it[ON_TIME_CLAIM_USED] = true }
     suspend fun saveModuleEnabled(key: String, enabled: Boolean) = context.dataStore.edit {
         val off = it[DISABLED_MODULES] ?: emptySet()
         it[DISABLED_MODULES] = if (enabled) off - key else off + key

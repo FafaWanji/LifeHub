@@ -134,6 +134,34 @@ object HabitsStr {
         "未允许精确闹钟 – 提醒可能会延迟。"
     )
     val openSettings = Txt("Settings", "Einstellungen", "Ayarlar", "Ajustes", "设置")
+    // "I did it on time but forgot to tick it off"
+    val claimOnTime = Txt(
+        "I did it on time – forgot to tick it off",
+        "Rechtzeitig erledigt – nur Abhaken vergessen",
+        "Zamanında yaptım – işaretlemeyi unuttum",
+        "Lo hice a tiempo, olvidé marcarla",
+        "我按时完成了 – 只是忘了勾选"
+    )
+    val wasOnTime = Txt("Was on time", "War rechtzeitig", "Zamanındaydı", "Fue a tiempo", "是按时的")
+    val doneLate = Txt("Done late – 0 points", "Zu spät erledigt – 0 Punkte", "Geç bitti – 0 puan", "Hecha tarde: 0 puntos", "逾期完成 – 0 分")
+    val areYouSure = Txt("Are you sure?", "Bist du sicher?", "Emin misin?", "¿Seguro?", "你确定吗？")
+    val areYouReallySure = Txt("Are you really sure?", "Bist du wirklich sicher?", "Gerçekten emin misin?", "¿De verdad estás seguro?", "你真的确定吗？")
+    val claimText = Txt(
+        "It counts as done by the deadline (%1\$s): +%2\$d points.",
+        "Es zählt als bis zur Deadline erledigt (%1\$s): +%2\$d Punkte.",
+        "Son tarihe kadar yapılmış sayılır (%1\$s): +%2\$d puan.",
+        "Cuenta como hecha antes de la fecha límite (%1\$s): +%2\$d puntos.",
+        "将视为在截止时间（%1\$s）前完成：+%2\$d 分。"
+    )
+    val claimReallyText = Txt(
+        "Be honest with yourself – a deadline is a deadline.",
+        "Sei ehrlich zu dir – Deadline ist Deadline.",
+        "Kendine karşı dürüst ol – son tarih son tarihtir.",
+        "Sé sincero contigo: una fecha límite es una fecha límite.",
+        "对自己诚实 – 截止就是截止。"
+    )
+    val dontAskAgain = Txt("Don't ask again", "Nicht mehr fragen", "Bir daha sorma", "No volver a preguntar", "不再询问")
+    val yes = Txt("Yes", "Ja", "Evet", "Sí", "是")
     /** One letter per weekday, Monday first. */
     val weekdayLetters = Txt("MTWTFSS", "MDMDFSS", "PSÇPCCP", "LMXJVSD", "一二三四五六日")
 }

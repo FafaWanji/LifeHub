@@ -160,6 +160,7 @@ class BackupManager(context: Context) {
             .put("enableSmartAlarms", settings.enableSmartAlarms.first())
             .put("useSystemAlarm", settings.useSystemAlarmForReminders.first())
             .put("disabledModules", JSONArray(settings.disabledModuleKeys.first().toList()))
+            .put("confirmOnTimeClaim", settings.confirmOnTimeClaim.first())
             .put("hideRecurring", filter.getBoolean("hide_recurring", false))
             .put("hiddenCategories", JSONArray(filter.getStringSet("hidden_categories", emptySet()).orEmpty()
                 .mapNotNull { it.toLongOrNull()?.let(categoryNames::get) }))
@@ -177,6 +178,7 @@ class BackupManager(context: Context) {
         if (j.has("useHomeAsOrigin")) settings.saveUseHomeAsOrigin(j.optBoolean("useHomeAsOrigin"))
         if (j.has("enableSmartAlarms")) settings.saveEnableSmartAlarms(j.optBoolean("enableSmartAlarms"))
         if (j.has("useSystemAlarm")) settings.saveUseSystemAlarmForReminders(j.optBoolean("useSystemAlarm"))
+        if (j.has("confirmOnTimeClaim")) settings.saveConfirmOnTimeClaim(j.optBoolean("confirmOnTimeClaim"))
         j.optJSONArray("disabledModules")?.let { a ->
             val off = (0 until a.length()).map { a.optString(it) }.toSet()
             com.example.lifeorganizer.core.settings.AppModule.entries.forEach { settings.saveModuleEnabled(it.key, it.key !in off) }
