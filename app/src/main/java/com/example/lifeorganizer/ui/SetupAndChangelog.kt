@@ -30,6 +30,15 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.2", listOf(
+            Txt("New: Habits & tasks – daily habits with streaks, to-dos with deadline, reminders and a home-screen widget", "Neu: Gewohnheiten & Aufgaben – tägliche Gewohnheiten mit Serien, To-dos mit Frist, Erinnerungen und Homescreen-Widget", "Yeni: Alışkanlıklar ve görevler – seri takipli günlük alışkanlıklar, son tarihli yapılacaklar, hatırlatıcılar ve ana ekran widget'ı", "Nuevo: Hábitos y tareas – hábitos diarios con rachas, tareas con fecha límite, recordatorios y widget", "新功能：习惯与任务 – 带连续记录的每日习惯、有截止日期的待办、提醒和桌面小部件"),
+            Txt("Switch modules on and off in the settings (Waypoints, Documents, Finance, Habits) – the data stays", "Module in den Einstellungen ein- und ausschalten (Waypoints, Dokumente, Finanzen, Gewohnheiten) – die Daten bleiben", "Modülleri ayarlardan aç/kapat (Waypoints, Belgeler, Finans, Alışkanlıklar) – veriler kalır", "Activa o desactiva módulos en los ajustes (Waypoints, Documentos, Finanzas, Hábitos): los datos se conservan", "可在设置中开启或关闭模块（地点、文档、财务、习惯）– 数据会保留"),
+            Txt("New look for the agenda widget: times, places, what's on now and + for a new event", "Neues Agenda-Widget: Uhrzeiten, Orte, was gerade läuft und + für einen neuen Termin", "Yeni ajanda widget'ı: saatler, yerler, şu an olanlar ve yeni etkinlik için +", "Nuevo widget de agenda: horas, lugares, lo que está pasando y + para un nuevo evento", "全新日程小部件：时间、地点、正在进行的日程，以及用于新建日程的 +"),
+            Txt("Finance: delete an entry from its edit dialog", "Finanzen: Einträge im Bearbeiten-Dialog löschen", "Finans: kayıtlar düzenleme penceresinden silinebilir", "Finanzas: borra un movimiento desde su diálogo de edición", "财务：可在编辑对话框中删除记录"),
+            Txt("Updates are found sooner: checked on every start and after longer breaks", "Updates werden schneller gefunden: Prüfung bei jedem Start und nach längeren Pausen", "Güncellemeler daha hızlı bulunur: her açılışta ve uzun aralardan sonra kontrol edilir", "Las actualizaciones se encuentran antes: se comprueba en cada inicio y tras pausas largas", "更快发现更新：每次启动及较长时间未使用后都会检查")
+        )
+    ),
+    Release(
         "1.1.1", listOf(
             Txt("Info hints (ⓘ) explain settings and features", "Info-Hinweise (ⓘ) erklären Einstellungen und Funktionen", "Bilgi ipuçları (ⓘ) ayarları ve özellikleri açıklar", "Pistas informativas (ⓘ) explican ajustes y funciones", "信息提示（ⓘ）解释设置和功能"),
             Txt("Small phones: scrollable menu, wrapping buttons, Smart Add above the keyboard", "Kleine Handys: scrollbares Menü, umbrechende Buttons, Smart Add über der Tastatur", "Küçük telefonlar: kaydırılabilir menü, sığan düğmeler, klavyenin üstünde Akıllı Ekle", "Móviles pequeños: menú desplazable, botones que se ajustan, Añadir inteligente sobre el teclado", "小屏手机：菜单可滚动、按钮自动换行、智能添加显示在键盘上方"),
