@@ -4,10 +4,9 @@
 -keep class * extends androidx.work.ListenableWorker { <init>(android.content.Context, androidx.work.WorkerParameters); }
 # Activity started by name from feature modules
 -keep class com.example.lifeorganizer.MainActivity
-# Crash reports (developer mode) stay readable without a mapping file: real file names, line
-# numbers and LifeHub class/method names. The app is open source, so obfuscation hides nothing.
+# Keep line numbers so shared crash reports stay readable
 -keepattributes SourceFile,LineNumberTable
--keepnames class com.example.lifeorganizer.** { *; }
+-renamesourcefileattribute SourceFile
 
 # Ktor (PC access server): JVM-only debug detector classes do not exist on Android
 -dontwarn java.lang.management.ManagementFactory

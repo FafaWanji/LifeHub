@@ -1,8 +1,5 @@
 package com.example.lifeorganizer.ui
 
-import androidx.compose.foundation.clickable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -74,26 +71,7 @@ fun AboutScreen(onBack: () -> Unit) {
             Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Seven taps on the version unlock the hidden developer mode
-            val context = androidx.compose.ui.platform.LocalContext.current
-            var taps by androidx.compose.runtime.remember { androidx.compose.runtime.mutableIntStateOf(0) }
-            val unlockedMsg = com.example.lifeorganizer.dev.DevStr.unlocked.text()
-            val tapsLeftMsg = com.example.lifeorganizer.dev.DevStr.tapsLeft.text()
-            Text(
-                "LifeHub ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.clickable(interactionSource = null, indication = null) {
-                    if (com.example.lifeorganizer.dev.DevMode.enabled.value) return@clickable
-                    taps++
-                    val left = com.example.lifeorganizer.dev.DevMode.UNLOCK_TAPS - taps
-                    when {
-                        left <= 0 -> {
-                            com.example.lifeorganizer.dev.DevMode.setEnabled(context, true)
-                            android.widget.Toast.makeText(context, unlockedMsg, android.widget.Toast.LENGTH_SHORT).show()
-                        }
-                        left <= 3 -> android.widget.Toast.makeText(context, tapsLeftMsg.format(left), android.widget.Toast.LENGTH_SHORT).show()
-                    }
-                }
-            )
+            Text("LifeHub ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.titleLarge)
             Text("github.com/FafaWanji/LifeHub · GPL-3.0", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
             Text(Str.privacy.text(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 8.dp))

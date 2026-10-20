@@ -69,7 +69,6 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
         const val ACTION_WAYPOINTS = "com.example.lifeorganizer.ACTION_WAYPOINTS"
         const val ACTION_SEARCH = "com.example.lifeorganizer.ACTION_SEARCH"
         const val ACTION_AGENDA = "com.example.lifeorganizer.ACTION_AGENDA"
-        const val ACTION_DEV_MODE = "com.example.lifeorganizer.ACTION_DEV_MODE"
         const val ACTION_HABITS = com.example.lifeorganizer.habits.reminder.HabitReminders.ACTION_OPEN_HABITS
         const val ACTION_OPEN_NOTE = com.example.lifeorganizer.calendar.alarm.NotificationHelper.ACTION_OPEN_NOTE
 
@@ -101,9 +100,7 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
         // Check if we're restarting after a crash — show the crash info
         val prefs = getSharedPreferences("crash_reporter", MODE_PRIVATE)
         val savedCrash = prefs.getString("last_crash", null)
-        // From the crash notification the developer screen shows the report, so skip the crash screen
-        if (savedCrash != null && intent?.action == ACTION_DEV_MODE) prefs.edit().remove("last_crash").apply()
-        else if (savedCrash != null) {
+        if (savedCrash != null) {
             // Clear it so we don't show it again next launch
             prefs.edit().remove("last_crash").apply()
             setContent {
@@ -126,7 +123,11 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
         Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
             try {
                 // Context first so a shared report is useful without asking back
-                val crashText = com.example.lifeorganizer.dev.CrashLog.report(thread, throwable)
+                val crashText = "LifeHub ${BuildConfig.VERSION_NAME} (${BuildConfig.VERSION_CODE})\n" +
+                    "Android ${android.os.Build.VERSION.RELEASE} (SDK ${android.os.Build.VERSION.SDK_INT}), " +
+                    "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}\n" +
+                    "${java.time.LocalDateTime.now().withNano(0)}, thread ${thread.name}\n\n" +
+                    throwable.stackTraceToString()
                 Log.e("LifeOrganizer", "CRASH: $crashText")
                 getSharedPreferences("crash_reporter", MODE_PRIVATE)
                     .edit()
