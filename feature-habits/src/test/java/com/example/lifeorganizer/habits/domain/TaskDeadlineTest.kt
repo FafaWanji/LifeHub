@@ -78,6 +78,39 @@ class TaskDeadlineTest {
     }
 
     @Test
+    fun pointsPerTaskAndHalfWithinGrace() {
+        assertEquals(20, TaskDeadline.points(deadline, deadline, full = 20))
+        // Grace of 1 hour: half up to an hour late, then nothing
+        assertEquals(10, TaskDeadline.points(deadline, deadline.plusMinutes(30), full = 20, graceMinutes = 60))
+        assertEquals(10, TaskDeadline.points(deadline, deadline.plusMinutes(60), full = 20, graceMinutes = 60))
+        assertEquals(0, TaskDeadline.points(deadline, deadline.plusMinutes(61), full = 20, graceMinutes = 60))
+        // A grace time makes a half-point task still worth claiming
+        assertTrue(TaskDeadline.canClaimOnTime(deadline, deadline.plusMinutes(30), deadline.plusDays(1), full = 20, graceMinutes = 60))
+    }
+
+    @Test
+    fun quietHoursSkipRemindersButNotTheDeadline() {
+        val quiet = TaskDeadline.QuietHours(22 * 60, 7 * 60)
+        assertTrue(quiet.contains(day.atTime(23, 0)))
+        assertTrue(quiet.contains(day.atTime(6, 59)))
+        assertFalse(quiet.contains(day.atTime(7, 0)))
+        assertFalse(TaskDeadline.QuietHours(600, 600).contains(day.atTime(10, 0)))
+        // Deadline 23:30: the 1-hour reminder at 22:30 is quiet, 3 hours before (20:30) and the deadline push are not
+        val late = day.atTime(23, 30)
+        val offsets = listOf(180, 60)
+        assertEquals(listOf(180, 0), TaskDeadline.reminders(late, offsets, quiet = quiet).map { it.offsetMinutes })
+        assertEquals(0, TaskDeadline.nextReminder(late, offsets, late.minusMinutes(90), quiet = quiet)?.offsetMinutes)
+    }
+
+    @Test
+    fun repeatAfterAMissedDeadline() {
+        val all = TaskDeadline.reminders(deadline, defaults, repeatAfter = 30)
+        assertEquals(listOf(1440, 60, 0, -30), all.map { it.offsetMinutes })
+        assertEquals(deadline.plusMinutes(30), TaskDeadline.nextReminder(deadline, defaults, deadline, repeatAfter = 30)?.at)
+        assertNull(TaskDeadline.nextReminder(deadline, defaults, deadline.plusMinutes(30), repeatAfter = 30))
+    }
+
+    @Test
     fun onTimeClaimOnlyForLateTasks() {
         // Open: only once the deadline has passed
         assertFalse(TaskDeadline.canClaimOnTime(deadline, null, deadline.minusHours(1)))

@@ -54,7 +54,12 @@ import androidx.core.content.ContextCompat
 import com.example.lifeorganizer.core.i18n.ProvideAppLocale
 import com.example.lifeorganizer.core.i18n.Str
 import com.example.lifeorganizer.core.i18n.text
+import com.example.lifeorganizer.core.settings.MicroSettings
 import com.example.lifeorganizer.core.settings.SettingsManager
+import com.example.lifeorganizer.core.settings.rememberMicro
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import com.example.lifeorganizer.core.theme.AppTheme
 import com.example.lifeorganizer.ui.MainScreen
 
@@ -87,6 +92,9 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
     private var isUnlocked by mutableStateOf(false)
     private var lockError by mutableStateOf<String?>(null)
     private var backgroundedAt = 0L
+    /** Screen MainScreen shows (ActiveView name), for a lock that only covers some modules. */
+    private var shownView by mutableStateOf("CALENDAR")
+    private var leaveLockedRequest by mutableStateOf(0)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -159,50 +167,62 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
             // null until DataStore has answered, so locked content never flashes on screen.
             val enableAppLock by settingsManager.enableAppLock.collectAsState(initial = null)
             val setupDone by settingsManager.onboardingCompleted.collectAsState(initial = null)
+            // The lock covers the whole app, or only the modules chosen in the privacy settings
+            val lockScope = rememberMicro(MicroSettings.LOCK_SCOPE)
+            val lockedViews = rememberMicro(MicroSettings.LOCKED_VIEWS)
+            val moduleLock = lockScope == "modules"
+            val locked = enableAppLock == true && !isUnlocked && (!moduleLock || shownView in lockedViews)
+            val compact = rememberMicro(MicroSettings.COMPACT)
 
-            LaunchedEffect(enableAppLock, isUnlocked) {
-                if (enableAppLock == true && !isUnlocked) showBiometricPrompt()
+            LaunchedEffect(locked) {
+                if (locked) showBiometricPrompt()
             }
 
-            ProvideAppLocale(language) {
-                AppTheme(
-                    designStyle = designStyle,
-                    darkTheme = isDarkTheme ?: isSystemInDarkTheme(),
-                    accentColor = accentColor
-                ) {
-                    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
-                        when (enableAppLock) {
-                            null -> Unit
-                            else -> {
-                                val locked = enableAppLock == true && !isUnlocked
-                                MainScreen(
-                                    initialSharedText = sharedText,
-                                    initialSharedImageUri = sharedImageUri,
-                                    initialIntentAction = currentIntentAction,
-                                    initialNoteId = noteToOpen,
-                                    importUri = importUri,
-                                    onImportHandled = { importUri = null },
-                                    // Hold pending intents until the user has unlocked.
-                                    intentsEnabled = !locked,
-                                    onSharedHandled = {
-                                        sharedText = null
-                                        sharedImageUri = null
-                                        currentIntentAction = null
-                                        noteToOpen = null
-                                    }
-                                )
-                                when (setupDone) {
-                                    false -> com.example.lifeorganizer.ui.SetupScreen(settingsManager) {}
-                                    true -> com.example.lifeorganizer.ui.WhatsNewAfterUpdate(applicationContext, setupDone = true)
-                                    null -> Unit
-                                }
-                                // Opaque overlay instead of replacing MainScreen keeps open editors/dialogs intact.
-                                if (locked) {
-                                    AppLockScreen(
-                                        error = lockError,
-                                        onUnlock = { showBiometricPrompt() },
-                                        onBack = { moveTaskToBack(true) }
+            // Compact layout: everything a little smaller, so more fits on the screen
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides if (compact) Density(density.density * 0.9f, density.fontScale) else density) {
+                ProvideAppLocale(language) {
+                    AppTheme(
+                        designStyle = designStyle,
+                        darkTheme = isDarkTheme ?: isSystemInDarkTheme(),
+                        accentColor = accentColor
+                    ) {
+                        Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background)) {
+                            when (enableAppLock) {
+                                null -> Unit
+                                else -> {
+                                    MainScreen(
+                                        initialSharedText = sharedText,
+                                        initialSharedImageUri = sharedImageUri,
+                                        initialIntentAction = currentIntentAction,
+                                        initialNoteId = noteToOpen,
+                                        importUri = importUri,
+                                        onImportHandled = { importUri = null },
+                                        // Hold pending intents until the user has unlocked.
+                                        intentsEnabled = !locked || moduleLock,
+                                        onViewShown = { shownView = it },
+                                        leaveLockedRequest = leaveLockedRequest,
+                                        onSharedHandled = {
+                                            sharedText = null
+                                            sharedImageUri = null
+                                            currentIntentAction = null
+                                            noteToOpen = null
+                                        }
                                     )
+                                    when (setupDone) {
+                                        false -> com.example.lifeorganizer.ui.SetupScreen(settingsManager) {}
+                                        true -> com.example.lifeorganizer.ui.WhatsNewAfterUpdate(applicationContext, setupDone = true)
+                                        null -> Unit
+                                    }
+                                    // Opaque overlay instead of replacing MainScreen keeps open editors/dialogs intact.
+                                    if (locked) {
+                                        AppLockScreen(
+                                            error = lockError,
+                                            onUnlock = { showBiometricPrompt() },
+                                            // Only a module is locked: back leaves it instead of the app
+                                            onBack = { if (moduleLock) leaveLockedRequest++ else moveTaskToBack(true) }
+                                        )
+                                    }
                                 }
                             }
                         }

@@ -11,7 +11,7 @@ import com.example.lifeorganizer.habits.reminder.HabitReminders
 /** Ticking tasks off and on, the same way from the app, the notification and the home-screen widget. */
 object TaskActions {
     /**
-     * Marks a task done (points: 10 by the deadline, 0 when late) or open again (its points are taken back).
+     * Marks a task done (points by the deadline as set in the settings, 0 when late) or open again (its points are taken back).
      * Doing what is already the case changes nothing, so a double tap cannot earn twice. Returns the task as saved.
      */
     suspend fun setDone(context: Context, taskId: Long, done: Boolean, now: Long = System.currentTimeMillis()): TaskItem? {
@@ -25,7 +25,8 @@ object TaskActions {
             dao.updateTask(updated)
             if (done) {
                 val deadline = TaskDeadline.deadline(task.dueEpochDay, task.dueMinute)
-                val points = TaskDeadline.points(deadline, TaskDeadline.toLocal(now))
+                val settings = TaskSettings.read(app)
+                val points = TaskDeadline.points(deadline, TaskDeadline.toLocal(now), settings.points, settings.graceMinutes)
                 dao.insertPoints(TaskPoints(taskId = task.id, title = task.title, points = points, earnedAt = now))
             } else {
                 dao.deletePointsOf(task.id)
@@ -38,9 +39,11 @@ object TaskActions {
     }
 
     /** Only late tasks need it: open past the deadline, or ticked off after it. */
-    fun canClaimOnTime(task: TaskItem, now: Long = System.currentTimeMillis()): Boolean = TaskDeadline.canClaimOnTime(
-        TaskDeadline.deadline(task.dueEpochDay, task.dueMinute), task.doneAt?.let { TaskDeadline.toLocal(it) }, TaskDeadline.toLocal(now)
-    )
+    fun canClaimOnTime(task: TaskItem, settings: TaskSettings, now: Long = System.currentTimeMillis()): Boolean = settings.showPoints &&
+        TaskDeadline.canClaimOnTime(
+            TaskDeadline.deadline(task.dueEpochDay, task.dueMinute), task.doneAt?.let { TaskDeadline.toLocal(it) }, TaskDeadline.toLocal(now),
+            settings.points, settings.graceMinutes
+        )
 
     /**
      * "I did it on time but forgot to tick it off": done at the deadline, with the points for it.
@@ -52,13 +55,14 @@ object TaskActions {
         val dao = db.habitDao()
         val saved = db.withTransaction {
             val task = dao.taskById(taskId) ?: return@withTransaction null
-            if (!canClaimOnTime(task)) return@withTransaction task
+            val settings = TaskSettings.read(app)
+            if (!canClaimOnTime(task, settings)) return@withTransaction task
             val deadline = TaskDeadline.deadline(task.dueEpochDay, task.dueMinute) ?: return@withTransaction task
             val doneAt = TaskDeadline.toMillis(deadline)
             val updated = task.copy(doneAt = doneAt)
             dao.updateTask(updated)
             // Replaces a 0 from ticking off late (one entry per task)
-            dao.insertPoints(TaskPoints(taskId = task.id, title = task.title, points = TaskDeadline.POINTS_ON_TIME, earnedAt = doneAt))
+            dao.insertPoints(TaskPoints(taskId = task.id, title = task.title, points = settings.points, earnedAt = doneAt))
             updated
         } ?: return null
         HabitReminders.scheduleTask(app, saved)

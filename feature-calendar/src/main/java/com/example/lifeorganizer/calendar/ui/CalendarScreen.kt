@@ -214,7 +214,11 @@ fun CalendarScreen(
     val currentMonth = remember { YearMonth.now() }
     val startMonth = remember { currentMonth.minusMonths(1200) }
     val endMonth = remember { currentMonth.plusMonths(1200) }
-    val daysOfWeek = remember { daysOfWeek() }
+    // First day of the week and week numbers come from the calendar settings
+    val weekStartSetting = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.WEEK_START)
+    val firstDayOfWeek = remember(weekStartSetting) { com.example.lifeorganizer.core.settings.MicroSettings.firstDayOfWeek(weekStartSetting) }
+    val showWeekNumbers = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.WEEK_NUMBERS)
+    val daysOfWeek = remember(firstDayOfWeek) { daysOfWeek(firstDayOfWeek) }
     val context = LocalContext.current
 
     val snackbarHostState = remember { SnackbarHostState() }
@@ -226,6 +230,7 @@ fun CalendarScreen(
         firstVisibleMonth = currentMonth,
         firstDayOfWeek = daysOfWeek.first()
     )
+    LaunchedEffect(firstDayOfWeek) { if (state.firstDayOfWeek != firstDayOfWeek) state.firstDayOfWeek = firstDayOfWeek }
 
     // Jump to a date (and optionally open an event), e.g. from universal search or Smart Add.
     LaunchedEffect(focusRequest) {
@@ -518,7 +523,8 @@ fun CalendarScreen(
                         )
 
                         Text(
-                            text = selectedDate.format(com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "EEEEMMMMdd")),
+                            text = selectedDate.format(com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "EEEEMMMMdd")) +
+                                if (showWeekNumbers) " · " + Str.weekShort.of(lang).format(com.example.lifeorganizer.core.settings.MicroSettings.weekNumber(selectedDate, firstDayOfWeek)) else "",
                             style = MaterialTheme.typography.titleMedium,
                             modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                             color = MaterialTheme.colorScheme.primary
@@ -650,6 +656,8 @@ fun CalendarScreen(
                     events = eventsWithReminders,
                     lang = lang,
                     currentDate = selectedDate,
+                    firstDayOfWeek = firstDayOfWeek,
+                    showWeekNumber = showWeekNumbers,
                     onEventClick = { viewingEvent = it }
                 )
             } else {
@@ -1585,35 +1593,8 @@ fun SettingsDialog(
                         }
                     }
 
-                    // Habits & tasks: only while the module is on
-                    val habitsModuleOn = com.example.lifeorganizer.core.settings.AppModule.HABITS in com.example.lifeorganizer.core.settings.rememberEnabledModules()
-                    if (habitsModuleOn) Card(
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                    ) {
-                        val habitsScope = rememberCoroutineScope()
-                        val habitsSettings = remember { com.example.lifeorganizer.core.settings.SettingsManager(context.applicationContext) }
-                        val confirmOnTime by habitsSettings.confirmOnTimeClaim.collectAsState(initial = true)
-                        Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                            Text(
-                                text = Str.habitsTasks.of(lang),
-                                style = MaterialTheme.typography.labelMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                            )
-                            ListItem(
-                                headlineContent = { Text(Str.confirmOnTimeClaim.of(lang)) },
-                                supportingContent = { Text(Str.confirmOnTimeClaimHint.of(lang)) },
-                                trailingContent = {
-                                    Switch(
-                                        checked = confirmOnTime,
-                                        onCheckedChange = { on -> habitsScope.launch { habitsSettings.saveConfirmOnTimeClaim(on) } }
-                                    )
-                                },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                            )
-                        }
-                    }
+                    // Sub-settings of every module (folded sections)
+                    com.example.lifeorganizer.core.settings.MicroSettingsSections(lang)
 
                     // Location & Navigation
                     Card(
@@ -1934,9 +1915,13 @@ fun AddEventDialog(
         initialHour = initialTime.hour,
         initialMinute = initialTime.minute
     )
+    // A new event lasts as long as set in the calendar settings (1 hour by default)
+    val defaultEnd = remember {
+        initialTime.plusMinutes(com.example.lifeorganizer.core.settings.MicroSettings.get(context, com.example.lifeorganizer.core.settings.MicroSettings.EVENT_LENGTH).coerceIn(5, 24 * 60).toLong())
+    }
     val endTimeState = rememberTimePickerState(
-        initialHour = initialEndTime?.hour ?: (initialTime.hour + 1),
-        initialMinute = initialEndTime?.minute ?: initialTime.minute
+        initialHour = initialEndTime?.hour ?: defaultEnd.hour,
+        initialMinute = initialEndTime?.minute ?: defaultEnd.minute
     )
 
     var showStartTimePicker by remember { mutableStateOf(false) }
@@ -1949,6 +1934,10 @@ fun AddEventDialog(
                 prefilledSmartResult.reminderMinutesBefore.forEach { mins ->
                     add(com.example.lifeorganizer.core.i18n.reminderLabel(mins * 60000L, lang) to mins * 60000L)
                 }
+            } else if (editingEvent == null && prefilledSmartResult == null) {
+                // New event: the default reminder from the calendar settings, if one is set
+                val minutes = com.example.lifeorganizer.core.settings.MicroSettings.get(context, com.example.lifeorganizer.core.settings.MicroSettings.EVENT_REMINDER)
+                if (minutes >= 0) add(com.example.lifeorganizer.core.i18n.reminderLabel(minutes * 60000L, lang) to minutes * 60000L)
             } else {
                 editingEvent?.reminders?.forEach {
                     val offset = editingEvent.event.startTimeMillis - it.reminderTimeMillis

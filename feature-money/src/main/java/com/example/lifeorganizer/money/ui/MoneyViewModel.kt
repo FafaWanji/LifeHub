@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.lifeorganizer.core.settings.MicroSettings
 import com.example.lifeorganizer.core.settings.SettingsManager
 import com.example.lifeorganizer.money.MoneyIntegration
 import com.example.lifeorganizer.money.data.CategoryKind
@@ -48,7 +49,9 @@ class MoneyViewModel(application: Application) : AndroidViewModel(application) {
     private val prefs = application.getSharedPreferences("money", Context.MODE_PRIVATE)
     private val settings = SettingsManager(application)
 
-    val month = MutableStateFlow(YearMonth.now())
+    /** Day the finance month starts on (finance settings); the app keeps it current via [setMonthStart]. */
+    val monthStart = MutableStateFlow(MicroSettings.get(application, MicroSettings.MONTH_START).coerceIn(1, 28))
+    val month = MutableStateFlow(MoneyMath.periodOf(LocalDate.now(), monthStart.value))
     val search = MutableStateFlow("")
     val categoryFilter = MutableStateFlow<Long?>(null)
 
@@ -57,15 +60,26 @@ class MoneyViewModel(application: Application) : AndroidViewModel(application) {
     val rules: StateFlow<List<PayeeRule>> = repo.rules().stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val monthTransactions: StateFlow<List<MoneyTransaction>> =
-        month.flatMapLatest { repo.transactionsIn(it) }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
+        combine(month, monthStart) { m, start -> m to start }
+            .flatMapLatest { (m, start) -> repo.transactionsIn(m, start) }.stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     val summary: StateFlow<MonthSummary> = monthTransactions.map { list -> MoneyMath.summarize(list.map { it.amountCents }) }
         .stateIn(viewModelScope, SharingStarted.Eagerly, MonthSummary(0, 0))
 
     /** Fixed costs still due this month; only shown for the current month. */
-    val expected: StateFlow<Long> = combine(month, recurring) { m, list ->
-        if (m == YearMonth.now()) MoneyRepository.expectedAfter(LocalDate.now(), list) else 0L
+    val expected: StateFlow<Long> = combine(month, recurring, monthStart) { m, list, start ->
+        val today = LocalDate.now()
+        if (m == MoneyMath.periodOf(today, start)) MoneyRepository.expectedAfter(today, list, MoneyMath.periodEnd(m, start)) else 0L
     }.stateIn(viewModelScope, SharingStarted.Eagerly, 0L)
+
+    fun setMonthStart(day: Int) {
+        val start = day.coerceIn(1, 28)
+        if (start == monthStart.value) return
+        // Stay on the finance month of today when the start day changes
+        val onCurrent = month.value == MoneyMath.periodOf(LocalDate.now(), monthStart.value)
+        monthStart.value = start
+        if (onCurrent) month.value = MoneyMath.periodOf(LocalDate.now(), start)
+    }
 
     val visibleTransactions: StateFlow<List<MoneyTransaction>> = combine(monthTransactions, search, categoryFilter) { list, q, c ->
         list.filter { (c == null || it.categoryId == c) && (q.isBlank() || it.title.contains(q, true) || it.note.contains(q, true)) }

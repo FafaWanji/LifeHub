@@ -2,6 +2,7 @@ package com.example.lifeorganizer.core.util
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class AmountsTest {
@@ -22,6 +23,26 @@ class AmountsTest {
 
     @Test fun formatGerman() =
         assertEquals("1.234,56 €", Amounts.format(123456, "de").replace(' ', ' ').replace(' ', ' '))
+
+    @Test fun otherCurrencySigns() {
+        assertEquals(1250L, Amounts.parseCents("$12.50"))
+        assertEquals(-500L, Amounts.parseCents("-5 £"))
+        assertEquals(1000L, Amounts.parseCents("10 CHF"))
+    }
+
+    @Test fun formatInTheChosenCurrency() {
+        try {
+            Amounts.currencyCode = "USD"
+            // "$12.50" or "US$12.50" depending on the JDK's locale data
+            val dollars = Amounts.format(1250, "en")
+            assertTrue(dollars, dollars.contains("$") && dollars.contains("12.50"))
+            Amounts.currencyCode = "nonsense"
+            // Unknown codes fall back to euro
+            assertEquals("1.234,56 €", Amounts.format(123456, "de").replace('\u00a0', ' ').replace('\u202f', ' '))
+        } finally {
+            Amounts.currencyCode = "EUR"
+        }
+    }
 
     @Test fun formatSigned() {
         assertEquals("+12,50 €", Amounts.formatSigned(1250, "de").replace(' ', ' ').replace(' ', ' '))

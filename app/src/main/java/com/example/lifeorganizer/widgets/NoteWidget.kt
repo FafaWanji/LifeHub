@@ -128,7 +128,8 @@ class ToggleItem : ActionCallback {
         val dao = NotesDatabase.getDatabase(context).noteDao()
         val note = dao.getNoteWithLabels(id)?.note ?: return
         // Keep updatedAt so ticking items does not change which note the widget shows.
-        dao.updateNote(note.copy(content = toggleCheckbox(note.content, line)))
+        val toBottom = com.example.lifeorganizer.core.settings.MicroSettings.get(context, com.example.lifeorganizer.core.settings.MicroSettings.NOTE_DONE_BOTTOM)
+        dao.updateNote(note.copy(content = toggleCheckbox(note.content, line, toBottom)))
         NoteWidget().updateAll(context)
     }
 }

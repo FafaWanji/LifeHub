@@ -28,8 +28,7 @@ class MoneyRepository(
                 .joinToString("") { "%02x".format(it) }
 
         /** Fixed costs still due this month after [today] (negative for expenses). */
-        fun expectedAfter(today: LocalDate, recurring: List<Recurring>): Long {
-            val end = YearMonth.from(today).atEndOfMonth()
+        fun expectedAfter(today: LocalDate, recurring: List<Recurring>, end: LocalDate = YearMonth.from(today).atEndOfMonth()): Long {
             return recurring.sumOf { r ->
                 RecurringScheduler.dueUntil(LocalDate.ofEpochDay(r.nextDueEpochDay), r.dayOfMonth, r.interval, end)
                     .count { it.isAfter(today) } * r.amountCents
@@ -37,8 +36,11 @@ class MoneyRepository(
         }
     }
 
-    fun transactionsIn(month: YearMonth) =
-        dao.transactionsBetween(month.atDay(1).toEpochDay(), month.atEndOfMonth().toEpochDay())
+    /** [startDay] > 1: finance months from that day on (see [com.example.lifeorganizer.money.domain.MoneyMath.periodStart]). */
+    fun transactionsIn(month: YearMonth, startDay: Int = 1) = dao.transactionsBetween(
+        com.example.lifeorganizer.money.domain.MoneyMath.periodStart(month, startDay).toEpochDay(),
+        com.example.lifeorganizer.money.domain.MoneyMath.periodEnd(month, startDay).toEpochDay()
+    )
     fun categories() = dao.categories()
     fun recurring() = dao.recurring()
     fun rules() = dao.rules()

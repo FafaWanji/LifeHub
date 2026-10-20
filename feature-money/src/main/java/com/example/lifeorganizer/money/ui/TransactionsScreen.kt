@@ -58,7 +58,7 @@ fun TransactionsScreen(vm: MoneyViewModel, onEdit: (MoneyTransaction) -> Unit, o
 
     Column(Modifier.fillMaxSize()) {
         Column(Modifier.padding(horizontal = 16.dp)) {
-            MonthSwitcher(month, lang, vm::shiftMonth)
+            MonthSwitcher(month, lang, vm::shiftMonth, vm.monthStart.collectAsStateWithLifecycle().value)
             OutlinedTextField(
                 value = query, onValueChange = { vm.search.value = it }, singleLine = true,
                 leadingIcon = { Icon(Icons.Outlined.Search, null) },

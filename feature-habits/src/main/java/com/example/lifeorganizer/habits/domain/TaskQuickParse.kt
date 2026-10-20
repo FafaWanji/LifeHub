@@ -40,7 +40,8 @@ object TaskQuickParse {
     // Also everyday words ("Mach das so"), so they only count as a weekday with a dot: "So.", "Do."
     private val ambiguous = setOf("so", "do")
 
-    fun parse(text: String, now: LocalDateTime = LocalDateTime.now()): QuickTask? {
+    /** [defaultMinute] is the deadline time when only a day (or nothing) is given; 23:59 unless set otherwise. */
+    fun parse(text: String, now: LocalDateTime = LocalDateTime.now(), defaultMinute: Int = TaskDeadline.END_OF_DAY): QuickTask? {
         val input = text.trim().replace(Regex("\\s+"), " ")
         if (input.isEmpty()) return null
         // A leading space lets every pattern demand whitespace before the date or time
@@ -93,14 +94,15 @@ object TaskQuickParse {
         if (takeTime()) takeDate() else if (takeDate()) takeTime()
 
         val title = rest.trim()
-        // Nothing left as a title: the whole line is the title, e.g. "Freitag"
-        if (title.isEmpty()) return QuickTask(input, now.toLocalDate().toEpochDay(), TaskDeadline.END_OF_DAY)
-
-        val time = minute
-        val day = date ?: now.toLocalDate().let { today ->
-            // Only a time: today, or tomorrow if that time has already passed
-            if (time != null && !today.atStartOfDay().plusMinutes(time.toLong()).isAfter(now)) today.plusDays(1) else today
+        // No date: today, or tomorrow if that time has already passed
+        fun undated(minuteOfDay: Int): LocalDate = now.toLocalDate().let { today ->
+            if (!today.atStartOfDay().plusMinutes(minuteOfDay.toLong()).isAfter(now)) today.plusDays(1) else today
         }
-        return QuickTask(title, day.toEpochDay(), time ?: TaskDeadline.END_OF_DAY)
+        // Nothing left as a title: the whole line is the title, e.g. "Freitag"
+        if (title.isEmpty()) return QuickTask(input, undated(defaultMinute).toEpochDay(), defaultMinute)
+
+        val time = minute ?: defaultMinute
+        val day = date ?: undated(time)
+        return QuickTask(title, day.toEpochDay(), time)
     }
 }

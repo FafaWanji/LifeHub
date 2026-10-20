@@ -170,7 +170,10 @@ class CalendarWidget : GlanceAppWidget() {
             RRuleExpander.expand(event, now, now.plusDays(30))
         }
         
+        // Birthdays can be left out in the calendar settings
+        val showBirthdays = com.example.lifeorganizer.core.settings.MicroSettings.get(context, com.example.lifeorganizer.core.settings.MicroSettings.WIDGET_BIRTHDAYS)
         return expandedEvents
+            .filter { showBirthdays || !it.event.isBirthday }
             .filter { categoryIds.isEmpty() || categoryIds.contains(it.event.categoryId ?: -1L) }
             .filter { e ->
                 val end = e.event.endTimeMillis ?: (e.event.startTimeMillis + 3600000)

@@ -62,7 +62,7 @@ internal fun AmountField(
     tip: com.example.lifeorganizer.core.i18n.Txt? = null
 ) {
     OutlinedTextField(
-        value = text, onValueChange = onChange, label = { Text(label) }, suffix = { Text("€") },
+        value = text, onValueChange = onChange, label = { Text(label) }, suffix = { Text(Amounts.symbol(LocalAppLanguage.current)) },
         leadingIcon = tip?.let { { com.example.lifeorganizer.core.theme.InfoTip(it) } },
         singleLine = true, isError = isError,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal), modifier = Modifier.fillMaxWidth()

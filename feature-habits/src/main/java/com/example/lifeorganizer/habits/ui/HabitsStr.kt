@@ -20,7 +20,7 @@ object HabitsStr {
     val noDeadline = Txt("No deadline", "Ohne Deadline", "Son tarih yok", "Sin fecha límite", "无截止日期")
     val overdue = Txt("Overdue", "Überfällig", "Gecikmiş", "Vencidas", "已逾期")
     val dueToday = Txt("Due today", "Heute fällig", "Bugün son gün", "Vencen hoy", "今天到期")
-    val soon = Txt("Next 7 days", "Nächste 7 Tage", "Önümüzdeki 7 gün", "Próximos 7 días", "未来 7 天")
+    val soon = Txt("Next %d days", "Nächste %d Tage", "Önümüzdeki %d gün", "Próximos %d días", "未来 %d 天")
     val later = Txt("Later", "Später", "Daha sonra", "Más adelante", "以后")
     val done = Txt("Done", "Erledigt", "Tamamlandı", "Hecho", "已完成")
     val markDone = Txt("Done", "Erledigt", "Tamamlandı", "Hecho", "完成")
@@ -65,7 +65,6 @@ object HabitsStr {
     val undo = Txt("Undo", "Rückgängig", "Geri al", "Deshacer", "撤销")
     val taskDeleted = Txt("Task deleted", "Aufgabe gelöscht", "Görev silindi", "Tarea eliminada", "任务已删除")
     val habitDeleted = Txt("Habit deleted", "Gewohnheit gelöscht", "Alışkanlık silindi", "Hábito eliminado", "习惯已删除")
-    val channel = Txt("Habits & tasks", "Gewohnheiten & Aufgaben", "Alışkanlıklar ve görevler", "Hábitos y tareas", "习惯与任务")
     val habitReminderText = Txt("Time for your habit", "Zeit für deine Gewohnheit", "Alışkanlığının zamanı", "Hora de tu hábito", "该做这个习惯了")
     // Deadlines, reminders and points of tasks
     val time = Txt("Time", "Uhrzeit", "Saat", "Hora", "时间")
@@ -85,12 +84,6 @@ object HabitsStr {
     val unitMinutes = Txt("Minutes", "Minuten", "Dakika", "Minutos", "分钟")
     val unitHours = Txt("Hours", "Stunden", "Saat", "Horas", "小时")
     val unitDays = Txt("Days", "Tage", "Gün", "Días", "天")
-    val minShort = Txt("%d min", "%d Min.", "%d dk", "%d min", "%d 分钟")
-    val hourShort = Txt("%d h", "%d Std.", "%d sa", "%d h", "%d 小时")
-    val oneDay = Txt("1 day", "1 Tag", "1 gün", "1 día", "1 天")
-    val days = Txt("%d days", "%d Tage", "%d gün", "%d días", "%d 天")
-    val oneWeek = Txt("1 week", "1 Woche", "1 hafta", "1 semana", "1 周")
-    val weeks = Txt("%d weeks", "%d Wochen", "%d hafta", "%d semanas", "%d 周")
     val deadlineIn = Txt(
         "Deadline in %1\$s (%2\$s) – done in time = +%3\$d points",
         "Deadline in %1\$s (%2\$s) – rechtzeitig erledigt = +%3\$d Punkte",
@@ -98,6 +91,14 @@ object HabitsStr {
         "Fecha límite en %1\$s (%2\$s) – a tiempo = +%3\$d puntos",
         "距截止还有 %1\$s（%2\$s）– 按时完成 = +%3\$d 分"
     )
+    val deadlineInNoPoints = Txt(
+        "Deadline in %1\$s (%2\$s)",
+        "Deadline in %1\$s (%2\$s)",
+        "Son tarihe %1\$s (%2\$s)",
+        "Fecha límite en %1\$s (%2\$s)",
+        "距截止还有 %1\$s（%2\$s）"
+    )
+    val snoozeFor = Txt("Snooze %s", "Später (%s)", "Ertele (%s)", "Posponer %s", "稍后提醒（%s）")
     val deadlineNow = Txt("Deadline now (%s) – tick it off!", "Deadline jetzt (%s) – abhaken!", "Son tarih şimdi (%s) – işaretle!", "La fecha límite es ahora (%s): ¡márcala!", "现在截止（%s）– 快勾选完成！")
     val deadlineMissedAt = Txt("Deadline missed (%s)", "Deadline verpasst (%s)", "Son tarih kaçırıldı (%s)", "Fecha límite perdida (%s)", "已错过截止时间（%s）")
     val deadlineMissed = Txt("Deadline missed", "Deadline verpasst", "Son tarih kaçırıldı", "Fecha límite perdida", "已错过截止时间")
@@ -143,7 +144,7 @@ object HabitsStr {
         "我按时完成了 – 只是忘了勾选"
     )
     val wasOnTime = Txt("Was on time", "War rechtzeitig", "Zamanındaydı", "Fue a tiempo", "是按时的")
-    val doneLate = Txt("Done late – 0 points", "Zu spät erledigt – 0 Punkte", "Geç bitti – 0 puan", "Hecha tarde: 0 puntos", "逾期完成 – 0 分")
+    val doneLate = Txt("Done late – %d points", "Zu spät erledigt – %d Punkte", "Geç bitti – %d puan", "Hecha tarde: %d puntos", "逾期完成 – %d 分")
     val areYouSure = Txt("Are you sure?", "Bist du sicher?", "Emin misin?", "¿Seguro?", "你确定吗？")
     val areYouReallySure = Txt("Are you really sure?", "Bist du wirklich sicher?", "Gerçekten emin misin?", "¿De verdad estás seguro?", "你真的确定吗？")
     val claimText = Txt(
@@ -159,6 +160,14 @@ object HabitsStr {
         "Kendine karşı dürüst ol – son tarih son tarihtir.",
         "Sé sincero contigo: una fecha límite es una fecha límite.",
         "对自己诚实 – 截止就是截止。"
+    )
+    val deleteTaskTitle = Txt("Delete this task?", "Diese Aufgabe löschen?", "Bu görev silinsin mi?", "¿Eliminar esta tarea?", "删除此任务？")
+    val deleteTaskBody = Txt(
+        "Points it earned stay in your total.",
+        "Verdiente Punkte bleiben in deiner Summe.",
+        "Kazandığı puanlar toplamında kalır.",
+        "Los puntos que ganó se quedan en tu total.",
+        "已获得的积分会保留在总分中。"
     )
     val dontAskAgain = Txt("Don't ask again", "Nicht mehr fragen", "Bir daha sorma", "No volver a preguntar", "不再询问")
     val yes = Txt("Yes", "Ja", "Evet", "Sí", "是")

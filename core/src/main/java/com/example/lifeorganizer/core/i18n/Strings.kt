@@ -35,6 +35,10 @@ object Str {
     val habitsTasks = Txt("Habits & tasks", "Gewohnheiten & Aufgaben", "Alışkanlıklar ve görevler", "Hábitos y tareas", "习惯与任务")
     val settings = Txt("Settings", "Einstellungen", "Ayarlar", "Ajustes", "设置")
     val modules = Txt("Modules", "Module", "Modüller", "Módulos", "模块")
+    val channelHabits = Txt("Habits", "Gewohnheiten", "Alışkanlıklar", "Hábitos", "习惯")
+    val channelTasks = Txt("Tasks", "Aufgaben", "Görevler", "Tareas", "任务")
+    /** Week number next to a date, e.g. "W43" / "KW 43". */
+    val weekShort = Txt("W%d", "KW %d", "%d. hafta", "Sem. %d", "第%d周")
     val confirmOnTimeClaim = Txt(
         "Ask before “I did it on time”",
         "Nachfragen bei „Rechtzeitig erledigt“",

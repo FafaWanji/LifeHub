@@ -115,6 +115,10 @@ fun toggleCheckbox(content: String, lineIndex: Int): String {
     return lines.joinToString("\n")
 }
 
+/** [toggleCheckbox], then ticked items move down when the notes setting asks for it. */
+fun toggleCheckbox(content: String, lineIndex: Int, doneToBottom: Boolean): String =
+    toggleCheckbox(content, lineIndex).let { if (doneToBottom) moveCheckedToBottom(it) else it }
+
 /** Unchecks every "- [x]" item, e.g. to reuse a shopping list. */
 fun uncheckAll(content: String): String =
     content.split("\n").joinToString("\n") { line ->

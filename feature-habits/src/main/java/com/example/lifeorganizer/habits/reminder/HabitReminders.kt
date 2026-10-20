@@ -1,8 +1,6 @@
 package com.example.lifeorganizer.habits.reminder
 
 import android.app.AlarmManager
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -13,7 +11,9 @@ import androidx.core.app.NotificationCompat
 import com.example.lifeorganizer.core.settings.AppModule
 import com.example.lifeorganizer.core.settings.SettingsManager
 import com.example.lifeorganizer.core.settings.enabledModules
+import com.example.lifeorganizer.core.settings.NotificationChannels
 import com.example.lifeorganizer.habits.R
+import com.example.lifeorganizer.habits.TaskSettings
 import com.example.lifeorganizer.habits.data.Habit
 import com.example.lifeorganizer.habits.data.HabitCheck
 import com.example.lifeorganizer.habits.data.HabitDatabase
@@ -42,8 +42,11 @@ object HabitReminders {
     private const val ACTION_TASK = "com.example.lifeorganizer.habits.REMIND_TASK"
     private const val ACTION_HABIT_DONE = "com.example.lifeorganizer.habits.HABIT_DONE"
     private const val ACTION_TASK_DONE = "com.example.lifeorganizer.habits.TASK_DONE"
-    private const val CHANNEL_ID = "habits"
+    private const val ACTION_HABIT_SNOOZE = "com.example.lifeorganizer.habits.HABIT_SNOOZE"
+    private const val ACTION_TASK_SNOOZE = "com.example.lifeorganizer.habits.TASK_SNOOZE"
     private const val EXTRA_OFFSET = "offset"
+    /** Offset of a snoozed task push: its text counts down to the deadline instead. */
+    private const val SNOOZED = Int.MIN_VALUE
 
     private fun alarms(context: Context) = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
@@ -115,8 +118,25 @@ object HabitReminders {
             if (at.isAfter(now)) setAlarm(context, at, taskPending(context, task.id, -1))
             return
         }
-        val next = TaskDeadline.nextReminder(deadline, TaskDeadline.parseOffsets(task.reminderOffsets), now) ?: return
+        val next = nextTaskReminder(task, deadline, now, TaskSettings.read(context)) ?: return
         setAlarm(context, next.at, taskPending(context, task.id, next.offsetMinutes))
+    }
+
+    private fun nextTaskReminder(task: TaskItem, deadline: LocalDateTime, now: LocalDateTime, settings: TaskSettings) =
+        TaskDeadline.nextReminder(deadline, TaskDeadline.parseOffsets(task.reminderOffsets), now, settings.repeatAfter, settings.quiet)
+
+    /**
+     * "Snooze" on a task push: again after the snooze time, but never later than the next planned push,
+     * so the one at the deadline still comes on the minute.
+     */
+    private fun snoozeTask(context: Context, task: TaskItem, settings: TaskSettings, now: LocalDateTime = LocalDateTime.now()) {
+        var at = now.plusMinutes(settings.snoozeMinutes.toLong())
+        var offset = SNOOZED
+        TaskDeadline.deadline(task.dueEpochDay, task.dueMinute)?.let { deadline ->
+            nextTaskReminder(task, deadline, now, settings)?.takeIf { !it.at.isAfter(at) }?.let { at = it.at; offset = it.offsetMinutes }
+        }
+        alarms(context).cancel(pending(context, ACTION_TASK, "task", task.id))
+        setAlarm(context, at, taskPending(context, task.id, offset))
     }
 
     /** Whether reminders can come on time: notifications allowed and exact alarms possible. */
@@ -142,12 +162,15 @@ object HabitReminders {
         val settings = SettingsManager(context)
         val lang = settings.languageCode.first()
         val moduleOn = AppModule.HABITS in settings.enabledModules.first()
+        val taskSettings = TaskSettings.read(context)
         dao.tasksSync().forEach { task ->
             val deadline = TaskDeadline.deadline(task.dueEpochDay, task.dueMinute)
             if (catchUp && moduleOn && task.doneAt == null && deadline != null) {
                 val since = TaskDeadline.toLocal(task.lastReminderAt ?: task.createdAt)
-                TaskDeadline.missedReminder(deadline, TaskDeadline.parseOffsets(task.reminderOffsets), since, now)?.let { missed ->
-                    notify(context, lang, "task", task.id, task.title, taskReminderText(task, missed.offsetMinutes, now, lang), ACTION_TASK_DONE)
+                TaskDeadline.missedReminder(
+                    deadline, TaskDeadline.parseOffsets(task.reminderOffsets), since, now, taskSettings.repeatAfter, taskSettings.quiet
+                )?.let { missed ->
+                    notify(context, lang, "task", task.id, task.title, taskReminderText(task, missed.offsetMinutes, now, lang, taskSettings))
                     dao.setLastReminder(task.id, TaskDeadline.toMillis(now))
                 }
             }
@@ -155,23 +178,19 @@ object HabitReminders {
         }
     }
 
-    private fun ensureChannel(context: Context, lang: String) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val nm = context.getSystemService(NotificationManager::class.java)
-            nm.createNotificationChannel(NotificationChannel(CHANNEL_ID, HabitsStr.channel.of(lang), NotificationManager.IMPORTANCE_HIGH))
-        }
-    }
-
-    private fun notify(context: Context, lang: String, kind: String, id: Long, title: String, text: String, doneAction: String) {
-        ensureChannel(context, lang)
+    /** Habits and tasks have their own channel, so sound and vibration can differ (see the notification settings). */
+    private fun notify(context: Context, lang: String, kind: String, id: Long, title: String, text: String) {
+        NotificationChannels.ensureHabitsAndTasks(context, lang)
         val nid = notificationId(kind, id)
+        val isHabit = kind == "habit"
+        val snoozeMinutes = TaskSettings.read(context).snoozeMinutes
         val open = PendingIntent.getActivity(
             context, nid,
             Intent(context, Class.forName("com.example.lifeorganizer.MainActivity"))
                 .setAction(ACTION_OPEN_HABITS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-        val notification = NotificationCompat.Builder(context, CHANNEL_ID)
+        val notification = NotificationCompat.Builder(context, if (isHabit) NotificationChannels.HABITS else NotificationChannels.TASKS)
             .setSmallIcon(R.drawable.ic_habit_notification)
             .setContentTitle(title)
             .setContentText(text)
@@ -179,22 +198,31 @@ object HabitReminders {
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .setAutoCancel(true)
             .setContentIntent(open)
-            .addAction(R.drawable.ic_habit_notification, HabitsStr.markDone.of(lang), pending(context, doneAction, kind, id))
+            .addAction(R.drawable.ic_habit_notification, HabitsStr.markDone.of(lang), pending(context, if (isHabit) ACTION_HABIT_DONE else ACTION_TASK_DONE, kind, id))
+            .addAction(
+                R.drawable.ic_habit_notification, HabitsStr.snoozeFor.of(lang).format(offsetLabel(snoozeMinutes, lang)),
+                pending(context, if (isHabit) ACTION_HABIT_SNOOZE else ACTION_TASK_SNOOZE, kind, id)
+            )
             .build()
         NotificationManagerCompatSafe.notify(context, nid, notification)
     }
 
     /**
      * "Deadline in 1 h (today 14:00) – done in time = +10 points", "Deadline now (14:00)", "Deadline missed (…)"
-     * or just "Reminder" for an old task without a deadline.
+     * or just "Reminder" for an old task without a deadline. A snoozed push counts down from now.
      */
-    private fun taskReminderText(task: TaskItem, offset: Int, now: LocalDateTime, lang: String): String {
+    private fun taskReminderText(task: TaskItem, offset: Int, now: LocalDateTime, lang: String, settings: TaskSettings): String {
         val deadline = TaskDeadline.deadline(task.dueEpochDay, task.dueMinute) ?: return HabitsStr.reminder.of(lang)
         val at = deadlineLabel(deadline, now.toLocalDate(), lang)
+        val before = if (offset == SNOOZED) {
+            // Rounded up, so "in 1 min" until the deadline minute itself
+            ((java.time.Duration.between(now, deadline).seconds + 59) / 60).toInt()
+        } else offset
         return when {
             TaskDeadline.isMissed(deadline, now) -> HabitsStr.deadlineMissedAt.of(lang).format(at)
-            offset <= 0 -> HabitsStr.deadlineNow.of(lang).format(at)
-            else -> HabitsStr.deadlineIn.of(lang).format(offsetLabel(offset, lang), at, TaskDeadline.POINTS_ON_TIME)
+            before <= 0 -> HabitsStr.deadlineNow.of(lang).format(at)
+            settings.showPoints -> HabitsStr.deadlineIn.of(lang).format(offsetLabel(before, lang), at, settings.points)
+            else -> HabitsStr.deadlineInNoPoints.of(lang).format(offsetLabel(before, lang), at)
         }
     }
 
@@ -217,7 +245,7 @@ object HabitReminders {
                 val done = dao.checksSync().any { it.habitId == id && it.epochDay == today.toEpochDay() }
                 // Switched off: stay quiet, but keep the chain so reminders resume when it is on again
                 if (moduleOn && !done && HabitSchedule.isDue(habit.weekdays, today)) {
-                    notify(app, lang, "habit", id, habit.title, HabitsStr.habitReminderText.of(lang), ACTION_HABIT_DONE)
+                    notify(app, lang, "habit", id, habit.title, HabitsStr.habitReminderText.of(lang))
                 }
                 nextHabitTrigger(habit, doneToday = true)?.let { setAlarm(app, it, pending(app, ACTION_HABIT, "habit", id)) }
             }
@@ -225,7 +253,7 @@ object HabitReminders {
                 val task = dao.taskById(id) ?: return
                 val now = LocalDateTime.now()
                 if (moduleOn && task.doneAt == null) {
-                    notify(app, lang, "task", id, task.title, taskReminderText(task, intent.getIntExtra(EXTRA_OFFSET, 0), now, lang), ACTION_TASK_DONE)
+                    notify(app, lang, "task", id, task.title, taskReminderText(task, intent.getIntExtra(EXTRA_OFFSET, 0), now, lang, TaskSettings.read(app)))
                 }
                 dao.setLastReminder(id, TaskDeadline.toMillis(now))
                 // Switched off it stays quiet, but the chain goes on up to the deadline
@@ -235,6 +263,15 @@ object HabitReminders {
                 dao.insertCheck(HabitCheck(id, today.toEpochDay()))
                 NotificationManagerCompatSafe.cancel(app, notificationId("habit", id))
                 com.example.lifeorganizer.habits.HabitsIntegration.changed(app)
+            }
+            ACTION_HABIT_SNOOZE -> {
+                NotificationManagerCompatSafe.cancel(app, notificationId("habit", id))
+                // The habit's alarm comes back after the snooze time; when it fires it plans the next day again
+                setAlarm(app, LocalDateTime.now().plusMinutes(TaskSettings.read(app).snoozeMinutes.toLong()), pending(app, ACTION_HABIT, "habit", id))
+            }
+            ACTION_TASK_SNOOZE -> {
+                NotificationManagerCompatSafe.cancel(app, notificationId("task", id))
+                dao.taskById(id)?.takeIf { it.doneAt == null }?.let { snoozeTask(app, it, TaskSettings.read(app)) }
             }
             ACTION_TASK_DONE -> {
                 // Same rules as in the app: points if in time, alarm and notification cleared

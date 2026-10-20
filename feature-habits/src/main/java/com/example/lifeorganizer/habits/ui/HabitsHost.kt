@@ -27,6 +27,7 @@ import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.LocalFireDepartment
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.NotificationsOff
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
@@ -70,6 +71,8 @@ import com.example.lifeorganizer.core.i18n.LocalAppLanguage
 import com.example.lifeorganizer.core.i18n.Str
 import com.example.lifeorganizer.core.i18n.text
 import com.example.lifeorganizer.habits.TaskActions
+import com.example.lifeorganizer.habits.TaskSettings
+import com.example.lifeorganizer.habits.rememberTaskSettings
 import com.example.lifeorganizer.habits.data.Habit
 import com.example.lifeorganizer.habits.data.TaskItem
 import com.example.lifeorganizer.habits.domain.HabitSchedule
@@ -100,12 +103,24 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
     val confirmOnTimeClaim by vm.confirmOnTimeClaim.collectAsStateWithLifecycle()
     val onTimeClaimUsed by vm.onTimeClaimUsed.collectAsStateWithLifecycle()
     var claimTask by remember { mutableStateOf<TaskItem?>(null) }
-    // Ticked off after the deadline: 0 points, unless it was only the ticking that came late
+    var confirmDelete by remember { mutableStateOf<TaskItem?>(null) }
+    val ts = rememberTaskSettings()
+    // Ticked off after the deadline: fewer or no points, unless it was only the ticking that came late
     val toggleTask: (TaskItem) -> Unit = { task ->
         vm.toggleTask(task)
-        if (task.doneAt == null && TaskActions.canClaimOnTime(task)) scope.launch {
-            val r = snackbar.showSnackbar(HabitsStr.doneLate.of(lang), HabitsStr.wasOnTime.of(lang), duration = SnackbarDuration.Short)
+        if (task.doneAt == null && TaskActions.canClaimOnTime(task, ts)) scope.launch {
+            val got = TaskDeadline.points(TaskDeadline.deadline(task.dueEpochDay, task.dueMinute), LocalDateTime.now(), ts.points, ts.graceMinutes)
+            val r = snackbar.showSnackbar(HabitsStr.doneLate.of(lang).format(got), HabitsStr.wasOnTime.of(lang), duration = SnackbarDuration.Short)
             if (r == SnackbarResult.ActionPerformed) claimTask = task
+        }
+    }
+    // New tasks start with the deadline time and reminders from the settings
+    fun newTask() = TaskItem(title = "", dueMinute = ts.defaultMinute, reminderOffsets = TaskDeadline.formatOffsets(TaskDeadline.parseOffsets(ts.defaultOffsets)))
+    fun deleteTask(t: TaskItem) {
+        vm.deleteTask(t); editTask = null
+        scope.launch {
+            val r = snackbar.showSnackbar(HabitsStr.taskDeleted.of(lang), HabitsStr.undo.of(lang), duration = SnackbarDuration.Short)
+            if (r == SnackbarResult.ActionPerformed) vm.restoreTask(t)
         }
     }
     // Ticks every minute, so a task moves to "Overdue" right when its deadline has passed
@@ -129,14 +144,14 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
                 FloatingActionButton(onClick = {
                     when (tab) {
                         HabitsTab.TODAY -> showAddMenu = true
-                        HabitsTab.TASKS -> editTask = TaskItem(title = "")
+                        HabitsTab.TASKS -> editTask = newTask()
                         HabitsTab.HABITS -> editHabit = Habit(title = "")
                     }
                 }) {
                     Icon(Icons.Default.Add, if (tab == HabitsTab.HABITS) HabitsStr.newHabit.text() else HabitsStr.newTask.text())
                 }
                 DropdownMenu(expanded = showAddMenu, onDismissRequest = { showAddMenu = false }) {
-                    DropdownMenuItem(text = { Text(HabitsStr.newTask.text()) }, onClick = { showAddMenu = false; editTask = TaskItem(title = "") })
+                    DropdownMenuItem(text = { Text(HabitsStr.newTask.text()) }, onClick = { showAddMenu = false; editTask = newTask() })
                     DropdownMenuItem(text = { Text(HabitsStr.newHabit.text()) }, onClick = { showAddMenu = false; editHabit = Habit(title = "") })
                 }
             }
@@ -162,7 +177,7 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
                 when (tab) {
                     HabitsTab.TODAY -> {
                         val dueHabits = habits.filter { it.dueToday }
-                        val urgent = openTasks.filter { taskGroup(it.dueEpochDay, it.dueMinute, now).let { g -> g == TaskGroup.OVERDUE || g == TaskGroup.TODAY } }
+                        val urgent = openTasks.filter { taskGroup(it.dueEpochDay, it.dueMinute, now, ts.soonDays).let { g -> g == TaskGroup.OVERDUE || g == TaskGroup.TODAY } }
                         if (dueHabits.isEmpty() && urgent.isEmpty()) item { EmptyHint(HabitsStr.nothingToday.text()) }
                         if (dueHabits.isNotEmpty()) {
                             header(HabitsStr.habits.of(lang))
@@ -170,31 +185,31 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
                                 HabitItem(row, lang, onToggle = { vm.toggleHabit(row) }, onClick = { editHabit = row.habit })
                             }
                         }
-                        taskSection(HabitsStr.overdue.of(lang), urgent.filter { taskGroup(it.dueEpochDay, it.dueMinute, now) == TaskGroup.OVERDUE }, now, lang, toggleTask) { editTask = it }
-                        taskSection(HabitsStr.dueToday.of(lang), urgent.filter { taskGroup(it.dueEpochDay, it.dueMinute, now) == TaskGroup.TODAY }, now, lang, toggleTask) { editTask = it }
+                        taskSection(HabitsStr.overdue.of(lang), urgent.filter { taskGroup(it.dueEpochDay, it.dueMinute, now, ts.soonDays) == TaskGroup.OVERDUE }, now, lang, ts, toggleTask) { editTask = it }
+                        taskSection(HabitsStr.dueToday.of(lang), urgent.filter { taskGroup(it.dueEpochDay, it.dueMinute, now, ts.soonDays) == TaskGroup.TODAY }, now, lang, ts, toggleTask) { editTask = it }
                     }
                     HabitsTab.TASKS -> {
-                        item(key = "points") { PointsHeader(totalPoints, lang) }
+                        if (ts.showPoints) item(key = "points") { PointsHeader(totalPoints, ts.points, lang) }
                         item(key = "permissions") { ReminderPermissionBanner(lang, onAllowed = { vm.rescheduleAll() }) }
                         item(key = "quickAdd") {
                             QuickAddTask(quickText, { quickText = it }, lang) { vm.quickAddTask(quickText); quickText = "" }
                         }
                         if (tasks.isEmpty()) item { EmptyHint(HabitsStr.noTasks.text()) }
-                        val groups = openTasks.groupBy { taskGroup(it.dueEpochDay, it.dueMinute, now) }
+                        val groups = openTasks.groupBy { taskGroup(it.dueEpochDay, it.dueMinute, now, ts.soonDays) }
                         TaskGroup.entries.forEach { g ->
                             val title = when (g) {
                                 TaskGroup.OVERDUE -> HabitsStr.overdue
                                 TaskGroup.TODAY -> HabitsStr.dueToday
-                                TaskGroup.SOON -> HabitsStr.soon
+                                TaskGroup.SOON -> null
                                 TaskGroup.LATER -> HabitsStr.later
                                 TaskGroup.NO_DEADLINE -> HabitsStr.noDeadline
-                            }.of(lang)
-                            taskSection(title, groups[g].orEmpty(), now, lang, toggleTask) { editTask = it }
+                            }?.of(lang) ?: HabitsStr.soon.of(lang).format(ts.soonDays)
+                            taskSection(title, groups[g].orEmpty(), now, lang, ts, toggleTask) { editTask = it }
                         }
                         // Recently done, newest first; older ones stay saved but out of the way
                         taskSection(
                             HabitsStr.done.of(lang),
-                            tasks.filter { it.doneAt != null }.sortedByDescending { it.doneAt }.take(30), now, lang, toggleTask
+                            tasks.filter { it.doneAt != null }.sortedByDescending { it.doneAt }.let { done -> if (ts.doneShown > 0) done.take(ts.doneShown) else done }, now, lang, ts, toggleTask
                         ) { editTask = it }
                     }
                     HabitsTab.HABITS -> {
@@ -224,19 +239,22 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
             initial = t,
             onDismiss = { editTask = null },
             onSave = { vm.saveTask(it); editTask = null },
-            onClaimOnTime = if (t.id != 0L && TaskActions.canClaimOnTime(t)) ({ editTask = null; claimTask = t }) else null,
-            onDelete = if (t.id == 0L) null else ({
-                vm.deleteTask(t); editTask = null
-                scope.launch {
-                    val r = snackbar.showSnackbar(HabitsStr.taskDeleted.of(lang), HabitsStr.undo.of(lang), duration = SnackbarDuration.Short)
-                    if (r == SnackbarResult.ActionPerformed) vm.restoreTask(t)
-                }
-            })
+            onClaimOnTime = if (t.id != 0L && TaskActions.canClaimOnTime(t, ts)) ({ editTask = null; claimTask = t }) else null,
+            onDelete = if (t.id == 0L) null else ({ if (ts.confirmDelete) confirmDelete = t else deleteTask(t) })
+        )
+    }
+    confirmDelete?.let { t ->
+        AlertDialog(
+            onDismissRequest = { confirmDelete = null },
+            title = { Text(HabitsStr.deleteTaskTitle.text()) },
+            text = { Text(t.title + if (ts.showPoints) "\n\n" + HabitsStr.deleteTaskBody.text() else "") },
+            confirmButton = { TextButton(onClick = { confirmDelete = null; deleteTask(t) }) { Text(HabitsStr.delete.text()) } },
+            dismissButton = { TextButton(onClick = { confirmDelete = null }) { Text(HabitsStr.cancel.text()) } }
         )
     }
     claimTask?.let { t ->
         ClaimOnTimeDialogs(
-            task = t, ask = confirmOnTimeClaim, firstTime = !onTimeClaimUsed,
+            task = t, points = ts.points, ask = confirmOnTimeClaim, firstTime = !onTimeClaimUsed,
             onConfirm = { dontAskAgain -> vm.claimOnTime(t, dontAskAgain); claimTask = null },
             onDismiss = { claimTask = null }
         )
@@ -253,20 +271,20 @@ private fun LazyListScope.header(title: String) = item(key = "header_$title") {
 }
 
 private fun LazyListScope.taskSection(
-    title: String, tasks: List<TaskItem>, now: LocalDateTime, lang: String, onToggle: (TaskItem) -> Unit, onClick: (TaskItem) -> Unit
+    title: String, tasks: List<TaskItem>, now: LocalDateTime, lang: String, ts: TaskSettings, onToggle: (TaskItem) -> Unit, onClick: (TaskItem) -> Unit
 ) {
     if (tasks.isEmpty()) return
     header(title)
-    items(tasks, key = { "t${it.id}" }) { task -> TaskItemRow(task, now, lang, onToggle = { onToggle(task) }, onClick = { onClick(task) }) }
+    items(tasks, key = { "t${it.id}" }) { task -> TaskItemRow(task, now, lang, ts, onToggle = { onToggle(task) }, onClick = { onClick(task) }) }
 }
 
 /** Total at the top of the tasks tab. */
 @Composable
-private fun PointsHeader(total: Int, lang: String) {
+private fun PointsHeader(total: Int, perTask: Int, lang: String) {
     ListItem(
         leadingContent = { Icon(Icons.Outlined.EmojiEvents, null, tint = MaterialTheme.colorScheme.tertiary) },
         headlineContent = { Text(HabitsStr.points.of(lang).format(total), style = MaterialTheme.typography.titleMedium) },
-        supportingContent = { Text(HabitsStr.pointsHint.of(lang).format(TaskDeadline.POINTS_ON_TIME)) }
+        supportingContent = { Text(HabitsStr.pointsHint.of(lang).format(perTask)) }
     )
 }
 
@@ -391,22 +409,27 @@ private fun HabitItem(row: HabitRow, lang: String, showSchedule: Boolean = false
 }
 
 @Composable
-private fun TaskItemRow(task: TaskItem, now: LocalDateTime, lang: String, onToggle: () -> Unit, onClick: () -> Unit) {
+private fun TaskItemRow(task: TaskItem, now: LocalDateTime, lang: String, ts: TaskSettings, onToggle: () -> Unit, onClick: () -> Unit) {
     val done = task.doneAt != null
     val deadline = TaskDeadline.deadline(task.dueEpochDay, task.dueMinute)
     val missed = !done && TaskDeadline.isMissed(deadline, now)
     val due = deadline?.let { deadlineLabel(it, now.toLocalDate(), lang) }
-    val onTime = deadline != null && task.doneAt != null && TaskDeadline.points(deadline, TaskDeadline.toLocal(task.doneAt)) > 0
-    // Done: "+10" or "0 – too late"; open past the deadline: "Deadline missed"
+    val earned = if (deadline != null && task.doneAt != null) {
+        TaskDeadline.points(deadline, TaskDeadline.toLocal(task.doneAt), ts.points, ts.graceMinutes)
+    } else 0
+    val onTime = earned > 0
+    // Done: "+10" (or half within the grace time) or "0 – too late"; open past the deadline: "Deadline missed"
     val status = when {
-        onTime -> HabitsStr.pointsEarned.of(lang).format(TaskDeadline.POINTS_ON_TIME)
-        done && deadline != null -> HabitsStr.tooLate.of(lang)
+        ts.showPoints && onTime -> HabitsStr.pointsEarned.of(lang).format(earned)
+        ts.showPoints && done && deadline != null -> HabitsStr.tooLate.of(lang)
         missed -> HabitsStr.deadlineMissed.of(lang)
         else -> null
     }
     // Next push of an open task, e.g. "Tomorrow 13:00"; the one at the deadline is not repeated here
     val remind = if (done) null else {
-        deadline?.let { d -> TaskDeadline.nextReminder(d, TaskDeadline.parseOffsets(task.reminderOffsets), now)?.takeIf { it.offsetMinutes > 0 }?.at }
+        deadline?.let { d ->
+            TaskDeadline.nextReminder(d, TaskDeadline.parseOffsets(task.reminderOffsets), now, quiet = ts.quiet)?.takeIf { it.offsetMinutes > 0 }?.at
+        }
             ?: task.reminderAt?.let { TaskDeadline.toLocal(it) }?.takeIf { deadline == null && it.isAfter(now) }
     }?.let { deadlineLabel(it, now.toLocalDate(), lang) }
     val details = listOfNotNull(due, task.note.lineSequence().firstOrNull()?.takeIf { it.isNotBlank() }).joinToString(" · ")

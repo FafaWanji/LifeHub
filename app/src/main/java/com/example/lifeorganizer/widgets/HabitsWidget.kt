@@ -54,8 +54,6 @@ import com.example.lifeorganizer.habits.reminder.HabitReminders
 import com.example.lifeorganizer.habits.ui.HabitsStr
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 /** What the widget lists; tapping the chip in its header cycles through these. */
 enum class WidgetFilter { ALL, TASKS, HABITS }
@@ -75,6 +73,8 @@ class HabitsWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val dao = HabitDatabase.getDatabase(context).habitDao()
         val settings = SettingsManager(context)
+        // Read once per update; the app refreshes the widget when this setting changes
+        val showDoneHabits = com.example.lifeorganizer.core.settings.MicroSettings.get(context, com.example.lifeorganizer.core.settings.MicroSettings.WIDGET_DONE_HABITS)
         provideContent {
             // Flows keep the widget current while it is shown; the update period moves "today" past midnight.
             val today = remember { LocalDate.now() }
@@ -86,7 +86,7 @@ class HabitsWidget : GlanceAppWidget() {
             val filter = currentState(FILTER)?.let { runCatching { WidgetFilter.valueOf(it) }.getOrNull() } ?: WidgetFilter.ALL
 
             val doneToday = checks.filter { it.epochDay == today.toEpochDay() }.map { it.habitId }.toSet()
-            val habitRows = habits.filter { HabitSchedule.isDue(it.weekdays, today) }
+            val habitRows = habits.filter { HabitSchedule.isDue(it.weekdays, today) && (showDoneHabits || it.id !in doneToday) }
                 .sortedWith(compareBy({ it.id in doneToday }, { it.reminderMinutes ?: Int.MAX_VALUE }))
                 .map { h ->
                     WidgetRow("habit", h.id, h.title, h.id in doneToday, h.reminderMinutes?.let { "%02d:%02d".format(it / 60, it % 60) }, false)
@@ -200,9 +200,7 @@ class HabitsWidget : GlanceAppWidget() {
             val day = when (deadline.toLocalDate().toEpochDay() - today.toEpochDay()) {
                 0L -> HabitsStr.today.of(lang)
                 1L -> HabitsStr.tomorrow.of(lang)
-                else -> deadline.toLocalDate().format(
-                    DateTimeFormatter.ofPattern(if (lang == "en") "d MMM" else "d. MMM", Locale.forLanguageTag(lang))
-                )
+                else -> deadline.toLocalDate().format(com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "MMMd"))
             }
             val minute = deadline.hour * 60 + deadline.minute
             return if (minute == TaskDeadline.END_OF_DAY) day else "$day %02d:%02d".format(deadline.hour, deadline.minute)

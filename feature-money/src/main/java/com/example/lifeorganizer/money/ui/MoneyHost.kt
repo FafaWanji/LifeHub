@@ -45,6 +45,9 @@ enum class MoneyTab { OVERVIEW, TRANSACTIONS, FIXED, CATEGORIES }
 fun MoneyHost(onMenuClick: () -> Unit, vm: MoneyViewModel = viewModel()) {
     val lang = LocalAppLanguage.current
     LaunchedEffect(lang) { vm.init(lang) }
+    // Finance months can start on another day (finance settings)
+    val monthStart = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.MONTH_START)
+    LaunchedEffect(monthStart) { vm.setMonthStart(monthStart) }
     var tab by rememberSaveable { mutableStateOf(MoneyTab.OVERVIEW) }
     var showImport by rememberSaveable { mutableStateOf(false) }
     var editTx by remember { mutableStateOf<MoneyTransaction?>(null) }

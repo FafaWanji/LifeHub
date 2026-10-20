@@ -13,14 +13,16 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Weekly full backup into the app's external files folder
- * (Android/data/<package>/files/backups), keeping the newest [KEEP] files.
+ * (Android/data/<package>/files/backups), keeping the newest [keep] files.
  */
 object AutoBackup {
     private const val WORK_NAME = "auto_backup"
     private const val PREFS = "auto_backup"
     private const val KEY_ENABLED = "enabled"
     private const val KEY_FOLDER = "folder"
-    const val KEEP = 5
+    /** How many auto backups stay (backup settings, 5 by default). */
+    fun keep(context: Context): Int =
+        com.example.lifeorganizer.core.settings.MicroSettings.get(context, com.example.lifeorganizer.core.settings.MicroSettings.BACKUP_KEEP).coerceIn(1, 50)
 
     /**
      * Android/data/<package>/files/backups, or internal storage when that folder is not writable
@@ -61,7 +63,7 @@ object AutoBackup {
         prefs.edit().putString(KEY_FOLDER, tree?.toString()).apply()
     }
 
-    /** Copies [file] into the chosen folder and keeps the newest [KEEP] auto backups there. */
+    /** Copies [file] into the chosen folder and keeps the newest [keep] auto backups there. */
     private fun copyToExternal(context: Context, file: File) {
         val tree = externalFolder(context) ?: return
         val resolver = context.contentResolver
@@ -78,7 +80,7 @@ object AutoBackup {
         existing.firstOrNull { it.first == file.name }?.let { runCatching { android.provider.DocumentsContract.deleteDocument(resolver, it.second) } }
         val target = android.provider.DocumentsContract.createDocument(resolver, parent, "application/json", file.name) ?: return
         resolver.openOutputStream(target, "wt")?.use { out -> file.inputStream().use { it.copyTo(out) } }
-        existing.filter { it.first != file.name }.sortedByDescending { it.first }.drop(KEEP - 1)
+        existing.filter { it.first != file.name }.sortedByDescending { it.first }.drop(keep(context) - 1)
             .forEach { runCatching { android.provider.DocumentsContract.deleteDocument(resolver, it.second) } }
     }
 
@@ -92,13 +94,19 @@ object AutoBackup {
             wm.cancelUniqueWork(WORK_NAME)
             return
         }
-        val request = PeriodicWorkRequestBuilder<AutoBackupWorker>(7, TimeUnit.DAYS)
-            .setConstraints(Constraints.Builder().setRequiresStorageNotLow(true).build())
+        // Wi-Fi only (backup settings) matters for the copy to an online folder such as Google Drive
+        val wifiOnly = com.example.lifeorganizer.core.settings.MicroSettings.get(context, com.example.lifeorganizer.core.settings.MicroSettings.BACKUP_WIFI_ONLY)
+        val constraints = Constraints.Builder().setRequiresStorageNotLow(true)
+            .apply { if (wifiOnly) setRequiredNetworkType(androidx.work.NetworkType.UNMETERED) }
             .build()
-        wm.enqueueUniquePeriodicWork(WORK_NAME, ExistingPeriodicWorkPolicy.KEEP, request)
+        val request = PeriodicWorkRequestBuilder<AutoBackupWorker>(7, TimeUnit.DAYS)
+            .setConstraints(constraints)
+            .build()
+        // UPDATE keeps the weekly rhythm but takes over changed constraints
+        wm.enqueueUniquePeriodicWork(WORK_NAME, ExistingPeriodicWorkPolicy.UPDATE, request)
     }
 
-    /** Writes one backup now and removes the oldest beyond [KEEP]. */
+    /** Writes one backup now and removes the oldest beyond [keep]. */
     suspend fun runNow(context: Context): File {
         val dir = folder(context)
         var file = File(dir, "lifehub-auto-${LocalDate.now()}.json")
@@ -112,7 +120,7 @@ object AutoBackup {
         stream.use { BackupManager(context).export(it) }
         dir.listFiles { f -> f.name.startsWith("lifehub-auto-") && f.name.endsWith(".json") }
             ?.sortedByDescending { it.lastModified() }
-            ?.drop(KEEP)
+            ?.drop(keep(context))
             ?.forEach { it.delete() }
         // The external copy is best effort: a revoked folder must not fail the local backup.
         runCatching { copyToExternal(context, file) }

@@ -46,9 +46,6 @@ import com.example.lifeorganizer.habits.domain.HabitSchedule
 import com.example.lifeorganizer.habits.domain.TaskDeadline
 import java.time.DayOfWeek
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
-import java.util.Locale
 
 private const val DAY_MS = 86_400_000L
 /** Suggested reminder time for a new habit: 08:00. */
@@ -136,7 +133,7 @@ fun TaskDialog(
     var pickDate by remember { mutableStateOf(false) }
     var pickTime by remember { mutableStateOf(false) }
     var ownOffset by remember { mutableStateOf(false) }
-    val dateFormat = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.forLanguageTag(lang))
+    val dateFormat = com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "yyyyMMMdEEE")
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -241,7 +238,9 @@ fun TaskDialog(
  * with a "Don't ask again" box. With [ask] off (box ticked earlier) it goes through without a question.
  */
 @Composable
-fun ClaimOnTimeDialogs(task: TaskItem, ask: Boolean, firstTime: Boolean, onConfirm: (dontAskAgain: Boolean) -> Unit, onDismiss: () -> Unit) {
+fun ClaimOnTimeDialogs(
+    task: TaskItem, points: Int, ask: Boolean, firstTime: Boolean, onConfirm: (dontAskAgain: Boolean) -> Unit, onDismiss: () -> Unit
+) {
     val lang = LocalAppLanguage.current
     if (!ask && !firstTime) {
         LaunchedEffect(task.id) { onConfirm(false) }
@@ -251,7 +250,7 @@ fun ClaimOnTimeDialogs(task: TaskItem, ask: Boolean, firstTime: Boolean, onConfi
     var dontAskAgain by remember { mutableStateOf(false) }
     val deadline = TaskDeadline.deadline(task.dueEpochDay, task.dueMinute)
     val claim = HabitsStr.claimText.of(lang).format(
-        deadline?.let { deadlineLabel(it, LocalDate.now(), lang) }.orEmpty(), TaskDeadline.POINTS_ON_TIME
+        deadline?.let { deadlineLabel(it, LocalDate.now(), lang) }.orEmpty(), points
     )
     val reallySure = firstTime && step == 2
     AlertDialog(

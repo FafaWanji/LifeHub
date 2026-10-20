@@ -5,9 +5,14 @@ import java.util.Currency
 import java.util.Locale
 import kotlin.math.abs
 
-/** Euro amounts as Long cents: parsing bank and user input, formatting for display. */
+/** Amounts as Long cents: parsing bank and user input, formatting for display (euro unless set otherwise). */
 object Amounts {
-    private val noise = Regex("""(?i)\s| | |€|eur(o)?""")
+    /** ISO code from the finance settings, e.g. "EUR", "USD", "GBP"; set by the app at start and on change. */
+    @Volatile
+    var currencyCode: String = "EUR"
+
+    // Spaces, currency signs and codes around the number are ignored
+    private val noise = Regex("""(?i)\s| | |\p{Sc}|eur(o)?|usd|gbp|chf|try|cny|rmb""")
 
     /**
      * "1.234,56", "-12,50", "12.50", "1,234.56", "12 €", "+5", "12,5", "−3,00", "12,50-" → cents.
@@ -52,9 +57,14 @@ object Amounts {
     }
 
     /** "1.234,56 €" (German), "€1,234.56" (English); sign kept as the locale writes it. */
+    private fun currency(): Currency = runCatching { Currency.getInstance(currencyCode) }.getOrElse { Currency.getInstance("EUR") }
+
     fun format(cents: Long, lang: String): String =
-        NumberFormat.getCurrencyInstance(locale(lang)).apply { currency = Currency.getInstance("EUR") }
+        NumberFormat.getCurrencyInstance(locale(lang)).apply { currency = currency() }
             .format(cents / 100.0)
+
+    /** "€", "$", "£" … as the language writes it, e.g. next to an amount field. */
+    fun symbol(lang: String): String = currency().getSymbol(locale(lang))
 
     /** Always with an explicit sign: "+12,50 €" / "−12,50 €". */
     fun formatSigned(cents: Long, lang: String): String =

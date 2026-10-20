@@ -100,7 +100,15 @@ fun NoteEditorScreen(
     var loaded by rememberSaveable { mutableStateOf(noteId == null && templateId == null && labelId == null) }
     var currentId by rememberSaveable { mutableStateOf(noteId) }
     var title by rememberSaveable { mutableStateOf("") }
-    var body by rememberSaveable(stateSaver = TextFieldValue.Saver) { mutableStateOf(TextFieldValue("")) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    // A blank new note can start as a checklist (notes settings)
+    var body by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        val start = if (loaded && com.example.lifeorganizer.core.settings.MicroSettings.get(context, com.example.lifeorganizer.core.settings.MicroSettings.NOTE_CHECKLIST)) "- [ ] " else ""
+        mutableStateOf(TextFieldValue(start, TextRange(start.length)))
+    }
+    val doneToBottom = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.NOTE_DONE_BOTTOM)
+    val fontScale = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.NOTE_FONT).coerceIn(70, 150) / 100f
+    val editorTextStyle = MaterialTheme.typography.bodyLarge.let { it.copy(fontSize = it.fontSize * fontScale, lineHeight = it.lineHeight * fontScale) }
     var isPinned by rememberSaveable { mutableStateOf(false) }
     var colorLabel by rememberSaveable { mutableStateOf<Int?>(null) }
     var pinnedToDate by rememberSaveable { mutableStateOf(pinnedDate) }
@@ -165,7 +173,8 @@ fun NoteEditorScreen(
     fun save(onSaved: (Long) -> Unit = {}) {
         if (!loaded || deleted) return
         val d = currentDraft()
-        val isEmpty = d.title.isBlank() && d.content.isBlank()
+        // An untouched empty checklist item ("- [ ] " from the notes settings) counts as empty too
+        val isEmpty = d.title.isBlank() && (d.content.isBlank() || d.content.trim() == "- [ ]")
         if (d.id == null && isEmpty) return
         if (d == lastSaved && d.id != null) { onSaved(d.id); return }
         lastSaved = d
@@ -356,7 +365,7 @@ fun NoteEditorScreen(
                             },
                             placeholder = { Text(Str.startWriting.text()) },
                             modifier = Modifier.fillMaxWidth().heightIn(min = 320.dp),
-                            textStyle = MaterialTheme.typography.bodyLarge,
+                            textStyle = editorTextStyle,
                             visualTransformation = highlighter,
                             colors = transparentFieldColors(),
                             keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences)
@@ -380,8 +389,9 @@ fun NoteEditorScreen(
                                 MarkdownView(
                                     content = body.text,
                                     onToggleCheckbox = { line ->
-                                        body = body.copy(text = toggleCheckbox(body.text, line))
-                                    }
+                                        body = body.copy(text = toggleCheckbox(body.text, line, doneToBottom))
+                                    },
+                                    textStyle = editorTextStyle
                                 )
                             }
                         }

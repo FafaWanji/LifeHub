@@ -25,8 +25,9 @@ class AlarmReceiver : BroadcastReceiver() {
                 val message = intent.getStringExtra("REMINDER_TYPE") ?: "Reminder"
                 val notificationHelper = NotificationHelper(context)
                 notificationHelper.cancelNotification(notificationId)
-                // Fire the same reminder again in 10 minutes
-                val snoozeTime = System.currentTimeMillis() + (10 * 60 * 1000L)
+                // Fire the same reminder again after the snooze time from the settings (10 minutes by default)
+                val snoozeMinutes = com.example.lifeorganizer.core.settings.MicroSettings.get(context, com.example.lifeorganizer.core.settings.MicroSettings.SNOOZE_MINUTES).coerceAtLeast(1)
+                val snoozeTime = System.currentTimeMillis() + snoozeMinutes * 60 * 1000L
                 val reminderIntent = Intent(context, AlarmReceiver::class.java).apply {
                     putExtra("EVENT_TITLE", title)
                     putExtra("REMINDER_TYPE", message)
@@ -43,7 +44,7 @@ class AlarmReceiver : BroadcastReceiver() {
                 } else {
                     alarmManager.setAndAllowWhileIdle(android.app.AlarmManager.RTC_WAKEUP, snoozeTime, pendingIntent)
                 }
-                DebugLogger.log("Snoozed notification: $title for 10 minutes")
+                DebugLogger.log("Snoozed notification: $title for $snoozeMinutes minutes")
                 return
             }
             NotificationHelper.ACTION_DISMISS -> {

@@ -3,6 +3,7 @@ package com.example.lifeorganizer.notes.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.lifeorganizer.core.settings.MicroSettings
 import com.example.lifeorganizer.notes.data.Note
 import com.example.lifeorganizer.notes.data.NoteLabel
 import com.example.lifeorganizer.notes.data.NoteLabelCrossRef
@@ -81,6 +82,12 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     val templates: StateFlow<List<NoteTemplate>> = noteDao.getTemplates()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    init {
+        // Trash older than the days set in the notes settings goes for good (never by default)
+        val days = MicroSettings.get(application, MicroSettings.TRASH_DAYS)
+        if (days > 0) viewModelScope.launch { noteDao.purgeTrash(System.currentTimeMillis() - days * 86_400_000L) }
+    }
+
     /** Loads straight from the database – never from the filtered list, which may be empty or stale. */
     suspend fun loadNote(noteId: Long): NoteWithLabels? = noteDao.getNoteWithLabels(noteId)
 
@@ -146,7 +153,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     /** Toggles a "- [ ]" item directly from a list/preview without opening the editor. */
     fun toggleChecklistItem(noteWithLabels: NoteWithLabels, lineIndex: Int) {
         val note = noteWithLabels.note
-        val content = toggleCheckbox(note.content, lineIndex)
+        val content = toggleCheckbox(note.content, lineIndex, MicroSettings.get(getApplication<Application>(), MicroSettings.NOTE_DONE_BOTTOM))
         viewModelScope.launch {
             noteDao.updateNote(note.copy(content = content, updatedAt = System.currentTimeMillis()))
         }

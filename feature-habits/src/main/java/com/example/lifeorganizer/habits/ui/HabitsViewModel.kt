@@ -6,11 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.example.lifeorganizer.core.settings.SettingsManager
 import com.example.lifeorganizer.habits.HabitsIntegration
 import com.example.lifeorganizer.habits.TaskActions
+import com.example.lifeorganizer.habits.TaskSettings
 import com.example.lifeorganizer.habits.data.Habit
 import com.example.lifeorganizer.habits.data.HabitCheck
 import com.example.lifeorganizer.habits.data.HabitDatabase
 import com.example.lifeorganizer.habits.data.TaskItem
 import com.example.lifeorganizer.habits.domain.HabitSchedule
+import com.example.lifeorganizer.habits.domain.TaskDeadline
 import com.example.lifeorganizer.habits.domain.TaskQuickParse
 import com.example.lifeorganizer.habits.reminder.HabitReminders
 import kotlinx.coroutines.flow.SharingStarted
@@ -78,8 +80,14 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
 
     /** "Exercise 5 tomorrow 14:00" → a task with that deadline and the default reminders. */
     fun quickAddTask(text: String) {
-        val parsed = TaskQuickParse.parse(text) ?: return
-        saveTask(TaskItem(title = parsed.title, dueEpochDay = parsed.dueEpochDay, dueMinute = parsed.dueMinute))
+        val settings = TaskSettings.read(app)
+        val parsed = TaskQuickParse.parse(text, defaultMinute = settings.defaultMinute) ?: return
+        saveTask(
+            TaskItem(
+                title = parsed.title, dueEpochDay = parsed.dueEpochDay, dueMinute = parsed.dueMinute,
+                reminderOffsets = TaskDeadline.formatOffsets(TaskDeadline.parseOffsets(settings.defaultOffsets))
+            )
+        )
     }
 
     /** Ticks off (points if in time) or back on (points taken back); see [TaskActions]. */

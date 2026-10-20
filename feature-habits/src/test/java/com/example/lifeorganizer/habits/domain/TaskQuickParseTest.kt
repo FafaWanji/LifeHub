@@ -61,6 +61,16 @@ class TaskQuickParseTest {
     }
 
     @Test
+    fun defaultDeadlineTimeFromTheSettings() {
+        // 18:00 as the default: a day without time gets it, no day means today (or tomorrow once it has passed)
+        assertEquals(task("Report", today.plusDays(1), 18), TaskQuickParse.parse("Report morgen", now, defaultMinute = 18 * 60))
+        assertEquals(task("Report", today, 18), TaskQuickParse.parse("Report", now, defaultMinute = 18 * 60))
+        assertEquals(task("Report", today.plusDays(1), 8), TaskQuickParse.parse("Report", now, defaultMinute = 8 * 60))
+        // A typed time still wins
+        assertEquals(task("Report", today, 14), TaskQuickParse.parse("Report 14:00", now, defaultMinute = 8 * 60))
+    }
+
+    @Test
     fun titleStaysWhenNothingMatches() {
         // Numbers and everyday words in the title are no deadline
         assertEquals(task("Mach das so", today, 23, 59), parse("Mach das so"))

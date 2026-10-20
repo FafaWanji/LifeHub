@@ -15,11 +15,27 @@ object MoneyMath {
     fun budgetFraction(spentCents: Long, budgetCents: Long): Float =
         if (budgetCents <= 0) 0f else spentCents.toFloat() / budgetCents
 
-    /** Yellow from 80 %, red from 100 %. */
-    fun budgetLevel(fraction: Float): BudgetLevel = when {
+    /** Yellow from [warnAt] (80 % unless set otherwise in the finance settings), red from 100 %. */
+    fun budgetLevel(fraction: Float, warnAt: Float = 0.8f): BudgetLevel = when {
         fraction >= 1f -> BudgetLevel.OVER
-        fraction >= 0.8f -> BudgetLevel.WARN
+        fraction >= warnAt -> BudgetLevel.WARN
         else -> BudgetLevel.OK
+    }
+
+    /**
+     * First day of the finance month [month] when months start on [startDay] (e.g. 25 = payday):
+     * "October" then runs from 25 Oct to 24 Nov. Short months use their last day.
+     */
+    fun periodStart(month: java.time.YearMonth, startDay: Int): java.time.LocalDate =
+        month.atDay(startDay.coerceIn(1, month.lengthOfMonth()))
+
+    fun periodEnd(month: java.time.YearMonth, startDay: Int): java.time.LocalDate =
+        periodStart(month.plusMonths(1), startDay).minusDays(1)
+
+    /** The finance month [date] belongs to. */
+    fun periodOf(date: java.time.LocalDate, startDay: Int): java.time.YearMonth {
+        val month = java.time.YearMonth.from(date)
+        return if (date.isBefore(periodStart(month, startDay))) month.minusMonths(1) else month
     }
 
     /** (categoryId, amountCents) → spending per category as positive cents, largest first. Income is ignored. */

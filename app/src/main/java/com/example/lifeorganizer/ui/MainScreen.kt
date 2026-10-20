@@ -93,6 +93,10 @@ fun MainScreen(
     importUri: Uri? = null,
     onImportHandled: () -> Unit = {},
     intentsEnabled: Boolean = true,
+    /** Tells the activity which screen is shown (ActiveView name; the note editor counts as NOTES), for a module lock. */
+    onViewShown: (String) -> Unit = {},
+    /** Increased when the module lock screen is left with back: go to the calendar. */
+    leaveLockedRequest: Int = 0,
     onSharedHandled: () -> Unit = {}
 ) {
     val calendarViewModel: CalendarViewModel = viewModel()
@@ -100,8 +104,15 @@ fun MainScreen(
     val waypointsViewModel: WaypointsViewModel = viewModel()
     val documentViewModel: DocumentViewModel = viewModel()
 
-    // The app is calendar-centred: it always starts here.
-    var activeView by rememberSaveable { mutableStateOf(ActiveView.CALENDAR) }
+    // The app is calendar-centred: it starts there unless another start screen is set (appearance settings).
+    val startContext = androidx.compose.ui.platform.LocalContext.current
+    val startView = remember {
+        runCatching { ActiveView.valueOf(com.example.lifeorganizer.core.settings.MicroSettings.get(startContext, com.example.lifeorganizer.core.settings.MicroSettings.START_SCREEN)) }
+            .getOrNull()?.takeIf { it != ActiveView.NOTE_EDITOR } ?: ActiveView.CALENDAR
+    }
+    var activeView by rememberSaveable { mutableStateOf(startView) }
+    LaunchedEffect(activeView) { onViewShown(if (activeView == ActiveView.NOTE_EDITOR) ActiveView.NOTES.name else activeView.name) }
+    LaunchedEffect(leaveLockedRequest) { if (leaveLockedRequest > 0) activeView = ActiveView.CALENDAR }
     var editingNoteId by rememberSaveable { mutableStateOf<Long?>(null) }
     var editorTemplateId by rememberSaveable { mutableStateOf<Long?>(null) }
     var editorLabelId by rememberSaveable { mutableStateOf<Long?>(null) }
@@ -254,9 +265,10 @@ fun MainScreen(
         }
     }
 
-    // Secondary modules return to the calendar instead of closing the app.
-    BackHandler(enabled = activeView == ActiveView.NOTES || activeView == ActiveView.DOCUMENTS || activeView == ActiveView.HABITS ||
-        (activeView == ActiveView.WAYPOINTS && waypointRoute == WaypointRoute.List)
+    // Secondary modules return to the calendar instead of closing the app – except the chosen start screen.
+    BackHandler(enabled = activeView != startView && (activeView == ActiveView.NOTES || activeView == ActiveView.DOCUMENTS ||
+        activeView == ActiveView.HABITS ||
+        (activeView == ActiveView.WAYPOINTS && waypointRoute == WaypointRoute.List))
     ) {
         activeView = ActiveView.CALENDAR
     }

@@ -54,6 +54,8 @@ fun OverviewScreen(vm: MoneyViewModel, modifier: Modifier = Modifier) {
     val expected by vm.expected.collectAsStateWithLifecycle()
     val categories by vm.categories.collectAsStateWithLifecycle()
     val txs by vm.monthTransactions.collectAsStateWithLifecycle()
+    val monthStart by vm.monthStart.collectAsStateWithLifecycle()
+    val warnAt = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.BUDGET_WARN).coerceIn(10, 100) / 100f
     val byCategory = remember(txs) { MoneyMath.spendingByCategory(txs.map { it.categoryId to it.amountCents }) }
     val catById = remember(categories) { categories.associateBy { it.id } }
 
@@ -68,7 +70,7 @@ fun OverviewScreen(vm: MoneyViewModel, modifier: Modifier = Modifier) {
         contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 88.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        item { MonthSwitcher(month, lang, vm::shiftMonth) }
+        item { MonthSwitcher(month, lang, vm::shiftMonth, monthStart) }
         item {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 SummaryCard(MoneyStr.income.text(), Amounts.format(summary.incomeCents, lang), incomeColor, Modifier.weight(1f))
@@ -106,7 +108,7 @@ fun OverviewScreen(vm: MoneyViewModel, modifier: Modifier = Modifier) {
             val budget = c.monthlyBudgetCents ?: 0L
             val spent = byCategory.firstOrNull { it.first == c.id }?.second ?: 0L
             val fraction = MoneyMath.budgetFraction(spent, budget)
-            val color = when (MoneyMath.budgetLevel(fraction)) {
+            val color = when (MoneyMath.budgetLevel(fraction, warnAt)) {
                 BudgetLevel.OK -> MaterialTheme.colorScheme.primary
                 BudgetLevel.WARN -> warnColor
                 BudgetLevel.OVER -> MaterialTheme.colorScheme.error
@@ -126,18 +128,28 @@ fun OverviewScreen(vm: MoneyViewModel, modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun MonthSwitcher(month: YearMonth, lang: String, onShift: (Int) -> Unit) {
+fun MonthSwitcher(month: YearMonth, lang: String, onShift: (Int) -> Unit, startDay: Int = 1) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
         IconButton(onClick = { onShift(-1) }) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, MoneyStr.previousMonth.text()) }
-        Text(
-            run {
-                // Each language's own order: "Oktober 2026", "2026年10月"
-                val locale = if (lang == "zh") Locale.SIMPLIFIED_CHINESE else Locale.forLanguageTag(lang)
-                month.format(DateTimeFormatter.ofPattern(android.text.format.DateFormat.getBestDateTimePattern(locale, "yyyyLLLL"), locale))
-                    .replaceFirstChar { it.uppercase() }
-            },
-            style = MaterialTheme.typography.titleMedium
-        )
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                run {
+                    // Each language's own order: "Oktober 2026", "2026年10月"
+                    val locale = if (lang == "zh") Locale.SIMPLIFIED_CHINESE else Locale.forLanguageTag(lang)
+                    month.format(DateTimeFormatter.ofPattern(android.text.format.DateFormat.getBestDateTimePattern(locale, "yyyyLLLL"), locale))
+                        .replaceFirstChar { it.uppercase() }
+                },
+                style = MaterialTheme.typography.titleMedium
+            )
+            // Months from payday to payday: show which days this one covers
+            if (startDay > 1) {
+                val days = com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "dMMM")
+                Text(
+                    MoneyMath.periodStart(month, startDay).format(days) + " – " + MoneyMath.periodEnd(month, startDay).format(days),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
         IconButton(onClick = { onShift(1) }) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, MoneyStr.nextMonth.text()) }
     }
 }

@@ -67,6 +67,10 @@ interface NoteDao {
     @Query("DELETE FROM notes WHERE isDeleted = 1")
     suspend fun emptyTrash()
 
+    /** Notes in the trash since before [before] (epoch millis) are deleted for good. */
+    @Query("DELETE FROM notes WHERE isDeleted = 1 AND deletedAt IS NOT NULL AND deletedAt < :before")
+    suspend fun purgeTrash(before: Long)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLabel(label: NoteLabel): Long
 

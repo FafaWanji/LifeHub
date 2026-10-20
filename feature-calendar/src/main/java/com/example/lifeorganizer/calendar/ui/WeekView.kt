@@ -46,10 +46,11 @@ fun WeekView(
     lang: String,
     currentDate: LocalDate,
     firstDayOfWeek: java.time.DayOfWeek = daysOfWeek().first(),
+    showWeekNumber: Boolean = false,
     onEventClick: (EventWithReminders) -> Unit
 ) {
     // Follows the day selected in the month view
-    var startOfWeek by remember(currentDate) { mutableStateOf(currentDate.with(TemporalAdjusters.previousOrSame(firstDayOfWeek))) }
+    var startOfWeek by remember(currentDate, firstDayOfWeek) { mutableStateOf(currentDate.with(TemporalAdjusters.previousOrSame(firstDayOfWeek))) }
     val days = remember(startOfWeek) { (0..6).map { startOfWeek.plusDays(it.toLong()) } }
     
     val weekEvents = remember(events, startOfWeek) {
@@ -88,7 +89,8 @@ fun WeekView(
                 Icon(Icons.Default.ArrowBack, contentDescription = Str.previousWeek.text())
             }
             Text(
-                text = startOfWeek.format(com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "yyyyMMM")),
+                text = startOfWeek.format(com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "yyyyMMM")) +
+                    if (showWeekNumber) " · " + Str.weekShort.text().format(com.example.lifeorganizer.core.settings.MicroSettings.weekNumber(startOfWeek, firstDayOfWeek)) else "",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold
             )
