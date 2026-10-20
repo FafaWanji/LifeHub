@@ -4,11 +4,13 @@ import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.lifeorganizer.habits.HabitsIntegration
+import com.example.lifeorganizer.habits.TaskActions
 import com.example.lifeorganizer.habits.data.Habit
 import com.example.lifeorganizer.habits.data.HabitCheck
 import com.example.lifeorganizer.habits.data.HabitDatabase
 import com.example.lifeorganizer.habits.data.TaskItem
 import com.example.lifeorganizer.habits.domain.HabitSchedule
+import com.example.lifeorganizer.habits.domain.TaskQuickParse
 import com.example.lifeorganizer.habits.reminder.HabitReminders
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -38,6 +40,9 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
 
     val tasks: StateFlow<List<TaskItem>> = dao.tasks().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    /** All points ever earned with tasks, including deleted ones. */
+    val totalPoints: StateFlow<Int> = dao.totalPoints().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+
     fun toggleHabit(row: HabitRow) = viewModelScope.launch {
         val check = HabitCheck(row.habit.id, today.toEpochDay())
         if (row.doneToday) dao.deleteCheck(check) else dao.insertCheck(check)
@@ -63,12 +68,24 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
     }
 
     fun saveTask(task: TaskItem) = viewModelScope.launch {
-        val saved = if (task.id == 0L) task.copy(id = dao.insertTask(task)) else { dao.updateTask(task); task }
+        // Reminder times before this save were planned differently, so they are not caught up after a reboot
+        val edited = task.copy(lastReminderAt = System.currentTimeMillis())
+        val saved = if (edited.id == 0L) edited.copy(id = dao.insertTask(edited)) else { dao.updateTask(edited); edited }
         HabitReminders.scheduleTask(app, saved)
         HabitsIntegration.changed(app)
     }
 
-    fun toggleTask(task: TaskItem) = saveTask(task.copy(doneAt = if (task.doneAt == null) System.currentTimeMillis() else null))
+    /** "Exercise 5 tomorrow 14:00" → a task with that deadline and the default reminders. */
+    fun quickAddTask(text: String) {
+        val parsed = TaskQuickParse.parse(text) ?: return
+        saveTask(TaskItem(title = parsed.title, dueEpochDay = parsed.dueEpochDay, dueMinute = parsed.dueMinute))
+    }
+
+    /** Ticks off (points if in time) or back on (points taken back); see [TaskActions]. */
+    fun toggleTask(task: TaskItem) = viewModelScope.launch { TaskActions.setDone(app, task.id, done = task.doneAt == null) }
+
+    /** After notifications or exact alarms were allowed in the system settings. */
+    fun rescheduleAll() = viewModelScope.launch { HabitReminders.scheduleAll(app) }
 
     fun deleteTask(task: TaskItem) = viewModelScope.launch {
         HabitReminders.cancelTask(app, task.id)

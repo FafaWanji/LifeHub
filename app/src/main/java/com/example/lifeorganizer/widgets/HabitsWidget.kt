@@ -45,12 +45,15 @@ import com.example.lifeorganizer.R
 import com.example.lifeorganizer.core.settings.AppModule
 import com.example.lifeorganizer.core.settings.SettingsManager
 import com.example.lifeorganizer.core.settings.enabledModules
+import com.example.lifeorganizer.habits.TaskActions
 import com.example.lifeorganizer.habits.data.HabitCheck
 import com.example.lifeorganizer.habits.data.HabitDatabase
 import com.example.lifeorganizer.habits.domain.HabitSchedule
+import com.example.lifeorganizer.habits.domain.TaskDeadline
 import com.example.lifeorganizer.habits.reminder.HabitReminders
 import com.example.lifeorganizer.habits.ui.HabitsStr
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
@@ -88,8 +91,12 @@ class HabitsWidget : GlanceAppWidget() {
                 .map { h ->
                     WidgetRow("habit", h.id, h.title, h.id in doneToday, h.reminderMinutes?.let { "%02d:%02d".format(it / 60, it % 60) }, false)
                 }
-            val taskRows = tasks.filter { it.doneAt == null }
-                .map { t -> WidgetRow("task", t.id, t.title, false, t.dueEpochDay?.let { dueLabel(it, today, lang) }, t.dueEpochDay?.let { it < today.toEpochDay() } == true) }
+            // Overdue by the deadline time, not only by the day
+            val now = LocalDateTime.now()
+            val taskRows = tasks.filter { it.doneAt == null }.map { t ->
+                val deadline = TaskDeadline.deadline(t.dueEpochDay, t.dueMinute)
+                WidgetRow("task", t.id, t.title, false, deadline?.let { dueLabel(it, today, lang) }, TaskDeadline.isMissed(deadline, now))
+            }
             val rows = when (filter) {
                 WidgetFilter.HABITS -> habitRows
                 WidgetFilter.TASKS -> taskRows
@@ -188,20 +195,24 @@ class HabitsWidget : GlanceAppWidget() {
         val KIND = ActionParameters.Key<String>("kind")
         val ID = ActionParameters.Key<Long>("id")
 
-        /** "Today", "Tomorrow" or a short date like "18.10.". */
-        private fun dueLabel(epochDay: Long, today: LocalDate, lang: String): String = when (epochDay - today.toEpochDay()) {
-            0L -> HabitsStr.today.of(lang)
-            1L -> HabitsStr.tomorrow.of(lang)
-            else -> LocalDate.ofEpochDay(epochDay).format(
-                DateTimeFormatter.ofPattern(if (lang == "en") "d MMM" else "d. MMM", Locale.forLanguageTag(lang))
-            )
+        /** "Today", "Tomorrow" or a short date like "18. Okt.", with the time unless it is the end of the day. */
+        private fun dueLabel(deadline: LocalDateTime, today: LocalDate, lang: String): String {
+            val day = when (deadline.toLocalDate().toEpochDay() - today.toEpochDay()) {
+                0L -> HabitsStr.today.of(lang)
+                1L -> HabitsStr.tomorrow.of(lang)
+                else -> deadline.toLocalDate().format(
+                    DateTimeFormatter.ofPattern(if (lang == "en") "d MMM" else "d. MMM", Locale.forLanguageTag(lang))
+                )
+            }
+            val minute = deadline.hour * 60 + deadline.minute
+            return if (minute == TaskDeadline.END_OF_DAY) day else "$day %02d:%02d".format(deadline.hour, deadline.minute)
         }
 
         suspend fun refresh(context: Context) = runCatching { HabitsWidget().updateAll(context) }
     }
 }
 
-/** Ticks a habit off for today (or back on) or marks a task done, then re-plans its reminder. */
+/** Ticks a habit off for today (or back on) or marks a task done (points as in the app), then re-plans its reminder. */
 class ToggleWidgetRow : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
         val id = parameters[HabitsWidget.ID] ?: return
@@ -214,12 +225,7 @@ class ToggleWidgetRow : ActionCallback {
                 if (dao.checksSync().any { it.habitId == id && it.epochDay == today }) dao.deleteCheck(check) else dao.insertCheck(check)
                 HabitReminders.scheduleHabit(context, habit)
             }
-            "task" -> {
-                val task = dao.taskById(id) ?: return
-                val done = task.copy(doneAt = System.currentTimeMillis())
-                dao.updateTask(done)
-                HabitReminders.scheduleTask(context, done)
-            }
+            "task" -> TaskActions.setDone(context, id, done = true)
         }
         HabitsWidget.refresh(context)
     }

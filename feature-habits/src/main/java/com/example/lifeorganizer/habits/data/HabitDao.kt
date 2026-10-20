@@ -37,7 +37,7 @@ interface HabitDao {
     @Delete suspend fun deleteCheck(check: HabitCheck)
 
     // Tasks
-    @Query("SELECT * FROM tasks ORDER BY dueEpochDay IS NULL, dueEpochDay, createdAt")
+    @Query("SELECT * FROM tasks ORDER BY dueEpochDay IS NULL, dueEpochDay, dueMinute, createdAt")
     fun tasks(): Flow<List<TaskItem>>
 
     @Query("SELECT * FROM tasks")
@@ -49,4 +49,20 @@ interface HabitDao {
     @Insert suspend fun insertTask(task: TaskItem): Long
     @Update suspend fun updateTask(task: TaskItem)
     @Delete suspend fun deleteTask(task: TaskItem)
+
+    @Query("UPDATE tasks SET lastReminderAt = :at WHERE id = :id")
+    suspend fun setLastReminder(id: Long, at: Long)
+
+    // Points
+    @Query("SELECT COALESCE(SUM(points), 0) FROM task_points")
+    fun totalPoints(): Flow<Int>
+
+    @Query("SELECT * FROM task_points")
+    suspend fun pointsSync(): List<TaskPoints>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPoints(points: TaskPoints)
+
+    @Query("DELETE FROM task_points WHERE taskId = :taskId")
+    suspend fun deletePointsOf(taskId: Long)
 }

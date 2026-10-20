@@ -19,7 +19,10 @@ import com.example.lifeorganizer.habits.data.HabitCheck
 import com.example.lifeorganizer.habits.data.HabitDatabase
 import com.example.lifeorganizer.habits.data.TaskItem
 import com.example.lifeorganizer.habits.domain.HabitSchedule
+import com.example.lifeorganizer.habits.domain.TaskDeadline
 import com.example.lifeorganizer.habits.ui.HabitsStr
+import com.example.lifeorganizer.habits.ui.deadlineLabel
+import com.example.lifeorganizer.habits.ui.offsetLabel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
@@ -29,8 +32,9 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 
 /**
- * Habit reminders (daily at the chosen time on due days) and task reminders (at the time set on the task).
- * Only the next alarm of each item is set; the receiver sets the following one when it fires.
+ * Habit reminders (daily at the chosen time on due days) and task reminders (the chosen times before the deadline
+ * plus one at the deadline itself). Only the next alarm of each item is set; the receiver sets the following one
+ * when it fires. Everything is re-armed after a reboot or an app update.
  */
 object HabitReminders {
     const val ACTION_OPEN_HABITS = "com.example.lifeorganizer.ACTION_HABITS"
@@ -39,6 +43,7 @@ object HabitReminders {
     private const val ACTION_HABIT_DONE = "com.example.lifeorganizer.habits.HABIT_DONE"
     private const val ACTION_TASK_DONE = "com.example.lifeorganizer.habits.TASK_DONE"
     private const val CHANNEL_ID = "habits"
+    private const val EXTRA_OFFSET = "offset"
 
     private fun alarms(context: Context) = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
@@ -90,28 +95,64 @@ object HabitReminders {
         NotificationManagerCompatSafe.cancel(context, notificationId("habit", habitId))
     }
 
-    fun scheduleTask(context: Context, task: TaskItem) {
-        val op = pending(context, ACTION_TASK, "task", task.id)
-        alarms(context).cancel(op)
+    /** Task alarm for the push [offset] minutes before the deadline (0 = at the deadline). */
+    private fun taskPending(context: Context, id: Long, offset: Int) = PendingIntent.getBroadcast(
+        context, 0, intent(context, ACTION_TASK, "task", id).putExtra(EXTRA_OFFSET, offset),
+        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+    )
+
+    /** Arms the next push of an open task; done tasks lose their alarm and notification. */
+    fun scheduleTask(context: Context, task: TaskItem, now: LocalDateTime = LocalDateTime.now()) {
+        alarms(context).cancel(pending(context, ACTION_TASK, "task", task.id))
         if (task.doneAt != null) {
             NotificationManagerCompatSafe.cancel(context, notificationId("task", task.id))
             return
         }
-        val at = task.reminderAt ?: return
-        if (at <= System.currentTimeMillis()) return
-        setAlarm(context, java.time.Instant.ofEpochMilli(at).atZone(ZoneId.systemDefault()).toLocalDateTime(), op)
+        val deadline = TaskDeadline.deadline(task.dueEpochDay, task.dueMinute)
+        if (deadline == null) {
+            // Old task without a deadline: its fixed reminder time, if any
+            val at = task.reminderAt?.let { TaskDeadline.toLocal(it) } ?: return
+            if (at.isAfter(now)) setAlarm(context, at, taskPending(context, task.id, -1))
+            return
+        }
+        val next = TaskDeadline.nextReminder(deadline, TaskDeadline.parseOffsets(task.reminderOffsets), now) ?: return
+        setAlarm(context, next.at, taskPending(context, task.id, next.offsetMinutes))
     }
+
+    /** Whether reminders can come on time: notifications allowed and exact alarms possible. */
+    fun notificationsAllowed(context: Context): Boolean =
+        androidx.core.app.NotificationManagerCompat.from(context).areNotificationsEnabled()
+
+    fun exactAlarmsAllowed(context: Context): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarms(context).canScheduleExactAlarms()
 
     fun cancelTask(context: Context, taskId: Long) {
         alarms(context).cancel(pending(context, ACTION_TASK, "task", taskId))
         NotificationManagerCompatSafe.cancel(context, notificationId("task", taskId))
     }
 
-    /** After a reboot, an app update or a backup import. */
-    suspend fun scheduleAll(context: Context) {
+    /**
+     * After a reboot, an app update, a backup import or when exact alarms were allowed. With [catchUp], a task
+     * push that was due while the phone was off is sent now (only the latest one per task).
+     */
+    suspend fun scheduleAll(context: Context, catchUp: Boolean = false) {
         val dao = HabitDatabase.getDatabase(context).habitDao()
         dao.habitsSync().forEach { scheduleHabit(context, it) }
-        dao.tasksSync().forEach { scheduleTask(context, it) }
+        val now = LocalDateTime.now()
+        val settings = SettingsManager(context)
+        val lang = settings.languageCode.first()
+        val moduleOn = AppModule.HABITS in settings.enabledModules.first()
+        dao.tasksSync().forEach { task ->
+            val deadline = TaskDeadline.deadline(task.dueEpochDay, task.dueMinute)
+            if (catchUp && moduleOn && task.doneAt == null && deadline != null) {
+                val since = TaskDeadline.toLocal(task.lastReminderAt ?: task.createdAt)
+                TaskDeadline.missedReminder(deadline, TaskDeadline.parseOffsets(task.reminderOffsets), since, now)?.let { missed ->
+                    notify(context, lang, "task", task.id, task.title, taskReminderText(task, missed.offsetMinutes, now, lang), ACTION_TASK_DONE)
+                    dao.setLastReminder(task.id, TaskDeadline.toMillis(now))
+                }
+            }
+            scheduleTask(context, task, now)
+        }
     }
 
     private fun ensureChannel(context: Context, lang: String) {
@@ -143,23 +184,26 @@ object HabitReminders {
         NotificationManagerCompatSafe.notify(context, nid, notification)
     }
 
-    /** "Due today", "Due 18 Oct", "Overdue since …" or just "Reminder" without a deadline. */
-    private fun taskReminderText(task: TaskItem, today: LocalDate, lang: String): String {
-        val due = task.dueEpochDay ?: return HabitsStr.reminder.of(lang)
-        val date = LocalDate.ofEpochDay(due)
-        val formatted = date.format(java.time.format.DateTimeFormatter.ofLocalizedDate(java.time.format.FormatStyle.MEDIUM)
-            .withLocale(java.util.Locale.forLanguageTag(lang)))
+    /**
+     * "Deadline in 1 h (today 14:00) – done in time = +10 points", "Deadline now (14:00)", "Deadline missed (…)"
+     * or just "Reminder" for an old task without a deadline.
+     */
+    private fun taskReminderText(task: TaskItem, offset: Int, now: LocalDateTime, lang: String): String {
+        val deadline = TaskDeadline.deadline(task.dueEpochDay, task.dueMinute) ?: return HabitsStr.reminder.of(lang)
+        val at = deadlineLabel(deadline, now.toLocalDate(), lang)
         return when {
-            date == today -> HabitsStr.taskReminderText.of(lang)
-            date.isAfter(today) -> HabitsStr.dueOn.of(lang).format(formatted)
-            else -> HabitsStr.overdueSince.of(lang).format(formatted)
+            TaskDeadline.isMissed(deadline, now) -> HabitsStr.deadlineMissedAt.of(lang).format(at)
+            offset <= 0 -> HabitsStr.deadlineNow.of(lang).format(at)
+            else -> HabitsStr.deadlineIn.of(lang).format(offsetLabel(offset, lang), at, TaskDeadline.POINTS_ON_TIME)
         }
     }
 
     internal suspend fun handle(context: Context, intent: Intent) {
         val app = context.applicationContext
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED || intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
-            scheduleAll(app); return
+        when (intent.action) {
+            Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_MY_PACKAGE_REPLACED -> { scheduleAll(app, catchUp = true); return }
+            // Exact alarms were just allowed: re-arm so pushes come on the minute
+            AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED -> { scheduleAll(app); return }
         }
         val id = intent.data?.host?.toLongOrNull() ?: return
         val dao = HabitDatabase.getDatabase(app).habitDao()
@@ -179,7 +223,13 @@ object HabitReminders {
             }
             ACTION_TASK -> {
                 val task = dao.taskById(id) ?: return
-                if (moduleOn && task.doneAt == null) notify(app, lang, "task", id, task.title, taskReminderText(task, today, lang), ACTION_TASK_DONE)
+                val now = LocalDateTime.now()
+                if (moduleOn && task.doneAt == null) {
+                    notify(app, lang, "task", id, task.title, taskReminderText(task, intent.getIntExtra(EXTRA_OFFSET, 0), now, lang), ACTION_TASK_DONE)
+                }
+                dao.setLastReminder(id, TaskDeadline.toMillis(now))
+                // Switched off it stays quiet, but the chain goes on up to the deadline
+                scheduleTask(app, task, now)
             }
             ACTION_HABIT_DONE -> {
                 dao.insertCheck(HabitCheck(id, today.toEpochDay()))
@@ -187,9 +237,9 @@ object HabitReminders {
                 com.example.lifeorganizer.habits.HabitsIntegration.changed(app)
             }
             ACTION_TASK_DONE -> {
-                dao.taskById(id)?.let { dao.updateTask(it.copy(doneAt = System.currentTimeMillis())) }
+                // Same rules as in the app: points if in time, alarm and notification cleared
+                com.example.lifeorganizer.habits.TaskActions.setDone(app, id, done = true)
                 NotificationManagerCompatSafe.cancel(app, notificationId("task", id))
-                com.example.lifeorganizer.habits.HabitsIntegration.changed(app)
             }
         }
     }

@@ -2,15 +2,20 @@ package com.example.lifeorganizer.habits.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
@@ -27,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.lifeorganizer.core.i18n.LocalAppLanguage
@@ -34,11 +40,9 @@ import com.example.lifeorganizer.core.i18n.text
 import com.example.lifeorganizer.habits.data.Habit
 import com.example.lifeorganizer.habits.data.TaskItem
 import com.example.lifeorganizer.habits.domain.HabitSchedule
+import com.example.lifeorganizer.habits.domain.TaskDeadline
 import java.time.DayOfWeek
-import java.time.Instant
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 import java.util.Locale
@@ -46,12 +50,6 @@ import java.util.Locale
 private const val DAY_MS = 86_400_000L
 /** Suggested reminder time for a new habit: 08:00. */
 private const val DEFAULT_REMINDER = 8 * 60
-
-/** Suggested task reminder: 09:00 on the deadline if that is still ahead, otherwise the next full hour. */
-internal fun defaultTaskReminder(due: Long?, now: LocalDateTime = LocalDateTime.now()): LocalDateTime {
-    val onDeadline = due?.let { LocalDate.ofEpochDay(it).atTime(9, 0) }
-    return onDeadline?.takeIf { it.isAfter(now) } ?: now.plusHours(1).withMinute(0).withSecond(0).withNano(0)
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,19 +116,19 @@ fun HabitDialog(initial: Habit, onDismiss: () -> Unit, onSave: (Habit) -> Unit, 
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun TaskDialog(initial: TaskItem, onDismiss: () -> Unit, onSave: (TaskItem) -> Unit, onDelete: (() -> Unit)?) {
     val lang = LocalAppLanguage.current
+    val today = LocalDate.now()
     var title by remember { mutableStateOf(initial.title) }
     var note by remember { mutableStateOf(initial.note) }
     var due by remember { mutableStateOf(initial.dueEpochDay) }
+    var dueMinute by remember { mutableIntStateOf(initial.dueMinute) }
+    var offsets by remember { mutableStateOf(TaskDeadline.parseOffsets(initial.reminderOffsets).toSet()) }
     var pickDate by remember { mutableStateOf(false) }
-    var reminder by remember {
-        mutableStateOf(initial.reminderAt?.let { Instant.ofEpochMilli(it).atZone(ZoneId.systemDefault()).toLocalDateTime() })
-    }
-    var pickReminderDate by remember { mutableStateOf(false) }
-    var pickReminderTime by remember { mutableStateOf(false) }
+    var pickTime by remember { mutableStateOf(false) }
+    var ownOffset by remember { mutableStateOf(false) }
     val dateFormat = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.forLanguageTag(lang))
 
     AlertDialog(
@@ -143,23 +141,37 @@ fun TaskDialog(initial: TaskItem, onDismiss: () -> Unit, onSave: (TaskItem) -> U
                     singleLine = true, modifier = Modifier.fillMaxWidth()
                 )
                 Text(HabitsStr.deadline.text())
-                OutlinedButton(onClick = { pickDate = true }, modifier = Modifier.fillMaxWidth()) {
-                    Text(
-                        due?.let { LocalDate.ofEpochDay(it).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.forLanguageTag(lang))) }
-                            ?: HabitsStr.noDeadline.text()
-                    )
-                }
-                if (due != null) TextButton(onClick = { due = null }) { Text(HabitsStr.removeDeadline.text()) }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(HabitsStr.reminder.text(), Modifier.weight(1f))
-                    Switch(checked = reminder != null, onCheckedChange = { on -> reminder = if (on) defaultTaskReminder(due) else null })
-                }
-                reminder?.let { at ->
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                        OutlinedButton(onClick = { pickReminderDate = true }, modifier = Modifier.weight(1f)) { Text(at.toLocalDate().format(dateFormat)) }
-                        OutlinedButton(onClick = { pickReminderTime = true }) { Text(formatTime(at.hour * 60 + at.minute)) }
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(HabitsStr.today to 0L, HabitsStr.tomorrow to 1L, HabitsStr.nextWeek to 7L).forEach { (label, plus) ->
+                        val day = today.plusDays(plus).toEpochDay()
+                        FilterChip(selected = due == day, onClick = { due = day }, label = { Text(label.text()) })
                     }
                 }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+                    OutlinedButton(onClick = { pickDate = true }, modifier = Modifier.weight(1f)) {
+                        Text(due?.let { LocalDate.ofEpochDay(it).format(dateFormat) } ?: HabitsStr.noDeadline.text(), maxLines = 1)
+                    }
+                    OutlinedButton(onClick = { pickTime = true }) { Text(formatTime(dueMinute)) }
+                }
+                if (due == null) Text(
+                    HabitsStr.pickDeadline.text(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error
+                )
+                Text(HabitsStr.remindBefore.text())
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    // Presets plus any own values the task already has
+                    (TaskDeadline.PRESET_OFFSETS + offsets).distinct().sorted().forEach { minutes ->
+                        FilterChip(
+                            selected = minutes in offsets,
+                            onClick = { offsets = if (minutes in offsets) offsets - minutes else offsets + minutes },
+                            label = { Text(offsetLabel(minutes, lang)) }
+                        )
+                    }
+                    AssistChip(onClick = { ownOffset = true }, label = { Text("+ " + HabitsStr.ownReminder.text()) })
+                }
+                Text(
+                    HabitsStr.alwaysAtDeadline.text(), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
                 OutlinedTextField(
                     value = note, onValueChange = { note = it }, label = { Text(HabitsStr.note.text()) },
                     modifier = Modifier.fillMaxWidth()
@@ -170,11 +182,13 @@ fun TaskDialog(initial: TaskItem, onDismiss: () -> Unit, onSave: (TaskItem) -> U
             }
         },
         confirmButton = {
-            TextButton(enabled = title.isNotBlank(), onClick = {
+            TextButton(enabled = title.isNotBlank() && due != null, onClick = {
                 onSave(
                     initial.copy(
-                        title = title.trim(), note = note.trim(), dueEpochDay = due,
-                        reminderAt = reminder?.atZone(ZoneId.systemDefault())?.toInstant()?.toEpochMilli()
+                        title = title.trim(), note = note.trim(), dueEpochDay = due, dueMinute = dueMinute,
+                        reminderOffsets = TaskDeadline.formatOffsets(offsets),
+                        // The fixed reminder of old tasks is replaced by the reminders before the deadline
+                        reminderAt = null
                     )
                 )
             }) { Text(HabitsStr.save.text()) }
@@ -183,16 +197,12 @@ fun TaskDialog(initial: TaskItem, onDismiss: () -> Unit, onSave: (TaskItem) -> U
     )
 
     if (pickDate) {
-        val state = rememberDatePickerState(initialSelectedDateMillis = (due ?: LocalDate.now().toEpochDay()) * DAY_MS)
+        val state = rememberDatePickerState(initialSelectedDateMillis = (due ?: today.toEpochDay()) * DAY_MS)
         DatePickerDialog(
             onDismissRequest = { pickDate = false },
             confirmButton = {
                 TextButton(onClick = {
-                    state.selectedDateMillis?.let { picked ->
-                        due = picked / DAY_MS
-                        // A new task with a deadline gets a reminder on that morning unless one was set already
-                        if (initial.id == 0L && reminder == null) reminder = defaultTaskReminder(due)
-                    }
+                    state.selectedDateMillis?.let { picked -> due = picked / DAY_MS }
                     pickDate = false
                 }) { Text(HabitsStr.save.text()) }
             },
@@ -200,35 +210,49 @@ fun TaskDialog(initial: TaskItem, onDismiss: () -> Unit, onSave: (TaskItem) -> U
         ) { DatePicker(state) }
     }
 
-    if (pickReminderDate) {
-        val state = rememberDatePickerState(initialSelectedDateMillis = (reminder ?: defaultTaskReminder(due)).toLocalDate().toEpochDay() * DAY_MS)
-        DatePickerDialog(
-            onDismissRequest = { pickReminderDate = false },
-            confirmButton = {
-                TextButton(onClick = {
-                    state.selectedDateMillis?.let { picked ->
-                        val time = (reminder ?: defaultTaskReminder(due)).toLocalTime()
-                        reminder = LocalDate.ofEpochDay(picked / DAY_MS).atTime(time)
-                    }
-                    pickReminderDate = false
-                }) { Text(HabitsStr.save.text()) }
-            },
-            dismissButton = { TextButton(onClick = { pickReminderDate = false }) { Text(HabitsStr.cancel.text()) } }
-        ) { DatePicker(state) }
-    }
-
-    if (pickReminderTime) {
-        val start = reminder ?: defaultTaskReminder(due)
-        val state = rememberTimePickerState(initialHour = start.hour, initialMinute = start.minute, is24Hour = true)
+    if (pickTime) {
+        val state = rememberTimePickerState(initialHour = dueMinute / 60, initialMinute = dueMinute % 60, is24Hour = true)
         AlertDialog(
-            onDismissRequest = { pickReminderTime = false },
+            onDismissRequest = { pickTime = false },
+            title = { Text(HabitsStr.time.text()) },
             text = { TimePicker(state) },
             confirmButton = {
-                TextButton(onClick = { reminder = start.withHour(state.hour).withMinute(state.minute); pickReminderTime = false }) {
-                    Text(HabitsStr.save.text())
-                }
+                TextButton(onClick = { dueMinute = state.hour * 60 + state.minute; pickTime = false }) { Text(HabitsStr.save.text()) }
             },
-            dismissButton = { TextButton(onClick = { pickReminderTime = false }) { Text(HabitsStr.cancel.text()) } }
+            dismissButton = { TextButton(onClick = { pickTime = false }) { Text(HabitsStr.cancel.text()) } }
         )
     }
+
+    if (ownOffset) OwnOffsetDialog(onDismiss = { ownOffset = false }, onAdd = { offsets = offsets + it; ownOffset = false })
+}
+
+/** Own reminder like "90 minutes" or "4 days" before the deadline. */
+@Composable
+private fun OwnOffsetDialog(onDismiss: () -> Unit, onAdd: (Int) -> Unit) {
+    var amount by remember { mutableStateOf("") }
+    var unit by remember { mutableIntStateOf(60) }
+    // Up to a year before is plenty
+    val minutes = amount.trim().toIntOrNull()?.takeIf { it in 1..525_600 }?.times(unit)?.takeIf { it in 1..525_600 }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(HabitsStr.ownReminderTitle.text()) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = amount, onValueChange = { v -> amount = v.filter { it.isDigit() }.take(6) },
+                    label = { Text(HabitsStr.amount.text()) }, singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth()
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(HabitsStr.unitMinutes to 1, HabitsStr.unitHours to 60, HabitsStr.unitDays to 1440).forEach { (label, factor) ->
+                        FilterChip(selected = unit == factor, onClick = { unit = factor }, label = { Text(label.text()) })
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = minutes != null, onClick = { minutes?.let(onAdd) }) { Text(HabitsStr.add.text()) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(HabitsStr.cancel.text()) } }
+    )
 }

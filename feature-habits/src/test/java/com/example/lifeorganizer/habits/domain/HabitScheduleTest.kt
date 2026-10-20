@@ -44,10 +44,20 @@ class HabitScheduleTest {
     @Test
     fun tasksAreGroupedByDeadline() {
         val t = today.toEpochDay()
-        assertEquals(TaskGroup.OVERDUE, taskGroup(t - 1, today))
-        assertEquals(TaskGroup.TODAY, taskGroup(t, today))
-        assertEquals(TaskGroup.SOON, taskGroup(t + 7, today))
-        assertEquals(TaskGroup.LATER, taskGroup(t + 8, today))
-        assertEquals(TaskGroup.NO_DEADLINE, taskGroup(null, today))
+        val noon = today.atTime(12, 0)
+        assertEquals(TaskGroup.OVERDUE, taskGroup(t - 1, TaskDeadline.END_OF_DAY, noon))
+        assertEquals(TaskGroup.TODAY, taskGroup(t, TaskDeadline.END_OF_DAY, noon))
+        assertEquals(TaskGroup.SOON, taskGroup(t + 7, 0, noon))
+        assertEquals(TaskGroup.LATER, taskGroup(t + 8, 0, noon))
+        assertEquals(TaskGroup.NO_DEADLINE, taskGroup(null, TaskDeadline.END_OF_DAY, noon))
+    }
+
+    @Test
+    fun taskIsOverdueRightAfterItsDeadlineTime() {
+        val t = today.toEpochDay()
+        // Due today 14:00: still today at 14:00, overdue from 14:01
+        assertEquals(TaskGroup.TODAY, taskGroup(t, 14 * 60, today.atTime(13, 59)))
+        assertEquals(TaskGroup.TODAY, taskGroup(t, 14 * 60, today.atTime(14, 0, 59)))
+        assertEquals(TaskGroup.OVERDUE, taskGroup(t, 14 * 60, today.atTime(14, 1)))
     }
 }

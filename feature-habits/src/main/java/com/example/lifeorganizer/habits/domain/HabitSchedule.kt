@@ -2,6 +2,7 @@ package com.example.lifeorganizer.habits.domain
 
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 /** Weekday bit masks and streaks, free of Android so they can be unit-tested. */
 object HabitSchedule {
@@ -34,13 +35,15 @@ object HabitSchedule {
 /** Where an open task belongs on the "Today" list. */
 enum class TaskGroup { OVERDUE, TODAY, SOON, LATER, NO_DEADLINE }
 
-fun taskGroup(dueEpochDay: Long?, today: LocalDate, soonDays: Int = 7): TaskGroup {
-    if (dueEpochDay == null) return TaskGroup.NO_DEADLINE
-    val t = today.toEpochDay()
+/** Grouped by the deadline time: a task due today at 14:00 is overdue from 14:01 on. */
+fun taskGroup(dueEpochDay: Long?, dueMinute: Int, now: LocalDateTime, soonDays: Int = 7): TaskGroup {
+    val deadline = TaskDeadline.deadline(dueEpochDay, dueMinute) ?: return TaskGroup.NO_DEADLINE
+    val t = now.toLocalDate().toEpochDay()
+    val day = deadline.toLocalDate().toEpochDay()
     return when {
-        dueEpochDay < t -> TaskGroup.OVERDUE
-        dueEpochDay == t -> TaskGroup.TODAY
-        dueEpochDay <= t + soonDays -> TaskGroup.SOON
+        TaskDeadline.isMissed(deadline, now) -> TaskGroup.OVERDUE
+        day == t -> TaskGroup.TODAY
+        day <= t + soonDays -> TaskGroup.SOON
         else -> TaskGroup.LATER
     }
 }

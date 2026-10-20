@@ -1,5 +1,10 @@
 package com.example.lifeorganizer.habits.ui
 
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,11 +18,17 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.outlined.EmojiEvents
 import androidx.compose.material.icons.outlined.LocalFireDepartment
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.NotificationsOff
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -27,6 +38,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -34,9 +46,11 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Tab
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,8 +59,11 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.lifeorganizer.core.i18n.LocalAppLanguage
@@ -55,13 +72,13 @@ import com.example.lifeorganizer.core.i18n.text
 import com.example.lifeorganizer.habits.data.Habit
 import com.example.lifeorganizer.habits.data.TaskItem
 import com.example.lifeorganizer.habits.domain.HabitSchedule
+import com.example.lifeorganizer.habits.domain.TaskDeadline
 import com.example.lifeorganizer.habits.domain.TaskGroup
 import com.example.lifeorganizer.habits.domain.taskGroup
+import com.example.lifeorganizer.habits.reminder.HabitReminders
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.time.format.FormatStyle
-import java.util.Locale
+import java.time.LocalDateTime
 
 enum class HabitsTab { TODAY, TASKS, HABITS }
 
@@ -71,13 +88,22 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
     val lang = LocalAppLanguage.current
     val habits by vm.habits.collectAsStateWithLifecycle()
     val tasks by vm.tasks.collectAsStateWithLifecycle()
+    val totalPoints by vm.totalPoints.collectAsStateWithLifecycle()
+    var quickText by rememberSaveable { mutableStateOf("") }
     var tab by rememberSaveable { mutableStateOf(HabitsTab.TODAY) }
     var editHabit by remember { mutableStateOf<Habit?>(null) }
     var editTask by remember { mutableStateOf<TaskItem?>(null) }
     var showAddMenu by remember { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
-    val today = LocalDate.now()
+    // Ticks every minute, so a task moves to "Overdue" right when its deadline has passed
+    var now by remember { mutableStateOf(LocalDateTime.now()) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(60_000L - System.currentTimeMillis() % 60_000L)
+            now = LocalDateTime.now()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -124,7 +150,7 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
                 when (tab) {
                     HabitsTab.TODAY -> {
                         val dueHabits = habits.filter { it.dueToday }
-                        val urgent = openTasks.filter { taskGroup(it.dueEpochDay, today).let { g -> g == TaskGroup.OVERDUE || g == TaskGroup.TODAY } }
+                        val urgent = openTasks.filter { taskGroup(it.dueEpochDay, it.dueMinute, now).let { g -> g == TaskGroup.OVERDUE || g == TaskGroup.TODAY } }
                         if (dueHabits.isEmpty() && urgent.isEmpty()) item { EmptyHint(HabitsStr.nothingToday.text()) }
                         if (dueHabits.isNotEmpty()) {
                             header(HabitsStr.habits.of(lang))
@@ -132,12 +158,17 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
                                 HabitItem(row, lang, onToggle = { vm.toggleHabit(row) }, onClick = { editHabit = row.habit })
                             }
                         }
-                        taskSection(HabitsStr.overdue.of(lang), urgent.filter { taskGroup(it.dueEpochDay, today) == TaskGroup.OVERDUE }, today, lang, vm) { editTask = it }
-                        taskSection(HabitsStr.dueToday.of(lang), urgent.filter { taskGroup(it.dueEpochDay, today) == TaskGroup.TODAY }, today, lang, vm) { editTask = it }
+                        taskSection(HabitsStr.overdue.of(lang), urgent.filter { taskGroup(it.dueEpochDay, it.dueMinute, now) == TaskGroup.OVERDUE }, now, lang, vm) { editTask = it }
+                        taskSection(HabitsStr.dueToday.of(lang), urgent.filter { taskGroup(it.dueEpochDay, it.dueMinute, now) == TaskGroup.TODAY }, now, lang, vm) { editTask = it }
                     }
                     HabitsTab.TASKS -> {
+                        item(key = "points") { PointsHeader(totalPoints, lang) }
+                        item(key = "permissions") { ReminderPermissionBanner(lang, onAllowed = { vm.rescheduleAll() }) }
+                        item(key = "quickAdd") {
+                            QuickAddTask(quickText, { quickText = it }, lang) { vm.quickAddTask(quickText); quickText = "" }
+                        }
                         if (tasks.isEmpty()) item { EmptyHint(HabitsStr.noTasks.text()) }
-                        val groups = openTasks.groupBy { taskGroup(it.dueEpochDay, today) }
+                        val groups = openTasks.groupBy { taskGroup(it.dueEpochDay, it.dueMinute, now) }
                         TaskGroup.entries.forEach { g ->
                             val title = when (g) {
                                 TaskGroup.OVERDUE -> HabitsStr.overdue
@@ -146,12 +177,12 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
                                 TaskGroup.LATER -> HabitsStr.later
                                 TaskGroup.NO_DEADLINE -> HabitsStr.noDeadline
                             }.of(lang)
-                            taskSection(title, groups[g].orEmpty(), today, lang, vm) { editTask = it }
+                            taskSection(title, groups[g].orEmpty(), now, lang, vm) { editTask = it }
                         }
                         // Recently done, newest first; older ones stay saved but out of the way
                         taskSection(
                             HabitsStr.done.of(lang),
-                            tasks.filter { it.doneAt != null }.sortedByDescending { it.doneAt }.take(30), today, lang, vm
+                            tasks.filter { it.doneAt != null }.sortedByDescending { it.doneAt }.take(30), now, lang, vm
                         ) { editTask = it }
                     }
                     HabitsTab.HABITS -> {
@@ -202,11 +233,94 @@ private fun LazyListScope.header(title: String) = item(key = "header_$title") {
 }
 
 private fun LazyListScope.taskSection(
-    title: String, tasks: List<TaskItem>, today: LocalDate, lang: String, vm: HabitsViewModel, onClick: (TaskItem) -> Unit
+    title: String, tasks: List<TaskItem>, now: LocalDateTime, lang: String, vm: HabitsViewModel, onClick: (TaskItem) -> Unit
 ) {
     if (tasks.isEmpty()) return
     header(title)
-    items(tasks, key = { "t${it.id}" }) { task -> TaskItemRow(task, today, lang, onToggle = { vm.toggleTask(task) }, onClick = { onClick(task) }) }
+    items(tasks, key = { "t${it.id}" }) { task -> TaskItemRow(task, now, lang, onToggle = { vm.toggleTask(task) }, onClick = { onClick(task) }) }
+}
+
+/** Total at the top of the tasks tab. */
+@Composable
+private fun PointsHeader(total: Int, lang: String) {
+    ListItem(
+        leadingContent = { Icon(Icons.Outlined.EmojiEvents, null, tint = MaterialTheme.colorScheme.tertiary) },
+        headlineContent = { Text(HabitsStr.points.of(lang).format(total), style = MaterialTheme.typography.titleMedium) },
+        supportingContent = { Text(HabitsStr.pointsHint.of(lang).format(TaskDeadline.POINTS_ON_TIME)) }
+    )
+}
+
+/** Type a task with its deadline in one line, e.g. "Exercise 5 tomorrow 14:00". */
+@Composable
+private fun QuickAddTask(text: String, onText: (String) -> Unit, lang: String, onAdd: () -> Unit) {
+    val add = { if (text.isNotBlank()) onAdd() }
+    OutlinedTextField(
+        value = text, onValueChange = onText, singleLine = true,
+        placeholder = { Text(HabitsStr.quickAdd.of(lang), maxLines = 1) },
+        trailingIcon = {
+            IconButton(onClick = add, enabled = text.isNotBlank()) { Icon(Icons.Default.Add, HabitsStr.add.of(lang)) }
+        },
+        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { add() }),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
+    )
+}
+
+/**
+ * Shown when reminders could not come (on time): notifications off or exact alarms not allowed.
+ * Checked again whenever the screen comes back, e.g. from the system settings.
+ */
+@Composable
+private fun ReminderPermissionBanner(lang: String, onAllowed: () -> Unit) {
+    val context = LocalContext.current
+    var notifications by remember { mutableStateOf(HabitReminders.notificationsAllowed(context)) }
+    var exact by remember { mutableStateOf(HabitReminders.exactAlarmsAllowed(context)) }
+    LifecycleResumeEffect(Unit) {
+        val n = HabitReminders.notificationsAllowed(context)
+        val e = HabitReminders.exactAlarmsAllowed(context)
+        if ((n && !notifications) || (e && !exact)) onAllowed()
+        notifications = n
+        exact = e
+        onPauseOrDispose { }
+    }
+    val problems = buildList<Pair<String, () -> Unit>> {
+        if (!notifications) add(HabitsStr.notificationsOff.of(lang) to {
+            context.startSettings(
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                } else {
+                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:${context.packageName}"))
+                }
+            )
+        })
+        if (!exact && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) add(HabitsStr.exactAlarmsOff.of(lang) to {
+            context.startSettings(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, Uri.parse("package:${context.packageName}")))
+        })
+    }
+    if (problems.isEmpty()) return
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
+    ) {
+        problems.forEach { (text, open) ->
+            Row(Modifier.padding(start = 16.dp, end = 8.dp, top = 4.dp, bottom = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Outlined.NotificationsOff, null, tint = MaterialTheme.colorScheme.onErrorContainer)
+                Text(
+                    text, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onErrorContainer,
+                    modifier = Modifier.weight(1f).padding(horizontal = 12.dp)
+                )
+                TextButton(onClick = open) { Text(HabitsStr.openSettings.of(lang)) }
+            }
+        }
+    }
+}
+
+/** Falls back to the app's settings page where a special settings screen does not exist. */
+private fun Context.startSettings(intent: Intent) {
+    val flags = Intent.FLAG_ACTIVITY_NEW_TASK
+    runCatching { startActivity(intent.addFlags(flags)) }.onFailure {
+        runCatching { startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS, Uri.parse("package:$packageName")).addFlags(flags)) }
+    }
 }
 
 @Composable
@@ -257,17 +371,24 @@ private fun HabitItem(row: HabitRow, lang: String, showSchedule: Boolean = false
 }
 
 @Composable
-private fun TaskItemRow(task: TaskItem, today: LocalDate, lang: String, onToggle: () -> Unit, onClick: () -> Unit) {
+private fun TaskItemRow(task: TaskItem, now: LocalDateTime, lang: String, onToggle: () -> Unit, onClick: () -> Unit) {
     val done = task.doneAt != null
-    val overdue = !done && task.dueEpochDay != null && task.dueEpochDay < today.toEpochDay()
-    val due = task.dueEpochDay?.let {
-        LocalDate.ofEpochDay(it).format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.forLanguageTag(lang)))
+    val deadline = TaskDeadline.deadline(task.dueEpochDay, task.dueMinute)
+    val missed = !done && TaskDeadline.isMissed(deadline, now)
+    val due = deadline?.let { deadlineLabel(it, now.toLocalDate(), lang) }
+    val onTime = deadline != null && task.doneAt != null && TaskDeadline.points(deadline, TaskDeadline.toLocal(task.doneAt)) > 0
+    // Done: "+10" or "0 – too late"; open past the deadline: "Deadline missed"
+    val status = when {
+        onTime -> HabitsStr.pointsEarned.of(lang).format(TaskDeadline.POINTS_ON_TIME)
+        done && deadline != null -> HabitsStr.tooLate.of(lang)
+        missed -> HabitsStr.deadlineMissed.of(lang)
+        else -> null
     }
-    // Upcoming reminder of an open task, e.g. "18.10. 09:00"
-    val remind = task.reminderAt?.takeIf { !done && it > System.currentTimeMillis() }?.let {
-        val at = java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()).toLocalDateTime()
-        at.format(DateTimeFormatter.ofLocalizedDateTime(FormatStyle.SHORT).withLocale(Locale.forLanguageTag(lang)))
-    }
+    // Next push of an open task, e.g. "Tomorrow 13:00"; the one at the deadline is not repeated here
+    val remind = if (done) null else {
+        deadline?.let { d -> TaskDeadline.nextReminder(d, TaskDeadline.parseOffsets(task.reminderOffsets), now)?.takeIf { it.offsetMinutes > 0 }?.at }
+            ?: task.reminderAt?.let { TaskDeadline.toLocal(it) }?.takeIf { deadline == null && it.isAfter(now) }
+    }?.let { deadlineLabel(it, now.toLocalDate(), lang) }
     val details = listOfNotNull(due, task.note.lineSequence().firstOrNull()?.takeIf { it.isNotBlank() }).joinToString(" · ")
     ListItem(
         modifier = Modifier.clickable(onClick = onClick),
@@ -276,7 +397,7 @@ private fun TaskItemRow(task: TaskItem, today: LocalDate, lang: String, onToggle
         supportingContent = if (details.isEmpty() && remind == null) null else ({
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 if (details.isNotEmpty()) Text(
-                    details, color = if (overdue) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                    details, color = if (missed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1, modifier = Modifier.weight(1f, fill = false)
                 )
                 if (remind != null) {
@@ -284,6 +405,16 @@ private fun TaskItemRow(task: TaskItem, today: LocalDate, lang: String, onToggle
                     Text(remind, maxLines = 1)
                 }
             }
+        }),
+        trailingContent = if (status == null) null else ({
+            Text(
+                status, style = MaterialTheme.typography.labelLarge,
+                color = when {
+                    onTime -> MaterialTheme.colorScheme.tertiary
+                    missed -> MaterialTheme.colorScheme.error
+                    else -> MaterialTheme.colorScheme.onSurfaceVariant
+                }
+            )
         })
     )
 }
