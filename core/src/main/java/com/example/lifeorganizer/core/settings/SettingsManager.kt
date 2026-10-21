@@ -87,8 +87,9 @@ class SettingsManager(private val context: Context) {
     suspend fun saveGeminiApiKey(key: String?) = context.dataStore.edit { if (key == null) it.remove(GEMINI_API_KEY) else it[GEMINI_API_KEY] = key }
     suspend fun saveEnableSmartAlarms(enable: Boolean) = context.dataStore.edit { it[ENABLE_SMART_ALARMS] = enable }
     suspend fun saveUseSystemAlarmForReminders(enable: Boolean) = context.dataStore.edit { it[USE_SYSTEM_ALARM] = enable }
-    suspend fun saveConfirmOnTimeClaim(confirm: Boolean) = context.dataStore.edit { it[CONFIRM_ON_TIME_CLAIM] = confirm }
-    suspend fun saveOnTimeClaimUsed() = context.dataStore.edit { it[ON_TIME_CLAIM_USED] = true }
+    // Block bodies: modules without DataStore on their classpath call these (edit returns Preferences)
+    suspend fun saveConfirmOnTimeClaim(confirm: Boolean) { context.dataStore.edit { it[CONFIRM_ON_TIME_CLAIM] = confirm } }
+    suspend fun saveOnTimeClaimUsed() { context.dataStore.edit { it[ON_TIME_CLAIM_USED] = true } }
     suspend fun saveModuleEnabled(key: String, enabled: Boolean) = context.dataStore.edit {
         val off = it[DISABLED_MODULES] ?: emptySet()
         it[DISABLED_MODULES] = if (enabled) off - key else off + key
