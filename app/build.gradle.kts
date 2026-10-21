@@ -46,6 +46,14 @@ android {
     }
 
     signingConfigs {
+        // Beta builds (GitHub Actions, "beta" branch) use their own key kept in the repo, so every beta updates
+        // the previous one. It is not the release key: betas install next to the normal app (".beta" id).
+        create("beta") {
+            storeFile = file("beta.keystore")
+            storePassword = "lifehub-beta"
+            keyAlias = "lifehub-beta"
+            keyPassword = "lifehub-beta"
+        }
         localProps.getProperty("RELEASE_STORE_FILE")?.let { storePath ->
             create("release") {
                 storeFile = file(storePath)
@@ -63,6 +71,15 @@ android {
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             signingConfig = signingConfigs.findByName("release")
+        }
+        // "LifeHub Beta": a debuggable build with its own app id, so it can be tried next to the installed app
+        create("beta") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".beta"
+            versionNameSuffix = "-beta"
+            signingConfig = signingConfigs.getByName("beta")
+            // The feature modules have no beta type of their own
+            matchingFallbacks += listOf("debug")
         }
     }
 

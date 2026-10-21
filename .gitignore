@@ -14,3 +14,6 @@ build/
 .kotlin/
 *.keystore
 *.jks
+
+# The beta signing key is shared on purpose (see app/build.gradle.kts)
+!app/beta.keystore

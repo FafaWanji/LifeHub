@@ -35,8 +35,8 @@ object Updater {
         return sections[sectionTitles[lang]] ?: sections["English"] ?: notes.trim()
     }
 
-    /** Null when the app is up to date or the check failed. */
-    suspend fun check(): UpdateInfo? = withContext(Dispatchers.IO) {
+    /** Null when the app is up to date or the check failed. Betas are a separate app and get no release updates. */
+    suspend fun check(): UpdateInfo? = if (BuildConfig.BUILD_TYPE == "beta") null else withContext(Dispatchers.IO) {
         runCatching {
             val conn = (URL(LATEST).openConnection() as HttpURLConnection).apply {
                 setRequestProperty("Accept", "application/vnd.github+json")
