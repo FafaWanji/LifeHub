@@ -99,6 +99,7 @@ fun HabitsHost(
     val habits by vm.habits.collectAsStateWithLifecycle()
     val tasks by vm.tasks.collectAsStateWithLifecycle()
     val totalPoints by vm.totalPoints.collectAsStateWithLifecycle()
+    val earnedPoints by vm.pointsByTask.collectAsStateWithLifecycle()
     var quickText by rememberSaveable { mutableStateOf("") }
     var tab by rememberSaveable { mutableStateOf(HabitsTab.TODAY) }
     var editHabit by remember { mutableStateOf<Habit?>(null) }
@@ -197,8 +198,8 @@ fun HabitsHost(
                                 HabitItem(row, lang, onToggle = { vm.toggleHabit(row) }, onClick = { editHabit = row.habit })
                             }
                         }
-                        taskSection(HabitsStr.overdue.of(lang), urgent.filter { taskGroup(it.dueEpochDay, it.dueMinute, now, ts.soonDays) == TaskGroup.OVERDUE }, now, lang, ts, toggleTask) { editTask = it }
-                        taskSection(HabitsStr.dueToday.of(lang), urgent.filter { taskGroup(it.dueEpochDay, it.dueMinute, now, ts.soonDays) == TaskGroup.TODAY }, now, lang, ts, toggleTask) { editTask = it }
+                        taskSection(HabitsStr.overdue.of(lang), urgent.filter { taskGroup(it.dueEpochDay, it.dueMinute, now, ts.soonDays) == TaskGroup.OVERDUE }, now, lang, ts, earnedPoints, toggleTask) { editTask = it }
+                        taskSection(HabitsStr.dueToday.of(lang), urgent.filter { taskGroup(it.dueEpochDay, it.dueMinute, now, ts.soonDays) == TaskGroup.TODAY }, now, lang, ts, earnedPoints, toggleTask) { editTask = it }
                     }
                     HabitsTab.TASKS -> {
                         if (ts.showPoints) item(key = "points") { PointsHeader(totalPoints, ts.points, lang) }
@@ -216,12 +217,12 @@ fun HabitsHost(
                                 TaskGroup.LATER -> HabitsStr.later
                                 TaskGroup.NO_DEADLINE -> HabitsStr.noDeadline
                             }?.of(lang) ?: HabitsStr.soon.of(lang).format(ts.soonDays)
-                            taskSection(title, groups[g].orEmpty(), now, lang, ts, toggleTask) { editTask = it }
+                            taskSection(title, groups[g].orEmpty(), now, lang, ts, earnedPoints, toggleTask) { editTask = it }
                         }
                         // Recently done, newest first; older ones stay saved but out of the way
                         taskSection(
                             HabitsStr.done.of(lang),
-                            tasks.filter { it.doneAt != null }.sortedByDescending { it.doneAt }.let { done -> if (ts.doneShown > 0) done.take(ts.doneShown) else done }, now, lang, ts, toggleTask
+                            tasks.filter { it.doneAt != null }.sortedByDescending { it.doneAt }.let { done -> if (ts.doneShown > 0) done.take(ts.doneShown) else done }, now, lang, ts, earnedPoints, toggleTask
                         ) { editTask = it }
                     }
                     HabitsTab.HABITS -> {
@@ -283,11 +284,12 @@ private fun LazyListScope.header(title: String) = item(key = "header_$title") {
 }
 
 private fun LazyListScope.taskSection(
-    title: String, tasks: List<TaskItem>, now: LocalDateTime, lang: String, ts: TaskSettings, onToggle: (TaskItem) -> Unit, onClick: (TaskItem) -> Unit
+    title: String, tasks: List<TaskItem>, now: LocalDateTime, lang: String, ts: TaskSettings, points: Map<Long, Int>,
+    onToggle: (TaskItem) -> Unit, onClick: (TaskItem) -> Unit
 ) {
     if (tasks.isEmpty()) return
     header(title)
-    items(tasks, key = { "t${it.id}" }) { task -> TaskItemRow(task, now, lang, ts, onToggle = { onToggle(task) }, onClick = { onClick(task) }) }
+    items(tasks, key = { "t${it.id}" }) { task -> TaskItemRow(task, now, lang, ts, points[task.id], onToggle = { onToggle(task) }, onClick = { onClick(task) }) }
 }
 
 /** Total at the top of the tasks tab. */
@@ -421,19 +423,18 @@ private fun HabitItem(row: HabitRow, lang: String, showSchedule: Boolean = false
 }
 
 @Composable
-private fun TaskItemRow(task: TaskItem, now: LocalDateTime, lang: String, ts: TaskSettings, onToggle: () -> Unit, onClick: () -> Unit) {
+private fun TaskItemRow(task: TaskItem, now: LocalDateTime, lang: String, ts: TaskSettings, earned: Int?, onToggle: () -> Unit, onClick: () -> Unit) {
     val done = task.doneAt != null
     val deadline = TaskDeadline.deadline(task.dueEpochDay, task.dueMinute)
     val missed = !done && TaskDeadline.isMissed(deadline, now)
     val due = deadline?.let { deadlineLabel(it, now.toLocalDate(), lang) }
-    val earned = if (deadline != null && task.doneAt != null) {
-        TaskDeadline.points(deadline, TaskDeadline.toLocal(task.doneAt), ts.points, ts.graceMinutes)
-    } else 0
-    val onTime = earned > 0
+    // What was actually booked: tasks done before points existed show nothing instead of points they never got
+    val booked = if (done) earned else null
+    val onTime = booked != null && booked > 0
     // Done: "+10" (or half within the grace time) or "0 – too late"; open past the deadline: "Deadline missed"
     val status = when {
-        ts.showPoints && onTime -> HabitsStr.pointsEarned.of(lang).format(earned)
-        ts.showPoints && done && deadline != null -> HabitsStr.tooLate.of(lang)
+        ts.showPoints && onTime -> HabitsStr.pointsEarned.of(lang).format(booked)
+        ts.showPoints && booked == 0 -> HabitsStr.tooLate.of(lang)
         missed -> HabitsStr.deadlineMissed.of(lang)
         else -> null
     }

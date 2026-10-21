@@ -60,6 +60,9 @@ interface HabitDao {
     @Query("SELECT * FROM task_points")
     suspend fun pointsSync(): List<TaskPoints>
 
+    @Query("SELECT * FROM task_points")
+    fun points(): Flow<List<TaskPoints>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPoints(points: TaskPoints)
 

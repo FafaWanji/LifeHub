@@ -18,6 +18,7 @@ import com.example.lifeorganizer.habits.reminder.HabitReminders
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -45,6 +46,11 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
 
     /** All points ever earned with tasks, including deleted ones. */
     val totalPoints: StateFlow<Int> = dao.totalPoints().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
+
+    /** Points actually booked per task; tasks done before points existed have none. */
+    val pointsByTask: StateFlow<Map<Long, Int>> = dao.points()
+        .map { list -> list.mapNotNull { p -> p.taskId?.let { it to p.points } }.toMap() }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
 
     fun toggleHabit(row: HabitRow) = viewModelScope.launch {
         val check = HabitCheck(row.habit.id, today.toEpochDay())
