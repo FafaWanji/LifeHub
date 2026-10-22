@@ -8,6 +8,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.MaterialTheme
@@ -38,7 +39,7 @@ private val rainbow = listOf(
  * it pads the element by [spread]. Blurred from Android 9 on; before that a plain coloured ring.
  */
 @Composable
-fun Modifier.rgbGlow(colors: IntArray = rainbow, corner: Dp = 28.dp, spread: Dp = 16.dp): Modifier {
+fun Modifier.rgbGlow(colors: IntArray = rainbow, corner: Dp = 28.dp, spread: Dp = 24.dp): Modifier {
     val angle by rememberInfiniteTransition(label = "rgbGlow").animateFloat(
         initialValue = 0f, targetValue = 360f,
         animationSpec = infiniteRepeatable(tween(6_000, easing = LinearEasing)), label = "angle"
@@ -61,6 +62,43 @@ fun Modifier.rgbGlow(colors: IntArray = rainbow, corner: Dp = 28.dp, spread: Dp 
             }
         }
         .padding(spread)
+}
+
+@Composable
+private fun glowPlace(): String = rememberMicro(MicroSettings.GLOW_PLACE)
+
+/**
+ * The glow along the edge of the screen (like a gaming phone's light bar), drawn over everything without
+ * catching touches. Shown when the glow is on and set to "screen edge" or "both".
+ */
+@Composable
+fun ScreenEdgeGlow() {
+    val colors = glowColors() ?: return
+    if (glowPlace() == "window") return
+    val angle by rememberInfiniteTransition(label = "edgeGlow").animateFloat(
+        initialValue = 0f, targetValue = 360f,
+        animationSpec = infiniteRepeatable(tween(8_000, easing = LinearEasing)), label = "angle"
+    )
+    androidx.compose.foundation.layout.Spacer(
+        Modifier.fillMaxSize().drawBehind {
+            val width = 14.dp.toPx()
+            val radius = 44.dp.toPx()
+            drawIntoCanvas { canvas ->
+                val paint = Paint().asFrameworkPaint().apply {
+                    isAntiAlias = true
+                    style = android.graphics.Paint.Style.STROKE
+                    strokeWidth = width
+                    maskFilter = BlurMaskFilter(22.dp.toPx(), BlurMaskFilter.Blur.NORMAL)
+                    shader = SweepGradient(center.x, center.y, colors, null).apply {
+                        setLocalMatrix(Matrix().apply { setRotate(angle, center.x, center.y) })
+                    }
+                    alpha = 230
+                }
+                // Half the stroke sits outside the screen, the blur spreads inwards
+                canvas.nativeCanvas.drawRoundRect(0f, 0f, size.width, size.height, radius, radius, paint)
+            }
+        }
+    )
 }
 
 /** The glow colours as set in the appearance settings, null when off. */
@@ -106,7 +144,7 @@ fun AlertDialog(
     androidx.compose.material3.AlertDialog(
         onDismissRequest = onDismissRequest,
         confirmButton = confirmButton,
-        modifier = if (colors != null) Modifier.rgbGlow(colors).then(modifier) else modifier,
+        modifier = if (colors != null && glowPlace() != "edge") Modifier.rgbGlow(colors).then(modifier) else modifier,
         dismissButton = dismissButton,
         icon = icon,
         title = title,

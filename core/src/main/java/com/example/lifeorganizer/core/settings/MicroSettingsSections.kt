@@ -204,7 +204,12 @@ private fun AppearanceSection(lang: String, modules: Set<AppModule>) {
         listOf("off" to SetStr.off.of(lang), "theme" to SetStr.glowTheme.of(lang), "custom" to SetStr.glowCustom.of(lang)),
         SetStr.rgbGlowHint.of(lang)
     )
-    if (rememberMicro(MicroSettings.GLOW_MODE) == "custom") GlowColorRow(lang)
+    val glowMode = rememberMicro(MicroSettings.GLOW_MODE)
+    if (glowMode != "off") ChoiceRow(
+        MicroSettings.GLOW_PLACE,
+        listOf("window" to SetStr.glowWindow.of(lang), "edge" to SetStr.glowEdge.of(lang), "both" to SetStr.glowBoth.of(lang))
+    )
+    if (glowMode == "custom") GlowColorRow(lang)
     val screens = buildList {
         add("CALENDAR" to Str.calendar)
         add("NOTES" to Str.notes)

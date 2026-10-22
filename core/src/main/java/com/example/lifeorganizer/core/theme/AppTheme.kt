@@ -24,10 +24,10 @@ fun AppTheme(
 ) {
     CompositionLocalProvider(LocalDesignStyle provides designStyle) {
         when (designStyle) {
-            "midnight" -> MidnightTheme { SystemBarIcons(); content() }
-            "neon" -> NeonTheme(accentColor = accentColor) { SystemBarIcons(); content() }
-            "white_light" -> WhiteLightTheme { SystemBarIcons(); content() }
-            else -> PastelTheme(darkTheme = darkTheme, accentColor = accentColor) { SystemBarIcons(); content() }
+            "midnight" -> MidnightTheme { SystemBarIcons(); androidx.compose.foundation.layout.Box { content(); ScreenEdgeGlow() } }
+            "neon" -> NeonTheme(accentColor = accentColor) { SystemBarIcons(); androidx.compose.foundation.layout.Box { content(); ScreenEdgeGlow() } }
+            "white_light" -> WhiteLightTheme { SystemBarIcons(); androidx.compose.foundation.layout.Box { content(); ScreenEdgeGlow() } }
+            else -> PastelTheme(darkTheme = darkTheme, accentColor = accentColor) { SystemBarIcons(); androidx.compose.foundation.layout.Box { content(); ScreenEdgeGlow() } }
         }
     }
 }
