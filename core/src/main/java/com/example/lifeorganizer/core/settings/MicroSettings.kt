@@ -52,8 +52,11 @@ object MicroSettings {
     /** "system", "MONDAY", "SUNDAY" or "SATURDAY". */
     val WEEK_START = StringKey("week_start", "system")
     val EVENT_LENGTH = IntKey("event_length", 60)
-    /** Reminder of a new event in minutes before, -1 = none. */
-    val EVENT_REMINDER = IntKey("event_reminder", -1)
+    /**
+     * Default reminder in minutes before, for events without a reminder of their own (not all-day ones or birthdays;
+     * of several events at one place on a day only the first). -1 = off.
+     */
+    val EVENT_REMINDER = IntKey("event_reminder", 120)
     val WEEK_NUMBERS = BoolKey("week_numbers", false)
     val WIDGET_BIRTHDAYS = BoolKey("widget_birthdays", true)
 

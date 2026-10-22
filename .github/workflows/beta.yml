@@ -38,8 +38,11 @@ jobs:
         run: bash ./gradlew assembleBeta --stacktrace
 
       - name: Room schemas unchanged
-        # The build regenerates schemas/*.json; a difference means a committed schema is out of date
-        run: git diff --exit-code -- '*/schemas/*' || echo "::warning::Room schema files changed during the build – commit the regenerated ones"
+        # The build regenerates schemas/*.json; a difference means a committed schema is out of date (printed for fixing)
+        run: |
+          git status --porcelain -- '*/schemas/*'
+          git diff -- '*/schemas/*'
+          git diff --quiet -- '*/schemas/*' && [ -z "$(git status --porcelain -- '*/schemas/*')" ] || echo "::warning::Room schema files changed during the build – commit the regenerated ones"
 
       - name: Name the APKs
         run: |

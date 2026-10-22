@@ -4,10 +4,26 @@ package com.example.lifeorganizer.core.i18n
 object BkStr {
     val autoBackup = Txt("Automatic backup (weekly)", "Automatisches Backup (wöchentlich)", "Otomatik yedek (haftalık)", "Copia automática (semanal)", "自动备份（每周）")
     val autoBackupDesc = Txt(
-        "Keeps the last 5 backups in %s. Deleted when the app is uninstalled – export to another place from time to time.",
-        "Behält die letzten 5 Backups in %s. Wird beim Deinstallieren gelöscht – exportiere ab und zu auch woanders hin.",
-        "Son 5 yedeği %s içinde tutar. Uygulama kaldırılınca silinir – ara sıra başka bir yere de dışa aktar.",
-        "Guarda las últimas 5 copias en %s. Se borran al desinstalar la app: exporta de vez en cuando a otro sitio.", "在 %s 中保留最近 5 份备份。卸载应用时会被删除 – 请不时导出到其他位置。"
+        "Keeps the last %1\$d backups in %2\$s and a copy in Documents/LifeHub, which stays when the app is uninstalled. After reinstalling, restore it in the setup or here with “Import”.",
+        "Behält die letzten %1\$d Backups in %2\$s und eine Kopie in Dokumente/LifeHub, die beim Deinstallieren bleibt. Nach einer Neuinstallation im Setup oder hier mit „Importieren“ zurückholen.",
+        "Son %1\$d yedeği %2\$s içinde ve uygulama kaldırılınca da kalan bir kopyayı Belgeler/LifeHub içinde tutar. Yeniden kurulumdan sonra kurulumda veya burada “İçe aktar” ile geri yükle.",
+        "Guarda las últimas %1\$d copias en %2\$s y una copia en Documentos/LifeHub, que se conserva al desinstalar la app. Tras reinstalar, restáurala en la configuración o aquí con «Importar».",
+        "在 %2\$s 中保留最近 %1\$d 份备份，并在“文档/LifeHub”中保留一份卸载应用后仍存在的副本。重新安装后可在设置向导或此处通过“导入”恢复。"
+    )
+    val autoBackupDescOld = Txt(
+        "Keeps the last %1\$d backups in %2\$s. Deleted when the app is uninstalled – choose a copy folder below or export to another place from time to time.",
+        "Behält die letzten %1\$d Backups in %2\$s. Wird beim Deinstallieren gelöscht – wähle unten einen Kopie-Ordner oder exportiere ab und zu woanders hin.",
+        "Son %1\$d yedeği %2\$s içinde tutar. Uygulama kaldırılınca silinir – aşağıdan bir kopya klasörü seç veya ara sıra başka bir yere dışa aktar.",
+        "Guarda las últimas %1\$d copias en %2\$s. Se borran al desinstalar: elige abajo una carpeta de copia o exporta de vez en cuando a otro sitio.",
+        "在 %2\$s 中保留最近 %1\$d 份备份。卸载应用时会被删除 – 请在下方选择副本文件夹，或不时导出到其他位置。"
+    )
+    val restoreBackup = Txt("Restore from a backup", "Aus einem Backup wiederherstellen", "Yedekten geri yükle", "Restaurar desde una copia", "从备份恢复")
+    val restoreBackupHint = Txt(
+        "Used LifeHub before? Pick a backup, e.g. from Documents/LifeHub.",
+        "LifeHub schon mal genutzt? Wähle ein Backup, z. B. aus Dokumente/LifeHub.",
+        "LifeHub'ı daha önce kullandın mı? Bir yedek seç, ör. Belgeler/LifeHub içinden.",
+        "¿Ya usaste LifeHub? Elige una copia, p. ej. de Documentos/LifeHub.",
+        "以前用过 LifeHub？选择一个备份，例如来自“文档/LifeHub”。"
     )
     val lastBackup = Txt("Last backup: %s", "Letztes Backup: %s", "Son yedek: %s", "Última copia: %s", "上次备份：%s")
     val noBackupYet = Txt("No backup yet", "Noch kein Backup", "Henüz yedek yok", "Aún no hay copia", "尚无备份")

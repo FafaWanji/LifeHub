@@ -152,7 +152,8 @@ private fun CalendarSection(lang: String) {
     ChoiceSetting(SetStr.eventLength.of(lang), MicroSettings.EVENT_LENGTH, listOf(30, 60, 90, 120).map { it to durationLabel(it, lang) })
     ChoiceSetting(
         SetStr.eventReminder.of(lang), MicroSettings.EVENT_REMINDER,
-        listOf(-1 to SetStr.none.of(lang)) + listOf(5, 15, 30, 60, 1440).map { it to durationLabel(it, lang) }
+        listOf(-1 to SetStr.off.of(lang)) + listOf(30, 60, 120, 180, 1440).map { it to durationLabel(it, lang) },
+        SetStr.eventReminderHint.of(lang)
     )
     SwitchSetting(SetStr.weekNumbers.of(lang), MicroSettings.WEEK_NUMBERS)
     SwitchSetting(SetStr.widgetBirthdays.of(lang), MicroSettings.WIDGET_BIRTHDAYS)

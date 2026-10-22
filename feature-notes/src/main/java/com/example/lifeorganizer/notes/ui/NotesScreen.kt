@@ -289,8 +289,16 @@ fun NotesMainView(
                 if (selectedLabelFilter != null) EmptyNotes(Icons.AutoMirrored.Outlined.Label, Str.noNotesWithLabel.text())
                 else EmptyNotes(Icons.AutoMirrored.Filled.Notes, Str.emptyNotes.text())
             } else {
-                val pinnedNotes = notes.filter { it.note.isPinned }
-                val otherNotes = notes.filter { !it.note.isPinned }
+                // Sub-notes sit inside their main note's card; with a label filter or a search everything is listed
+                val searching by viewModel.searchQuery.collectAsState()
+                val grouped = selectedLabelFilter == null && searching.isBlank()
+                val byId = notes.associateBy { it.note.id }
+                val childrenOf = notes.filter { it.note.parentId != null && it.note.parentId in byId }.groupBy { it.note.parentId }
+                val listed = if (grouped) notes.filter { it.note.parentId == null || it.note.parentId !in byId } else notes
+                fun parentTitleOf(n: com.example.lifeorganizer.notes.data.NoteWithLabels) =
+                    if (grouped) null else n.note.parentId?.let { byId[it]?.note?.title ?: viewModel.titleOf(it) }
+                val pinnedNotes = listed.filter { it.note.isPinned }
+                val otherNotes = listed.filter { !it.note.isPinned }
                 LazyVerticalStaggeredGrid(
                     columns = StaggeredGridCells.Adaptive(160.dp),
                     modifier = Modifier.fillMaxSize(),
@@ -307,7 +315,10 @@ fun NotesMainView(
                                 onClick = { onCardClick(n.note.id) },
                                 onLongClick = { onCardLongClick(n.note.id) },
                                 selected = n.note.id in selectedIds,
-                                onToggleItem = { line -> viewModel.toggleChecklistItem(n, line) }
+                                onToggleItem = { line -> viewModel.toggleChecklistItem(n, line) },
+                                subNotes = if (grouped) childrenOf[n.note.id].orEmpty() else emptyList(),
+                                onSubNoteClick = { id -> onCardClick(id) },
+                                parentTitle = parentTitleOf(n)
                             )
                         }
                         if (otherNotes.isNotEmpty()) {
@@ -320,7 +331,10 @@ fun NotesMainView(
                             onClick = { onCardClick(n.note.id) },
                             onLongClick = { onCardLongClick(n.note.id) },
                             selected = n.note.id in selectedIds,
-                            onToggleItem = { line -> viewModel.toggleChecklistItem(n, line) }
+                            onToggleItem = { line -> viewModel.toggleChecklistItem(n, line) },
+                            subNotes = if (grouped) childrenOf[n.note.id].orEmpty() else emptyList(),
+                            onSubNoteClick = { id -> onCardClick(id) },
+                            parentTitle = parentTitleOf(n)
                         )
                     }
                 }

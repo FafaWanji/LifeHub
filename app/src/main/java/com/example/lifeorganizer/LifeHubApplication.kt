@@ -7,6 +7,8 @@ import com.example.lifeorganizer.waypoints.WaypointsApplication
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class LifeHubApplication : WaypointsApplication() {
@@ -23,6 +25,14 @@ class LifeHubApplication : WaypointsApplication() {
         MicroSettings.onBackupChanged = { com.example.lifeorganizer.backup.AutoBackup.schedule(it) }
         applyFormats()
         MicroSettings.prefs(this).registerOnSharedPreferenceChangeListener(microListener)
+        // Default reminders of events follow every change, also from the PC, imports and Smart Add
+        scope.launch {
+            com.example.lifeorganizer.calendar.data.AppDatabase.getDatabase(this@LifeHubApplication).eventDao().getEventsWithReminders()
+                .collectLatest {
+                    delay(1_500)
+                    runCatching { com.example.lifeorganizer.calendar.alarm.DefaultReminders.sync(this@LifeHubApplication) }
+                }
+        }
     }
 
     private fun applyFormats() {
@@ -37,6 +47,8 @@ class LifeHubApplication : WaypointsApplication() {
             // Task reminders are planned with these, so re-plan them
             MicroSettings.QUIET_HOURS.name, MicroSettings.QUIET_START.name, MicroSettings.QUIET_END.name, MicroSettings.DEADLINE_REPEAT.name ->
                 scope.launch { com.example.lifeorganizer.habits.reminder.HabitReminders.scheduleAll(this@LifeHubApplication) }
+            MicroSettings.EVENT_REMINDER.name ->
+                scope.launch { runCatching { com.example.lifeorganizer.calendar.alarm.DefaultReminders.sync(this@LifeHubApplication) } }
             MicroSettings.WIDGET_DONE_HABITS.name, MicroSettings.DATE_ORDER.name ->
                 scope.launch { com.example.lifeorganizer.widgets.HabitsWidget.refresh(this@LifeHubApplication) }
         }

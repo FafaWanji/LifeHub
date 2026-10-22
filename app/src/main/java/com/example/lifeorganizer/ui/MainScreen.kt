@@ -116,6 +116,7 @@ fun MainScreen(
     var editingNoteId by rememberSaveable { mutableStateOf<Long?>(null) }
     var editorTemplateId by rememberSaveable { mutableStateOf<Long?>(null) }
     var editorLabelId by rememberSaveable { mutableStateOf<Long?>(null) }
+    var editorParentId by rememberSaveable { mutableStateOf<Long?>(null) }
     // Each opening of the editor is a new session; otherwise the saved state of the previous note comes back.
     var editorSession by rememberSaveable { mutableIntStateOf(0) }
     var editorReturnView by rememberSaveable { mutableStateOf(ActiveView.NOTES) }
@@ -181,6 +182,10 @@ fun MainScreen(
     val appContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
     LaunchedEffect(activeNotes) { com.example.lifeorganizer.widgets.NoteWidget.refresh(appContext) }
     val noteLabels by notesViewModel.labels.collectAsState()
+    // Task deadlines for the calendar (only while the habits module is on); tapping one opens the task
+    val habitTasks by remember { com.example.lifeorganizer.habits.data.HabitDatabase.getDatabase(appContext).habitDao().tasks() }
+        .collectAsState(initial = emptyList())
+    var taskToOpen by remember { mutableStateOf<Long?>(null) }
 
     // Switched-off modules are hidden everywhere; their data is untouched.
     val enabledModules = rememberEnabledModules()
@@ -207,11 +212,12 @@ fun MainScreen(
         showSmartAdd = true
     }
 
-    fun openNoteEditor(noteId: Long?, templateId: Long? = null, labelId: Long? = null) {
+    fun openNoteEditor(noteId: Long?, templateId: Long? = null, labelId: Long? = null, parentId: Long? = null) {
         if (activeView != ActiveView.NOTE_EDITOR) editorReturnView = activeView
         editingNoteId = noteId
         editorTemplateId = templateId
         editorLabelId = labelId
+        editorParentId = parentId
         editorSession++
         activeView = ActiveView.NOTE_EDITOR
     }
@@ -351,6 +357,16 @@ fun MainScreen(
                                     )
                                 },
                                 onNoteClick = { noteId -> openNoteEditor(noteId) },
+                                deadlines = if (AppModule.HABITS !in enabledModules) emptyList() else habitTasks.mapNotNull { t ->
+                                    val at = com.example.lifeorganizer.habits.domain.TaskDeadline.deadline(t.dueEpochDay, t.dueMinute) ?: return@mapNotNull null
+                                    com.example.lifeorganizer.calendar.ui.CalendarDeadline(
+                                        id = t.id, title = t.title,
+                                        at = com.example.lifeorganizer.habits.domain.TaskDeadline.toMillis(at),
+                                        done = t.doneAt != null,
+                                        missed = t.doneAt == null && com.example.lifeorganizer.habits.domain.TaskDeadline.isMissed(at, java.time.LocalDateTime.now())
+                                    )
+                                },
+                                onDeadlineClick = { id -> taskToOpen = id; navigate(ActiveView.HABITS) },
                                 documents = linkableDocuments,
                                 onOpenDocument = { id ->
                                     activeView = ActiveView.DOCUMENTS
@@ -404,6 +420,9 @@ fun MainScreen(
                                 noteId = editingNoteId,
                                 templateId = editorTemplateId,
                                 labelId = editorLabelId,
+                                parentId = editorParentId,
+                                onOpenNote = { id -> openNoteEditor(id) },
+                                onCreateSubNote = { mainId -> openNoteEditor(null, parentId = mainId) },
                                 onBack = { activeView = editorReturnView },
                                 documents = linkableDocuments,
                                 onOpenDocument = { id ->
@@ -453,7 +472,9 @@ fun MainScreen(
                                 onDocumentOpened = { documentToOpen = null }
                             )
                             ActiveView.MONEY -> com.example.lifeorganizer.money.ui.MoneyHost(onMenuClick = openMenu)
-                            ActiveView.HABITS -> com.example.lifeorganizer.habits.ui.HabitsHost(onMenuClick = openMenu)
+                            ActiveView.HABITS -> com.example.lifeorganizer.habits.ui.HabitsHost(
+                                onMenuClick = openMenu, openTaskId = taskToOpen, onTaskOpened = { taskToOpen = null }
+                            )
                         }
                     }
 }

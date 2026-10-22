@@ -21,6 +21,8 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.automirrored.filled.HelpOutline
 import androidx.compose.material.icons.automirrored.filled.Label
+import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckBox
@@ -89,7 +91,13 @@ fun NoteEditorScreen(
     onCreateReminder: (noteId: Long, title: String, timeMillis: Long) -> Unit = { _, _, _ -> },
     /** Dokki documents (id to title) and how to open one. */
     documents: List<Pair<Long, String>> = emptyList(),
-    onOpenDocument: (Long) -> Unit = {}
+    onOpenDocument: (Long) -> Unit = {},
+    /** New note started as a sub-note of this main note. */
+    parentId: Long? = null,
+    /** Opens another note (main note or a sub-note) in the editor. */
+    onOpenNote: (Long) -> Unit = {},
+    /** Starts a new sub-note of the given main note. */
+    onCreateSubNote: (Long) -> Unit = {}
 ) {
     var documentId by rememberSaveable { mutableStateOf<Long?>(null) }
     var pickDocument by remember { mutableStateOf(false) }
@@ -113,6 +121,8 @@ fun NoteEditorScreen(
     var colorLabel by rememberSaveable { mutableStateOf<Int?>(null) }
     var pinnedToDate by rememberSaveable { mutableStateOf(pinnedDate) }
     var labelIds by rememberSaveable { mutableStateOf(setOf<Long>()) }
+    var parent by rememberSaveable { mutableStateOf(parentId) }
+    var pickParent by remember { mutableStateOf(false) }
     var mode by rememberSaveable { mutableStateOf(if (noteId == null) EditorMode.EDIT else EditorMode.PREVIEW) }
     var deleted by remember { mutableStateOf(false) }
     var lastSaved by remember { mutableStateOf<NoteDraft?>(null) }
@@ -126,6 +136,8 @@ fun NoteEditorScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     val allLabels by viewModel.labels.collectAsState()
+    val allNotes by viewModel.allActiveNotes.collectAsState()
+    val subNotes = remember(allNotes, currentId) { allNotes.filter { currentId != null && it.note.parentId == currentId } }
     // A brand-new note starts typing in the title.
     val titleFocus = remember { FocusRequester() }
     LaunchedEffect(Unit) {
@@ -150,6 +162,7 @@ fun NoteEditorScreen(
                 pinnedToDate = n.note.pinnedToDate
                 labelIds = n.labels.map { it.id }.toSet()
                 documentId = n.note.documentId
+                parent = n.note.parentId
                 if (content.isBlank()) mode = EditorMode.EDIT
             }
         } else if (templateId != null) {
@@ -165,10 +178,10 @@ fun NoteEditorScreen(
             }
         }
         loaded = true
-        lastSaved = draft(currentId, title, body.text, colorLabel, isPinned, pinnedToDate, templateId, labelIds, documentId)
+        lastSaved = draft(currentId, title, body.text, colorLabel, isPinned, pinnedToDate, templateId, labelIds, documentId, parent)
     }
 
-    fun currentDraft() = draft(currentId, title, body.text, colorLabel, isPinned, pinnedToDate, templateId, labelIds, documentId)
+    fun currentDraft() = draft(currentId, title, body.text, colorLabel, isPinned, pinnedToDate, templateId, labelIds, documentId, parent)
 
     fun save(onSaved: (Long) -> Unit = {}) {
         if (!loaded || deleted) return
@@ -182,6 +195,13 @@ fun NoteEditorScreen(
             currentId = id
             onSaved(id)
         }
+    }
+
+    /** Opens another note; this one is saved first unless it is still empty (then there is nothing to keep). */
+    fun leaveTo(noteId: Long) {
+        val d = currentDraft()
+        val empty = d.title.isBlank() && (d.content.isBlank() || d.content.trim() == "- [ ]")
+        if (d.id == null && empty) onOpenNote(noteId) else save { onOpenNote(noteId) }
     }
 
     // Autosave when the app goes to the background and when the editor leaves the screen.
@@ -262,6 +282,17 @@ fun NoteEditorScreen(
                         MenuEntry(Icons.Outlined.Bookmarks, Str.saveAsTemplate.text()) {
                             showMenu = false; showTemplateDialog = true
                         }
+                        // One level: a sub-note can go back to being a note of its own; a note without
+                        // sub-notes can become one
+                        if (parent != null) {
+                            MenuEntry(Icons.AutoMirrored.Filled.Notes, Str.detachSubNote.text()) {
+                                showMenu = false; parent = null
+                            }
+                        } else if (subNotes.isEmpty()) {
+                            MenuEntry(Icons.AutoMirrored.Filled.Notes, Str.makeSubNote.text()) {
+                                showMenu = false; pickParent = true
+                            }
+                        }
                         HorizontalDivider()
                         MenuEntry(Icons.Default.Delete, Str.delete.text(), MaterialTheme.colorScheme.error) {
                             showMenu = false
@@ -288,6 +319,15 @@ fun NoteEditorScreen(
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
+            // Sub-note: its main note, one tap away
+            parent?.let { pid ->
+                AssistChip(
+                    onClick = { leaveTo(pid) },
+                    label = { Text(Str.subNoteOf.text().format(viewModel.titleOf(pid)?.ifBlank { null } ?: Str.untitledNote.text()), maxLines = 1) },
+                    leadingIcon = { Icon(Icons.AutoMirrored.Filled.Notes, null, Modifier.size(16.dp)) },
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                )
+            }
             TextField(
                 value = title,
                 onValueChange = { title = it },
@@ -398,8 +438,51 @@ fun NoteEditorScreen(
                     }
                 }
             }
+            // Main note: its sub-notes, and a new one (a sub-note cannot have sub-notes itself)
+            if (parent == null && currentId != null) {
+                HorizontalDivider(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
+                Text(
+                    Str.subNotesTitle.text(), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+                )
+                subNotes.forEach { sub ->
+                    ListItem(
+                        headlineContent = {
+                            Text(sub.note.title.ifBlank { markdownToPlainText(sub.note.content).lineSequence().firstOrNull()?.takeIf { it.isNotBlank() } ?: Str.untitledNote.text() }, maxLines = 1)
+                        },
+                        leadingContent = { Icon(Icons.AutoMirrored.Filled.Notes, null) },
+                        modifier = Modifier.clickable { leaveTo(sub.note.id) },
+                        colors = ListItemDefaults.colors(containerColor = Color.Transparent)
+                    )
+                }
+                TextButton(onClick = { save { id -> onCreateSubNote(id) } }, modifier = Modifier.padding(horizontal = 8.dp)) {
+                    Icon(Icons.Default.Add, null, Modifier.size(18.dp))
+                    Spacer(Modifier.width(6.dp))
+                    Text(Str.addSubNote.text())
+                }
+            }
             Spacer(Modifier.height(24.dp))
         }
+    }
+
+    if (pickParent) {
+        val candidates = remember { viewModel.possibleParents(currentId) }
+        AlertDialog(
+            onDismissRequest = { pickParent = false },
+            title = { Text(Str.pickMainNote.text()) },
+            text = {
+                if (candidates.isEmpty()) Text(Str.noMainNotes.text())
+                else Column(Modifier.verticalScroll(rememberScrollState())) {
+                    candidates.forEach { c ->
+                        TextButton(onClick = { parent = c.note.id; pickParent = false }, modifier = Modifier.fillMaxWidth()) {
+                            Text(c.note.title.ifBlank { Str.untitledNote.text() }, modifier = Modifier.fillMaxWidth(), maxLines = 1)
+                        }
+                    }
+                }
+            },
+            confirmButton = {},
+            dismissButton = { TextButton(onClick = { pickParent = false }) { Text(Str.cancel.text()) } }
+        )
     }
 
     if (pickDocument) {
@@ -531,8 +614,8 @@ fun NoteEditorScreen(
 
 private fun draft(
     id: Long?, title: String, content: String, color: Int?, pinned: Boolean,
-    pinnedToDate: Long?, templateId: Long?, labels: Set<Long>, documentId: Long?
-) = NoteDraft(id, title, content, color, pinned, pinnedToDate, templateId, labels, documentId)
+    pinnedToDate: Long?, templateId: Long?, labels: Set<Long>, documentId: Long?, parentId: Long?
+) = NoteDraft(id, title, content, color, pinned, pinnedToDate, templateId, labels, documentId, parentId)
 
 private fun utcPickerToLocalMidnight(utcMillis: Long): Long =
     Instant.ofEpochMilli(utcMillis).atZone(ZoneOffset.UTC).toLocalDate()

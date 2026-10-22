@@ -88,7 +88,13 @@ enum class HabitsTab { TODAY, TASKS, HABITS }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
+fun HabitsHost(
+    onMenuClick: () -> Unit,
+    /** Opens this task right away, e.g. tapped as a deadline in the calendar. */
+    openTaskId: Long? = null,
+    onTaskOpened: () -> Unit = {},
+    vm: HabitsViewModel = viewModel()
+) {
     val lang = LocalAppLanguage.current
     val habits by vm.habits.collectAsStateWithLifecycle()
     val tasks by vm.tasks.collectAsStateWithLifecycle()
@@ -122,6 +128,12 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
             val r = snackbar.showSnackbar(HabitsStr.taskDeleted.of(lang), HabitsStr.undo.of(lang), duration = SnackbarDuration.Short)
             if (r == SnackbarResult.ActionPerformed) vm.restoreTask(t)
         }
+    }
+    LaunchedEffect(openTaskId, tasks) {
+        val task = openTaskId?.let { id -> tasks.firstOrNull { it.id == id } } ?: return@LaunchedEffect
+        tab = HabitsTab.TASKS
+        editTask = task
+        onTaskOpened()
     }
     // Ticks every minute, so a task moves to "Overdue" right when its deadline has passed
     var now by remember { mutableStateOf(LocalDateTime.now()) }

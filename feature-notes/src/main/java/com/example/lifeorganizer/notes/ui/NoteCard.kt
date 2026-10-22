@@ -25,6 +25,15 @@ import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Event
 import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.automirrored.filled.Notes
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import com.example.lifeorganizer.core.i18n.Str
+import com.example.lifeorganizer.core.i18n.text
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -55,7 +64,12 @@ fun NoteCard(
     onLongClick: (() -> Unit)? = null,
     selected: Boolean = false,
     /** Ticks a checklist item right on the card (line index in the note content). */
-    onToggleItem: ((Int) -> Unit)? = null
+    onToggleItem: ((Int) -> Unit)? = null,
+    /** Sub-notes of this main note, listed foldable at the bottom of the card. */
+    subNotes: List<NoteWithLabels> = emptyList(),
+    onSubNoteClick: ((Long) -> Unit)? = null,
+    /** Shown above the title when the card is a sub-note listed on its own (search, label filter). */
+    parentTitle: String? = null
 ) {
     val note = noteWithLabels.note
     val lang = LocalAppLanguage.current
@@ -81,6 +95,13 @@ fun NoteCard(
     ) {
       Box {
         Column(modifier = Modifier.padding(14.dp)) {
+            if (parentTitle != null) {
+                Text(
+                    "↳ " + parentTitle.ifBlank { Str.untitledNote.text() }, style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary, maxLines = 1, overflow = TextOverflow.Ellipsis
+                )
+                Spacer(Modifier.height(4.dp))
+            }
             if (note.title.isNotBlank() || note.isPinned) {
                 Row(verticalAlignment = Alignment.Top) {
                     Text(
@@ -168,6 +189,39 @@ fun NoteCard(
                         )
                     }
                     noteWithLabels.labels.forEach { label -> MiniChip(label.name, Color(label.color)) }
+                }
+            }
+
+            if (subNotes.isNotEmpty()) {
+                // Folded by default; the main note opens on a tap of the card, a sub-note on a tap of its row
+                var expanded by rememberSaveable(note.id) { mutableStateOf(false) }
+                Spacer(Modifier.height(10.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.6f), RoundedCornerShape(8.dp))
+                        .clickable { expanded = !expanded }
+                        .padding(horizontal = 8.dp, vertical = 6.dp)
+                ) {
+                    Icon(if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+                    Spacer(Modifier.width(4.dp))
+                    Text(
+                        if (subNotes.size == 1) Str.oneSubNote.text() else Str.subNotes.text().format(subNotes.size),
+                        style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary
+                    )
+                }
+                if (expanded) subNotes.forEach { sub ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable { onSubNoteClick?.invoke(sub.note.id) }.padding(start = 8.dp, top = 6.dp, bottom = 2.dp)
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.Notes, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            sub.note.title.ifBlank { markdownToPlainText(sub.note.content).lineSequence().firstOrNull()?.takeIf { it.isNotBlank() } ?: Str.untitledNote.text() },
+                            style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }

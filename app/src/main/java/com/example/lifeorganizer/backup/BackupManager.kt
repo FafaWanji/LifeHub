@@ -111,6 +111,7 @@ class BackupManager(context: Context) {
                         .put("isDeleted", note.isDeleted).put("deletedAt", note.deletedAt)
                         .put("labels", JSONArray(n.labels.map { it.name }))
                         .put("documentTitle", documentTitles[note.documentId])
+                        .put("parentId", note.parentId)
                 }))
                 .put("templates", JSONArray(noteDao.getTemplatesSync().map { t ->
                     JSONObject().put("name", t.name).put("content", t.content).put("isChecklist", t.isChecklist)
@@ -369,6 +370,13 @@ class BackupManager(context: Context) {
         val oldNoteIdToNew = backupNotes.mapNotNull { n ->
             noteIds[n.optString("title") to n.optLong("createdAt")]?.let { n.optLong("id") to it }
         }.toMap()
+        // Sub-notes find their main note again (only where they have none yet)
+        backupNotes.forEach { n ->
+            val oldParent = n.optLongOrNull("parentId") ?: return@forEach
+            val child = oldNoteIdToNew[n.optLong("id")] ?: return@forEach
+            val parent = oldNoteIdToNew[oldParent] ?: return@forEach
+            noteDao.getNoteWithLabels(child)?.note?.takeIf { it.parentId == null && it.id != parent }?.let { noteDao.setParent(child, parent) }
+        }
         notesJson?.optJSONArray("templates").objects().forEach { t ->
             val name = t.optString("name")
             if (noteDao.getTemplatesSync().none { it.name == name }) {

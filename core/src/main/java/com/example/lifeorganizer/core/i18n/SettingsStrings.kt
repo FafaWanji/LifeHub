@@ -83,7 +83,14 @@ object SetStr {
     // Calendar
     val weekStart = Txt("Week starts on", "Woche beginnt am", "Hafta başlangıcı", "La semana empieza el", "每周开始于")
     val eventLength = Txt("Length of new events", "Dauer neuer Termine", "Yeni etkinliklerin süresi", "Duración de los eventos nuevos", "新日程的时长")
-    val eventReminder = Txt("Reminder of new events", "Erinnerung bei neuen Terminen", "Yeni etkinliklerin hatırlatıcısı", "Recordatorio de los eventos nuevos", "新日程的提醒")
+    val eventReminder = Txt("Default reminder", "Standard-Erinnerung", "Varsayılan hatırlatıcı", "Recordatorio por defecto", "默认提醒")
+    val eventReminderHint = Txt(
+        "For every event without a reminder of its own. Several events at the same place on one day: only the first. Not for all-day events and birthdays.",
+        "Für jeden Termin ohne eigene Erinnerung. Mehrere Termine am selben Ort an einem Tag: nur der erste. Nicht für ganztägige Termine und Geburtstage.",
+        "Kendi hatırlatıcısı olmayan her etkinlik için. Aynı gün aynı yerde birden çok etkinlik: yalnızca ilki. Tüm gün etkinlikleri ve doğum günleri hariç.",
+        "Para cada evento sin recordatorio propio. Varios eventos en el mismo lugar un día: solo el primero. No para eventos de todo el día ni cumpleaños.",
+        "适用于没有自己提醒的每个日程。同一天同一地点的多个日程：只提醒第一个。不适用于全天日程和生日。"
+    )
     val weekNumbers = Txt("Show week numbers", "Kalenderwochen anzeigen", "Hafta numaralarını göster", "Mostrar números de semana", "显示周数")
     val widgetBirthdays = Txt("Birthdays in the agenda widget", "Geburtstage im Agenda-Widget", "Ajanda widget'ında doğum günleri", "Cumpleaños en el widget de agenda", "日程小部件中显示生日")
 

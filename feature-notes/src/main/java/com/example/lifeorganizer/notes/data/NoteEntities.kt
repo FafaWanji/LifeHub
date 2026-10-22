@@ -3,11 +3,12 @@ package com.example.lifeorganizer.notes.data
 import androidx.room.ColumnInfo
 import androidx.room.Embedded
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
 
-@Entity(tableName = "notes")
+@Entity(tableName = "notes", indices = [Index("parentId")])
 data class Note(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
     val title: String,
@@ -21,7 +22,9 @@ data class Note(
     val isDeleted: Boolean = false,
     val deletedAt: Long? = null,
     val templateId: Long? = null,
-    val documentId: Long? = null // attached Dokki document
+    val documentId: Long? = null, // attached Dokki document
+    /** Main note this one is a sub-note of; one level only (a main note is never a sub-note itself). */
+    val parentId: Long? = null
 )
 
 @Entity(tableName = "note_labels")

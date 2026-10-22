@@ -35,6 +35,32 @@ object Str {
     val habitsTasks = Txt("Habits & tasks", "Gewohnheiten & Aufgaben", "Alışkanlıklar ve görevler", "Hábitos y tareas", "习惯与任务")
     val settings = Txt("Settings", "Einstellungen", "Ayarlar", "Ajustes", "设置")
     val modules = Txt("Modules", "Module", "Modüller", "Módulos", "模块")
+    // Sub-notes (one level under a main note)
+    val oneSubNote = Txt("1 sub-note", "1 Unternotiz", "1 alt not", "1 subnota", "1 条子笔记")
+    val subNotes = Txt("%d sub-notes", "%d Unternotizen", "%d alt not", "%d subnotas", "%d 条子笔记")
+    val subNotesTitle = Txt("Sub-notes", "Unternotizen", "Alt notlar", "Subnotas", "子笔记")
+    val subNoteOf = Txt("Sub-note of %s", "Unternotiz von %s", "%s notunun alt notu", "Subnota de %s", "%s 的子笔记")
+    val addSubNote = Txt("Sub-note", "Unternotiz", "Alt not", "Subnota", "子笔记")
+    val makeSubNote = Txt("Make sub-note of …", "Zur Unternotiz machen …", "Alt not yap …", "Convertir en subnota de …", "设为子笔记…")
+    val detachSubNote = Txt("Make it a note of its own", "Zur eigenen Notiz machen", "Bağımsız not yap", "Convertir en nota propia", "设为独立笔记")
+    val pickMainNote = Txt("Main note", "Hauptnotiz", "Ana not", "Nota principal", "主笔记")
+    val noMainNotes = Txt(
+        "No other note can take sub-notes yet.",
+        "Noch keine andere Notiz kann Unternotizen aufnehmen.",
+        "Henüz alt not alabilecek başka not yok.",
+        "Aún no hay otra nota que pueda tener subnotas.",
+        "还没有其他可以包含子笔记的笔记。"
+    )
+    /** Task deadlines on a calendar day. */
+    val deadlines = Txt("Deadlines", "Deadlines", "Son tarihler", "Fechas límite", "截止任务")
+    /** Event dialog without an own reminder; %s = e.g. "2 hours before". */
+    val defaultReminderApplies = Txt(
+        "Default: %s (unless another event at the same place is earlier that day)",
+        "Standard: %s (außer ein anderer Termin am selben Ort ist an dem Tag früher)",
+        "Varsayılan: %s (aynı gün aynı yerde daha erken bir etkinlik yoksa)",
+        "Por defecto: %s (salvo que otro evento en el mismo lugar sea antes ese día)",
+        "默认：%s（当天同一地点没有更早的日程时）"
+    )
     val channelHabits = Txt("Habits", "Gewohnheiten", "Alışkanlıklar", "Hábitos", "习惯")
     val channelTasks = Txt("Tasks", "Aufgaben", "Görevler", "Tareas", "任务")
     /** Week number next to a date, e.g. "W43" / "KW 43". */

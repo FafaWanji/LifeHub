@@ -19,6 +19,14 @@ class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
+            // Default reminder of events without one of their own
+            DefaultReminders.ACTION -> {
+                val pending = goAsync()
+                kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
+                    try { DefaultReminders.fire(context.applicationContext) } finally { pending.finish() }
+                }
+                return
+            }
             NotificationHelper.ACTION_SNOOZE -> {
                 val notificationId = intent.getIntExtra("NOTIFICATION_ID", 0)
                 val title = intent.getStringExtra("EVENT_TITLE") ?: "Calendar Event"

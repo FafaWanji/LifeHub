@@ -29,6 +29,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -111,6 +113,17 @@ data class PinnedNote(
     val pinnedToDate: Long?
 )
 
+/** A task deadline shown on its day (tasks live in the habits module; the app shell hands them in). */
+data class CalendarDeadline(
+    val id: Long,
+    val title: String,
+    /** Deadline, epoch millis. */
+    val at: Long,
+    val done: Boolean,
+    /** Open and already past. */
+    val missed: Boolean
+)
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CalendarScreen(
@@ -121,6 +134,9 @@ fun CalendarScreen(
     onGlobalSearchClick: (() -> Unit)? = null,
     allNotes: List<PinnedNote> = emptyList(),
     onNoteClick: ((Long) -> Unit)? = null,
+    /** Task deadlines and how to open one. */
+    deadlines: List<CalendarDeadline> = emptyList(),
+    onDeadlineClick: ((Long) -> Unit)? = null,
     /** Creates a note linked to the event (app shell), then opens it. */
     onCreateNoteForEvent: ((com.example.lifeorganizer.calendar.data.Event) -> Unit)? = null,
     /** Dokki documents (id to title) for attaching, and how to open one. */
@@ -268,6 +284,12 @@ fun CalendarScreen(
             if (!list.contains(color)) list.add(color)
         }
         map
+    }
+
+    // Open task deadlines get a dot on their day too
+    val deadlineColor = MaterialTheme.colorScheme.tertiary
+    val deadlineDates = remember(deadlines) {
+        deadlines.filter { !it.done }.map { Instant.ofEpochMilli(it.at).atZone(ZoneId.systemDefault()).toLocalDate() }.toSet()
     }
 
     val birthdayDates = remember(eventsWithReminders) {
@@ -506,7 +528,8 @@ fun CalendarScreen(
                                 Day(
                                     day = day,
                                     isSelected = selectedDate == day.date,
-                                    eventColors = eventColorsByDate[day.date] ?: emptyList(),
+                                    eventColors = (eventColorsByDate[day.date] ?: emptyList()) +
+                                        if (day.date in deadlineDates) listOf(deadlineColor) else emptyList(),
                                     hasBirthday = birthdayDates.contains(day.date),
                                     dragDropState = dragDropState,
                                     onClick = {
@@ -610,6 +633,45 @@ fun CalendarScreen(
                                 }
                             ) {
                                 entry.events.forEach { renderEvent(it, false) }
+                            }
+                        }
+                    }
+
+                    val dayDeadlines = if (searchQuery.isNotBlank()) emptyList() else deadlines.filter {
+                        Instant.ofEpochMilli(it.at).atZone(ZoneId.systemDefault()).toLocalDate() == selectedDate
+                    }.sortedBy { it.at }
+                    if (dayDeadlines.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = Str.deadlines.of(lang),
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                color = MaterialTheme.colorScheme.tertiary
+                            )
+                        }
+                        items(dayDeadlines, key = { "deadline_${it.id}" }) { d ->
+                            val time = Instant.ofEpochMilli(d.at).atZone(ZoneId.systemDefault()).toLocalTime()
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                                    .clickable { onDeadlineClick?.invoke(d.id) },
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+                            ) {
+                                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        if (d.done) Icons.Default.CheckCircle else Icons.Default.Flag, contentDescription = Str.deadlines.text(),
+                                        tint = if (d.missed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        "%02d:%02d".format(time.hour, time.minute) + "  " + d.title,
+                                        fontWeight = FontWeight.Bold,
+                                        color = if (d.missed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onTertiaryContainer,
+                                        textDecoration = if (d.done) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
+                                    )
+                                }
                             }
                         }
                     }
@@ -1934,10 +1996,6 @@ fun AddEventDialog(
                 prefilledSmartResult.reminderMinutesBefore.forEach { mins ->
                     add(com.example.lifeorganizer.core.i18n.reminderLabel(mins * 60000L, lang) to mins * 60000L)
                 }
-            } else if (editingEvent == null && prefilledSmartResult == null) {
-                // New event: the default reminder from the calendar settings, if one is set
-                val minutes = com.example.lifeorganizer.core.settings.MicroSettings.get(context, com.example.lifeorganizer.core.settings.MicroSettings.EVENT_REMINDER)
-                if (minutes >= 0) add(com.example.lifeorganizer.core.i18n.reminderLabel(minutes * 60000L, lang) to minutes * 60000L)
             } else {
                 editingEvent?.reminders?.forEach {
                     val offset = editingEvent.event.startTimeMillis - it.reminderTimeMillis
@@ -2225,6 +2283,15 @@ fun AddEventDialog(
 
                 // 6. Reminders
                 Text(Translations.get(TransKey.REMINDERS, lang), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary)
+                // Without an own reminder the default one applies (calendar settings)
+                val defaultReminder = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.EVENT_REMINDER)
+                if (reminders.isEmpty() && defaultReminder >= 0 && !isAllDay && !isBirthday) {
+                    Text(
+                        Str.defaultReminderApplies.text().format(com.example.lifeorganizer.core.i18n.reminderLabel(defaultReminder * 60000L, lang)),
+                        style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
                 reminders.forEach { reminder ->
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),

@@ -67,6 +67,22 @@ interface NoteDao {
     @Query("DELETE FROM notes WHERE isDeleted = 1")
     suspend fun emptyTrash()
 
+    @Query("UPDATE notes SET parentId = :parentId WHERE id = :noteId")
+    suspend fun setParent(noteId: Long, parentId: Long?)
+
+    /** Sub-notes of notes that are about to be deleted for good become notes of their own. */
+    @Query("UPDATE notes SET parentId = NULL WHERE parentId IN (SELECT id FROM notes WHERE isDeleted = 1)")
+    suspend fun detachChildrenOfTrash()
+
+    @Query("UPDATE notes SET parentId = NULL WHERE parentId IN (SELECT id FROM notes WHERE isDeleted = 1 AND deletedAt IS NOT NULL AND deletedAt < :before)")
+    suspend fun detachChildrenOfTrashBefore(before: Long)
+
+    @Query("UPDATE notes SET parentId = NULL WHERE parentId = :noteId")
+    suspend fun detachChildrenOf(noteId: Long)
+
+    @Query("SELECT COUNT(*) FROM notes WHERE parentId = :noteId AND isDeleted = 0")
+    suspend fun childCount(noteId: Long): Int
+
     /** Notes in the trash since before [before] (epoch millis) are deleted for good. */
     @Query("DELETE FROM notes WHERE isDeleted = 1 AND deletedAt IS NOT NULL AND deletedAt < :before")
     suspend fun purgeTrash(before: Long)

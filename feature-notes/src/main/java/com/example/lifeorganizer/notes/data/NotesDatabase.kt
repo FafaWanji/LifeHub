@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [Note::class, NoteLabel::class, NoteLabelCrossRef::class, NoteTemplate::class],
-    version = 4,
+    version = 5,
     exportSchema = true
 )
 abstract class NotesDatabase : RoomDatabase() {
@@ -18,6 +18,14 @@ abstract class NotesDatabase : RoomDatabase() {
     companion object {
         @Volatile
         private var INSTANCE: NotesDatabase? = null
+
+        /** v5: sub-notes under a main note. */
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE notes ADD COLUMN parentId INTEGER")
+                db.execSQL("CREATE INDEX IF NOT EXISTS `index_notes_parentId` ON `notes` (`parentId`)")
+            }
+        }
 
         /** v4: notes can carry a Dokki document. */
         val MIGRATION_3_4 = object : Migration(3, 4) {
@@ -46,7 +54,7 @@ abstract class NotesDatabase : RoomDatabase() {
                     context.applicationContext,
                     NotesDatabase::class.java,
                     "notes_database"
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4).build()
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5).build()
                 INSTANCE = instance
                 instance
             }

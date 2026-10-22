@@ -34,7 +34,9 @@ data class NoteDraft(
     val pinnedToDate: Long?,
     val templateId: Long?,
     val labelIds: Set<Long>,
-    val documentId: Long? = null
+    val documentId: Long? = null,
+    /** Main note when this is a sub-note. */
+    val parentId: Long? = null
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -85,7 +87,11 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     init {
         // Trash older than the days set in the notes settings goes for good (never by default)
         val days = MicroSettings.get(application, MicroSettings.TRASH_DAYS)
-        if (days > 0) viewModelScope.launch { noteDao.purgeTrash(System.currentTimeMillis() - days * 86_400_000L) }
+        if (days > 0) viewModelScope.launch {
+            val before = System.currentTimeMillis() - days * 86_400_000L
+            noteDao.detachChildrenOfTrashBefore(before)
+            noteDao.purgeTrash(before)
+        }
     }
 
     /** Loads straight from the database – never from the filtered list, which may be empty or stale. */
@@ -123,7 +129,8 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             isDeleted = existing?.isDeleted ?: false,
             deletedAt = existing?.deletedAt,
             templateId = draft.templateId,
-            documentId = draft.documentId
+            documentId = draft.documentId,
+            parentId = draft.parentId
         )
         val id = if (existing != null) {
             noteDao.updateNote(note)
@@ -201,6 +208,8 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun permanentlyDeleteNote(noteId: Long) {
         viewModelScope.launch {
+            // Its sub-notes stay, as notes of their own
+            noteDao.detachChildrenOf(noteId)
             noteDao.deleteCrossRefsForNote(noteId)
             noteDao.permanentlyDeleteNote(noteId)
         }
@@ -208,10 +217,34 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     fun emptyTrash() {
         viewModelScope.launch {
+            noteDao.detachChildrenOfTrash()
             trashNotes.value.forEach { noteDao.deleteCrossRefsForNote(it.note.id) }
             noteDao.emptyTrash()
         }
     }
+
+    // ---------------------------------------------------------------- sub-notes (one level)
+
+    /**
+     * Makes [noteId] a sub-note of [parentId], or a note of its own again with null. Only one level: a note that has
+     * sub-notes cannot become one, and a sub-note cannot be a main note. Returns false when that is not allowed.
+     */
+    suspend fun setParent(noteId: Long, parentId: Long?): Boolean {
+        if (parentId != null) {
+            if (parentId == noteId || noteDao.childCount(noteId) > 0) return false
+            val parent = noteDao.getNoteWithLabels(parentId)?.note ?: return false
+            if (parent.parentId != null) return false
+        }
+        noteDao.setParent(noteId, parentId)
+        return true
+    }
+
+    /** Title of any active note (e.g. the main note of a sub-note found by a search). */
+    fun titleOf(noteId: Long): String? = allActiveNotes.value.firstOrNull { it.note.id == noteId }?.note?.title
+
+    /** Notes that can take [noteId] as a sub-note: main notes (no parent themselves), not the note itself. */
+    fun possibleParents(noteId: Long?): List<NoteWithLabels> =
+        allActiveNotes.value.filter { it.note.parentId == null && it.note.id != noteId }
 
     fun insertLabel(label: NoteLabel) {
         viewModelScope.launch { noteDao.insertLabel(label) }

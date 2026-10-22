@@ -42,7 +42,12 @@ val CHANGELOG = listOf(
             Txt("Hint in the tasks tab when notifications or exact alarms are not allowed, with a button to the settings", "Hinweis im Aufgaben-Tab, wenn Benachrichtigungen oder genaue Wecker nicht erlaubt sind, mit Button zu den Einstellungen", "Bildirimlere veya tam zamanlı alarmlara izin verilmediğinde görevler sekmesinde ayarlara giden düğmeli bir uyarı", "Aviso en la pestaña de tareas si las notificaciones o las alarmas exactas no están permitidas, con botón a los ajustes", "若未允许通知或精确闹钟，任务页会显示提示，并提供前往设置的按钮"),
             Txt("Forgot to tick off in time? “I did it on time” gives the points after an “Are you sure?” (can be switched in the settings)", "Abhaken vergessen? „Rechtzeitig erledigt“ gibt die Punkte nach einem „Bist du sicher?“ (in den Einstellungen umschaltbar)", "İşaretlemeyi mi unuttun? “Zamanında yaptım” bir “Emin misin?” sonrası puanı verir (ayarlardan değiştirilebilir)", "¿Olvidaste marcarla a tiempo? «Lo hice a tiempo» da los puntos tras un «¿Seguro?» (se cambia en los ajustes)", "忘了按时勾选？“我按时完成了”在确认“你确定吗？”后给予积分（可在设置中切换）"),
             Txt("More settings, in folded sections per module: default reminders and deadline time of tasks, points, quiet hours, snooze time, week start, default event length, note text size, currency, payday as month start, start screen, date format, lock for single modules, backups on Wi-Fi only and more", "Mehr Einstellungen, eingeklappt pro Modul: Standard-Erinnerungen und -Uhrzeit von Aufgaben, Punkte, Ruhezeit, Schlummerdauer, Wochenbeginn, Standarddauer von Terminen, Schriftgröße in Notizen, Währung, Zahltag als Monatsbeginn, Startbildschirm, Datumsformat, Sperre für einzelne Module, Backup nur im WLAN und mehr", "Modül başına katlanmış bölümlerde daha fazla ayar: görevlerin varsayılan hatırlatıcıları ve saati, puanlar, sessiz saatler, erteleme süresi, hafta başlangıcı, etkinlik süresi, not yazı boyutu, para birimi, ay başı olarak maaş günü, başlangıç ekranı, tarih biçimi, tek modül kilidi, yalnızca Wi-Fi ile yedekleme ve daha fazlası", "Más ajustes, en secciones plegadas por módulo: recordatorios y hora por defecto de las tareas, puntos, horas de silencio, tiempo de posponer, inicio de semana, duración de eventos, tamaño de texto en notas, moneda, día de cobro como inicio de mes, pantalla de inicio, formato de fecha, bloqueo por módulo, copia solo con Wi-Fi y más", "更多设置，按模块折叠：任务的默认提醒和时间、积分、免打扰时段、稍后提醒时长、每周起始日、日程默认时长、笔记字号、货币、以发薪日为月初、启动页面、日期格式、单独锁定模块、仅 Wi-Fi 备份等"),
-            Txt("Habits and tasks have their own notification channel, so sound and vibration can differ; reminders can be snoozed", "Gewohnheiten und Aufgaben haben eigene Benachrichtigungskanäle – Ton und Vibration lassen sich getrennt einstellen; Erinnerungen lassen sich verschieben", "Alışkanlıklar ve görevlerin ayrı bildirim kanalları var – ses ve titreşim ayrı ayarlanabilir; hatırlatıcılar ertelenebilir", "Hábitos y tareas tienen su propio canal de notificaciones, así que sonido y vibración pueden ser distintos; los recordatorios se pueden posponer", "习惯和任务有各自的通知渠道，可分别设置声音和振动；提醒可以稍后再提醒")
+            Txt("Habits and tasks have their own notification channel, so sound and vibration can differ; reminders can be snoozed", "Gewohnheiten und Aufgaben haben eigene Benachrichtigungskanäle – Ton und Vibration lassen sich getrennt einstellen; Erinnerungen lassen sich verschieben", "Alışkanlıklar ve görevlerin ayrı bildirim kanalları var – ses ve titreşim ayrı ayarlanabilir; hatırlatıcılar ertelenebilir", "Hábitos y tareas tienen su propio canal de notificaciones, así que sonido y vibración pueden ser distintos; los recordatorios se pueden posponer", "习惯和任务有各自的通知渠道，可分别设置声音和振动；提醒可以稍后再提醒"),
+            Txt("Calendar: every event without its own reminder now reminds 2 hours before (adjustable) – of several events at the same place on one day only the first", "Kalender: Jeder Termin ohne eigene Erinnerung erinnert jetzt 2 Stunden vorher (einstellbar) – bei mehreren Terminen am selben Ort an einem Tag nur der erste", "Takvim: kendi hatırlatıcısı olmayan her etkinlik artık 2 saat önce hatırlatır (ayarlanabilir) – aynı gün aynı yerdeki birden çok etkinlikte yalnızca ilki", "Calendario: cada evento sin recordatorio propio avisa ahora 2 horas antes (ajustable); de varios eventos en el mismo lugar un día, solo el primero", "日历：没有自己提醒的日程现在会提前 2 小时提醒（可调整）– 同一天同一地点的多个日程只提醒第一个"),
+            Txt("Task deadlines appear in the calendar; tap one to open the task", "Deadlines von Aufgaben erscheinen im Kalender; antippen öffnet die Aufgabe", "Görev son tarihleri takvimde görünür; dokununca görev açılır", "Las fechas límite de las tareas aparecen en el calendario; al tocarlas se abre la tarea", "任务截止时间显示在日历中；点按即可打开任务"),
+            Txt("Notes: main notes with sub-notes", "Notizen: Hauptnotizen mit Unternotizen", "Notlar: alt notları olan ana notlar", "Notas: notas principales con subnotas", "笔记：主笔记可包含子笔记"),
+            Txt("Auto backups also go to Documents/LifeHub and survive uninstalling; after a reinstall they can be restored right in the setup", "Auto-Backups landen zusätzlich in Dokumente/LifeHub und überstehen das Deinstallieren; nach einer Neuinstallation direkt im Setup wiederherstellen", "Otomatik yedekler ayrıca Belgeler/LifeHub içine kaydedilir ve kaldırmadan sonra da kalır; yeniden kurulumdan sonra doğrudan kurulumda geri yüklenebilir", "Las copias automáticas también se guardan en Documentos/LifeHub y sobreviven a la desinstalación; tras reinstalar se restauran en la configuración", "自动备份也会保存到“文档/LifeHub”，卸载后仍保留；重新安装后可在设置向导中直接恢复"),
+            Txt("PC access: when the phone is not connected the browser keeps showing your data, read only; background tabs no longer keep the phone awake", "PC-Zugriff: Ist das Handy nicht verbunden, zeigt der Browser deine Daten weiter an – nur lesen; Tabs im Hintergrund halten das Handy nicht mehr wach", "PC erişimi: telefon bağlı değilken tarayıcı verilerini göstermeye devam eder – yalnızca okuma; arka plandaki sekmeler telefonu artık uyanık tutmaz", "Acceso desde PC: si el móvil no está conectado, el navegador sigue mostrando tus datos en solo lectura; las pestañas en segundo plano ya no mantienen el móvil activo", "电脑访问：手机未连接时，浏览器会继续以只读方式显示数据；后台标签页不再让手机保持唤醒")
         )
     ),
     Release(
@@ -176,8 +181,23 @@ fun ChangelogDialog(onlyVersion: String? = null, onDismiss: () -> Unit) {
 
 /** First start: language and design, applied live so the user sees the result immediately. */
 @Composable
-fun SetupScreen(settings: SettingsManager, onFinish: () -> Unit) {
+fun SetupScreen(settings: SettingsManager, onRestore: ((android.net.Uri) -> Unit)? = null, onFinish: () -> Unit) {
     val scope = rememberCoroutineScope()
+    // After a reinstall: pick a backup (the picker opens in Documents/LifeHub, where auto backups outlive the app)
+    val restorePicker = androidx.activity.compose.rememberLauncherForActivityResult(
+        object : androidx.activity.result.contract.ActivityResultContracts.OpenDocument() {
+            override fun createIntent(context: Context, input: Array<String>) = super.createIntent(context, input).putExtra(
+                android.provider.DocumentsContract.EXTRA_INITIAL_URI,
+                android.net.Uri.parse("content://com.android.externalstorage.documents/document/primary%3ADocuments%2FLifeHub")
+            )
+        }
+    ) { uri ->
+        if (uri != null) scope.launch {
+            settings.saveOnboardingCompleted(true)
+            onRestore?.invoke(uri)
+            onFinish()
+        }
+    }
     val language by settings.languageCode.collectAsState(initial = "de")
     val style by settings.designStyle.collectAsState(initial = "pastel")
     val dark by settings.isDarkTheme.collectAsState(initial = null)
@@ -190,6 +210,15 @@ fun SetupScreen(settings: SettingsManager, onFinish: () -> Unit) {
         ) {
             Text(Str.appSetupTitle.text(), style = MaterialTheme.typography.headlineMedium)
             Text(Str.setupSubtitle.text(), style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (onRestore != null) {
+                OutlinedButton(onClick = { restorePicker.launch(arrayOf("application/json", "*/*")) }, modifier = Modifier.fillMaxWidth()) {
+                    Text(com.example.lifeorganizer.core.i18n.BkStr.restoreBackup.text())
+                }
+                Text(
+                    com.example.lifeorganizer.core.i18n.BkStr.restoreBackupHint.text(),
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
 
             Section(Str.language.text()) {
                 @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)

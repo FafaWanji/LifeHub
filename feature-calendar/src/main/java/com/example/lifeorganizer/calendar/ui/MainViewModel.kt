@@ -46,6 +46,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.IO) {
             removeDuplicateSeries()
             com.example.lifeorganizer.calendar.alarm.RecurringAlarmSync.sync(application)
+            com.example.lifeorganizer.calendar.alarm.DefaultReminders.sync(application)
         }
         viewModelScope.launch {
             eventDao.getEventsWithReminders().collect {

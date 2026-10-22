@@ -118,13 +118,52 @@ object AutoBackup {
             file.outputStream()
         }
         stream.use { BackupManager(context).export(it) }
-        dir.listFiles { f -> f.name.startsWith("lifehub-auto-") && f.name.endsWith(".json") }
-            ?.sortedByDescending { it.lastModified() }
-            ?.drop(keep(context))
-            ?.forEach { it.delete() }
-        // The external copy is best effort: a revoked folder must not fail the local backup.
+        // Old ones go in both possible folders (the app falls back to internal storage when the external one is not
+        // writable, so earlier backups can sit in the other one)
+        listOfNotNull(context.getExternalFilesDir(null)?.let { File(it, "backups") }, File(context.filesDir, "backups"))
+            .flatMap { d -> d.listFiles { f -> f.name.startsWith("lifehub-auto-") && f.name.endsWith(".json") }.orEmpty().toList() }
+            .sortedByDescending { it.lastModified() }
+            .drop(keep(context))
+            .forEach { it.delete() }
+        // The other copies are best effort: a revoked folder must not fail the local backup.
         runCatching { copyToExternal(context, file) }
+        runCatching { copyToDocuments(context, file) }
         return file
+    }
+
+    /** Public folder for the copy that stays when the app is uninstalled. */
+    const val DOCUMENTS_FOLDER = "Documents/LifeHub"
+
+    /**
+     * Copies [file] to Documents/LifeHub (Android 10+, no permission needed), which survives uninstalling the app, and
+     * keeps the newest [keep] there. Copies of an earlier installation belong to it: Android hides them from this one,
+     * so they are left alone – they can still be picked when restoring.
+     */
+    private fun copyToDocuments(context: Context, file: File) {
+        if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.Q) return
+        val resolver = context.contentResolver
+        val collection = android.provider.MediaStore.Files.getContentUri(android.provider.MediaStore.VOLUME_EXTERNAL_PRIMARY)
+        val name = android.provider.MediaStore.MediaColumns.DISPLAY_NAME
+        val path = android.provider.MediaStore.MediaColumns.RELATIVE_PATH
+        // Our copies there, newest first
+        val ours = mutableListOf<Pair<String, android.net.Uri>>()
+        resolver.query(
+            collection, arrayOf(android.provider.BaseColumns._ID, name),
+            "$path LIKE ? AND $name LIKE ?", arrayOf("$DOCUMENTS_FOLDER%", "lifehub-auto-%"), "$name DESC"
+        )?.use { c ->
+            while (c.moveToNext()) ours += c.getString(1) to android.content.ContentUris.withAppendedId(collection, c.getLong(0))
+        }
+        // Same day again: replace instead of piling up copies
+        ours.filter { it.first == file.name }.forEach { runCatching { resolver.delete(it.second, null, null) } }
+        val values = android.content.ContentValues().apply {
+            put(name, file.name)
+            put(android.provider.MediaStore.MediaColumns.MIME_TYPE, "application/json")
+            put(path, "$DOCUMENTS_FOLDER/")
+        }
+        val target = resolver.insert(collection, values) ?: return
+        resolver.openOutputStream(target, "wt")?.use { out -> file.inputStream().use { it.copyTo(out) } }
+        ours.filter { it.first != file.name }.drop(keep(context) - 1)
+            .forEach { runCatching { resolver.delete(it.second, null, null) } }
     }
 }
 

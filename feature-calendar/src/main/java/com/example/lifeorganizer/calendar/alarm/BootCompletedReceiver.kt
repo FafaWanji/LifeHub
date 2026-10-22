@@ -32,6 +32,7 @@ class BootCompletedReceiver : BroadcastReceiver() {
                     }
                 }
                 RecurringAlarmSync.sync(context)
+                DefaultReminders.sync(context)
             }
         }
     }

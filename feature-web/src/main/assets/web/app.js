@@ -5,7 +5,7 @@ const T = {
   en: {
     calendar: 'Calendar', notes: 'Notes', money: 'Finance', logout: 'Disconnect',
     pairTitle: 'Connect to LifeHub', pairHint: 'Enter the 6-digit code shown in LifeHub on your phone (Menu → PC access).',
-    connect: 'Connect', wrongCode: 'Wrong code. Check the code on your phone.', offline: 'Phone not reachable. Is PC access still on?',
+    connect: 'Connect', wrongCode: 'Wrong code. Check the code on your phone.', offline: 'Phone not reachable. Is PC access still on?', offlineBanner: 'Phone not connected – read only. You can edit again as soon as LifeHub is reachable.', readOnly: 'Read only while the phone is not connected',
     today: 'Today', newEvent: 'New event', editEvent: 'Edit event', title: 'Title', allDay: 'All day', date: 'Date',
     start: 'Start', end: 'End', repeat: 'Repeat', none: 'None', daily: 'Daily', weekly: 'Weekly', monthly: 'Monthly', yearly: 'Yearly',
     asInApp: 'As set in the app', category: 'Category', reminder: 'Reminder', atStart: 'At start', min10: '10 minutes before',
@@ -21,7 +21,7 @@ const T = {
   de: {
     calendar: 'Kalender', notes: 'Notizen', money: 'Finanzen', logout: 'Trennen',
     pairTitle: 'Mit LifeHub verbinden', pairHint: 'Gib den 6-stelligen Code ein, den LifeHub auf deinem Handy zeigt (Menü → PC-Zugriff).',
-    connect: 'Verbinden', wrongCode: 'Falscher Code. Prüfe den Code auf dem Handy.', offline: 'Handy nicht erreichbar. Ist der PC-Zugriff noch an?',
+    connect: 'Verbinden', wrongCode: 'Falscher Code. Prüfe den Code auf dem Handy.', offline: 'Handy nicht erreichbar. Ist der PC-Zugriff noch an?', offlineBanner: 'Handy nicht verbunden – nur lesen. Bearbeiten geht wieder, sobald LifeHub erreichbar ist.', readOnly: 'Nur lesen, solange das Handy nicht verbunden ist',
     today: 'Heute', newEvent: 'Neuer Termin', editEvent: 'Termin bearbeiten', title: 'Titel', allDay: 'Ganztägig', date: 'Datum',
     start: 'Beginn', end: 'Ende', repeat: 'Wiederholung', none: 'Keine', daily: 'Täglich', weekly: 'Wöchentlich', monthly: 'Monatlich', yearly: 'Jährlich',
     asInApp: 'Wie in der App eingestellt', category: 'Kategorie', reminder: 'Erinnerung', atStart: 'Zum Beginn', min10: '10 Minuten vorher',
@@ -37,7 +37,7 @@ const T = {
   tr: {
     calendar: 'Takvim', notes: 'Notlar', money: 'Finans', logout: 'Bağlantıyı kes',
     pairTitle: "LifeHub'a bağlan", pairHint: 'Telefonundaki LifeHub\'ın gösterdiği 6 haneli kodu gir (Menü → PC erişimi).',
-    connect: 'Bağlan', wrongCode: 'Yanlış kod. Telefondaki kodu kontrol et.', offline: 'Telefona ulaşılamıyor. PC erişimi hâlâ açık mı?',
+    connect: 'Bağlan', wrongCode: 'Yanlış kod. Telefondaki kodu kontrol et.', offline: 'Telefona ulaşılamıyor. PC erişimi hâlâ açık mı?', offlineBanner: "Telefon bağlı değil – yalnızca okuma. LifeHub'a ulaşılınca yeniden düzenleyebilirsin.", readOnly: 'Telefon bağlı değilken yalnızca okuma',
     today: 'Bugün', newEvent: 'Yeni etkinlik', editEvent: 'Etkinliği düzenle', title: 'Başlık', allDay: 'Tüm gün', date: 'Tarih',
     start: 'Başlangıç', end: 'Bitiş', repeat: 'Tekrar', none: 'Yok', daily: 'Günlük', weekly: 'Haftalık', monthly: 'Aylık', yearly: 'Yıllık',
     asInApp: 'Uygulamadaki gibi', category: 'Kategori', reminder: 'Hatırlatıcı', atStart: 'Başlangıçta', min10: '10 dakika önce',
@@ -53,7 +53,7 @@ const T = {
   es: {
     calendar: 'Calendario', notes: 'Notas', money: 'Finanzas', logout: 'Desconectar',
     pairTitle: 'Conectar con LifeHub', pairHint: 'Introduce el código de 6 cifras que muestra LifeHub en tu móvil (Menú → Acceso desde PC).',
-    connect: 'Conectar', wrongCode: 'Código incorrecto. Revisa el código en el móvil.', offline: 'Móvil no accesible. ¿Sigue activo el acceso desde PC?',
+    connect: 'Conectar', wrongCode: 'Código incorrecto. Revisa el código en el móvil.', offline: 'Móvil no accesible. ¿Sigue activo el acceso desde PC?', offlineBanner: 'Móvil no conectado: solo lectura. Podrás editar de nuevo en cuanto LifeHub esté accesible.', readOnly: 'Solo lectura mientras el móvil no esté conectado',
     today: 'Hoy', newEvent: 'Nuevo evento', editEvent: 'Editar evento', title: 'Título', allDay: 'Todo el día', date: 'Fecha',
     start: 'Inicio', end: 'Fin', repeat: 'Repetir', none: 'Ninguna', daily: 'Diario', weekly: 'Semanal', monthly: 'Mensual', yearly: 'Anual',
     asInApp: 'Como en la app', category: 'Categoría', reminder: 'Recordatorio', atStart: 'Al inicio', min10: '10 minutos antes',
@@ -69,7 +69,7 @@ const T = {
   zh: {
     calendar: '日历', notes: '笔记', money: '财务', logout: '断开连接',
     pairTitle: '连接 LifeHub', pairHint: '输入手机上 LifeHub 显示的 6 位代码（菜单 → 电脑访问）。',
-    connect: '连接', wrongCode: '代码错误。请核对手机上的代码。', offline: '无法连接手机。电脑访问是否仍开启？',
+    connect: '连接', wrongCode: '代码错误。请核对手机上的代码。', offline: '无法连接手机。电脑访问是否仍开启？', offlineBanner: '手机未连接 – 仅可查看。LifeHub 可访问后即可再次编辑。', readOnly: '手机未连接时仅可查看',
     today: '今天', newEvent: '新建日程', editEvent: '编辑日程', title: '标题', allDay: '全天', date: '日期',
     start: '开始', end: '结束', repeat: '重复', none: '无', daily: '每天', weekly: '每周', monthly: '每月', yearly: '每年',
     asInApp: '与应用中设置相同', category: '分类', reminder: '提醒', atStart: '开始时', min10: '提前 10 分钟',
@@ -116,7 +116,37 @@ function toast(msg) {
 
 let token = localStorage.getItem('lh_token');
 
+// Read and write only while the phone answers. When it is not reachable (PC access off, phone away from the
+// Wi-Fi), what was already loaded stays readable and every change is held back until it answers again.
+const cache = new Map();
+let online = true;
+
+function setOnline(on) {
+  if (on === online) return;
+  online = on;
+  document.body.classList.toggle('readonly', !on);
+  $('#offline').textContent = t('offlineBanner');
+  $('#offline').hidden = on;
+  lockInputs();
+  if (!on) return;
+  // Back online: first save what was typed before the connection dropped, then fresh data
+  if (Notes.dirty) Notes.flush().then(() => { if (!busy()) render(); });
+  else render();
+}
+
+/** Text fields cannot be typed into while read-only (the search field still filters what is shown). */
+function lockInputs() {
+  document.querySelectorAll('main input, main textarea, main select, .backdrop input, .backdrop textarea, .backdrop select').forEach(e => {
+    if (e.dataset.offlineOk === undefined) e.readOnly = e.disabled = !online && e.type !== 'search';
+  });
+}
+new MutationObserver(() => { if (!online) lockInputs(); }).observe(document.documentElement, { childList: true, subtree: true });
+
 async function api(method, path, body) {
+  if (method !== 'GET' && !online) {
+    toast(t('readOnly'));
+    throw new Error('offline');
+  }
   let res;
   try {
     res = await fetch('/api/' + path, {
@@ -125,9 +155,13 @@ async function api(method, path, body) {
       body: body === undefined ? undefined : JSON.stringify(body)
     });
   } catch (e) {
-    toast(t('offline'));
+    const wasOnline = online;
+    setOnline(false);
+    if (method === 'GET' && cache.has(path)) return cache.get(path);
+    if (wasOnline || method !== 'GET') toast(t('offline'));
     throw e;
   }
+  setOnline(true);
   if (res.status === 401) {
     localStorage.removeItem('lh_token');
     token = null;
@@ -139,6 +173,7 @@ async function api(method, path, body) {
     toast(t('error'));
     throw new Error(data.error || res.status);
   }
+  if (method === 'GET') cache.set(path, data);
   return data;
 }
 
@@ -229,11 +264,14 @@ function route() {
   ({ calendar: Calendar, notes: Notes, money: Money })[tab].mount();
 }
 window.addEventListener('hashchange', () => { if (token) route(); });
+document.addEventListener('visibilitychange', () => { if (!document.hidden && token) poll(); });
 
 let version = null;
 async function poll() {
   clearTimeout(poll.timer);
   if (!token) return;
+  // A tab in the background does not ask: the phone can sleep, and PC access ends itself after 30 idle minutes
+  if (document.hidden) return;
   try {
     const v = (await api('GET', 'changes')).version;
     if (version !== null && v !== version && !document.querySelector('.backdrop') && !busy()) render();
@@ -415,7 +453,7 @@ const Notes = {
 
   draw() {
     const listBox = el('div', { class: 'notelist' });
-    const search = el('input', { placeholder: t('search'), value: this.query, oninput: e => { this.query = e.target.value; this.drawList(listBox, this.shown()); } });
+    const search = el('input', { placeholder: t('search'), value: this.query, 'data-offline-ok': '', oninput: e => { this.query = e.target.value; this.drawList(listBox, this.shown()); } });
     this.drawList(listBox, this.shown());
     const left = el('div', { class: 'card' }, el('div', { class: 'row' }, search), el('p'), el('button', { onclick: () => { this.open({ id: null, title: '', content: '', isPinned: false }); } }, '+ ' + t('newNote')), el('p'), listBox);
     $('#main').replaceChildren(el('div', { class: 'notes-layout' }, left, el('div', { class: 'card editor' }, this.editor())));
@@ -483,8 +521,15 @@ const Notes = {
     if (!n.id && !n.title.trim() && !n.content.trim()) return;
     this.dirty = false;
     const payload = { title: n.title, content: n.content, isPinned: n.isPinned };
-    if (n.id) await api('PUT', 'notes/' + n.id, payload);
-    else n.id = (await api('POST', 'notes', payload)).id;
+    try {
+      if (n.id) await api('PUT', 'notes/' + n.id, payload);
+      else n.id = (await api('POST', 'notes', payload)).id;
+    } catch (e) {
+      // Phone not reachable: keep the text as unsaved, it goes out on reconnect
+      this.dirty = true;
+      if (status) status.textContent = t('readOnly');
+      return;
+    }
     if (status) status.textContent = t('saved');
     this.notes = await api('GET', 'notes');
     const box = document.querySelector('.notelist');

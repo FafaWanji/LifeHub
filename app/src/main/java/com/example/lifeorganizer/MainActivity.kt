@@ -210,7 +210,8 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
                                         }
                                     )
                                     when (setupDone) {
-                                        false -> com.example.lifeorganizer.ui.SetupScreen(settingsManager) {}
+                                        // A backup picked in the setup goes through the normal import
+                                        false -> com.example.lifeorganizer.ui.SetupScreen(settingsManager, onRestore = { importUri = it }) {}
                                         true -> com.example.lifeorganizer.ui.WhatsNewAfterUpdate(applicationContext, setupDone = true)
                                         null -> Unit
                                     }
