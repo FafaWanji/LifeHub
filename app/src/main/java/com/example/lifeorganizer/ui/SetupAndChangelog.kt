@@ -22,6 +22,7 @@ import com.example.lifeorganizer.core.i18n.Str
 import com.example.lifeorganizer.core.i18n.Txt
 import com.example.lifeorganizer.core.i18n.text
 import com.example.lifeorganizer.core.settings.SettingsManager
+import com.example.lifeorganizer.update.Updater
 import kotlinx.coroutines.launch
 
 // ============================================================================ changelog
@@ -155,32 +156,47 @@ private object WhatsNewPrefs {
 @Composable
 fun WhatsNewAfterUpdate(context: Context, setupDone: Boolean) {
     val current = BuildConfig.VERSION_NAME
-    var show by remember { mutableStateOf(false) }
+    var versions by remember { mutableStateOf<Set<String>>(emptySet()) }
     LaunchedEffect(setupDone) {
         if (!setupDone) return@LaunchedEffect
         val last = WhatsNewPrefs.lastSeen(context)
         if (last != current) {
-            show = last != null && WhatsNewPrefs.enabled(context) && CHANGELOG.any { it.version == current }
+            // Everything since the version seen last, e.g. 1.2 → 1.3.1 shows 1.3 and 1.3.1
+            if (last != null && WhatsNewPrefs.enabled(context)) {
+                versions = CHANGELOG.map { it.version }
+                    .filter { v -> Updater.isNewer(v, last) && !Updater.isNewer(v, current) }
+                    .toSet()
+            }
             WhatsNewPrefs.setLastSeen(context, current)
         }
     }
-    if (show) {
-        ChangelogDialog(onlyVersion = current, onDismiss = { show = false })
+    if (versions.isNotEmpty()) {
+        ChangelogDialog(onlyVersions = versions, onDismiss = { versions = emptySet() })
     }
 }
 
 @Composable
-fun ChangelogDialog(onlyVersion: String? = null, onDismiss: () -> Unit) {
+fun ChangelogDialog(onlyVersions: Set<String>? = null, onDismiss: () -> Unit) {
     val context = androidx.compose.ui.platform.LocalContext.current
     var enabled by remember { mutableStateOf(WhatsNewPrefs.enabled(context)) }
-    val releases = CHANGELOG.filter { onlyVersion == null || it.version == onlyVersion }
+    val releases = CHANGELOG.filter { onlyVersions == null || it.version in onlyVersions }
+    // Only one version: its number is in the title; several or all: a heading per version
+    val single = releases.singleOrNull()?.version?.takeIf { onlyVersions != null }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (onlyVersion != null) Str.whatsNew.text().format(onlyVersion) else Str.changelog.text()) },
+        title = {
+            Text(
+                when {
+                    single != null -> Str.whatsNew.text().format(single)
+                    onlyVersions != null -> Str.whatsNew.text().format(releases.firstOrNull()?.version.orEmpty())
+                    else -> Str.changelog.text()
+                }
+            )
+        },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 releases.forEach { r ->
-                    if (onlyVersion == null) {
+                    if (single == null) {
                         Text("Version ${r.version}", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.padding(top = 8.dp, bottom = 4.dp))
                     }
