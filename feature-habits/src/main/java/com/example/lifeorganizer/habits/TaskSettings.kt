@@ -10,8 +10,8 @@ import com.example.lifeorganizer.habits.domain.TaskDeadline
 data class TaskSettings(
     val defaultOffsets: String,
     val defaultMinute: Int,
+    /** Fixed: [TaskDeadline.POINTS_ON_TIME]. */
     val points: Int,
-    val graceMinutes: Int,
     val showPoints: Boolean,
     /** 0 = all. */
     val doneShown: Int,
@@ -27,8 +27,7 @@ data class TaskSettings(
             return TaskSettings(
                 defaultOffsets = get(MicroSettings.TASK_DEFAULT_OFFSETS),
                 defaultMinute = get(MicroSettings.TASK_DEFAULT_MINUTE).coerceIn(0, TaskDeadline.END_OF_DAY),
-                points = get(MicroSettings.TASK_POINTS).coerceAtLeast(1),
-                graceMinutes = get(MicroSettings.TASK_LATE_GRACE).coerceAtLeast(0),
+                points = TaskDeadline.POINTS_ON_TIME,
                 showPoints = get(MicroSettings.SHOW_POINTS),
                 doneShown = get(MicroSettings.DONE_TASKS_SHOWN).coerceAtLeast(0),
                 quiet = if (get(MicroSettings.QUIET_HOURS)) TaskDeadline.QuietHours(get(MicroSettings.QUIET_START), get(MicroSettings.QUIET_END)) else null,
@@ -50,8 +49,7 @@ fun rememberTaskSettings(): TaskSettings {
     return TaskSettings(
         defaultOffsets = rememberMicro(MicroSettings.TASK_DEFAULT_OFFSETS),
         defaultMinute = rememberMicro(MicroSettings.TASK_DEFAULT_MINUTE).coerceIn(0, TaskDeadline.END_OF_DAY),
-        points = rememberMicro(MicroSettings.TASK_POINTS).coerceAtLeast(1),
-        graceMinutes = rememberMicro(MicroSettings.TASK_LATE_GRACE).coerceAtLeast(0),
+        points = TaskDeadline.POINTS_ON_TIME,
         showPoints = rememberMicro(MicroSettings.SHOW_POINTS),
         doneShown = rememberMicro(MicroSettings.DONE_TASKS_SHOWN).coerceAtLeast(0),
         quiet = if (quietOn) TaskDeadline.QuietHours(quietStart, quietEnd) else null,

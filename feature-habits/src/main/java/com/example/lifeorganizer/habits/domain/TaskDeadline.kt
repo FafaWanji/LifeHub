@@ -14,8 +14,8 @@ object TaskDeadline {
     const val END_OF_DAY = 23 * 60 + 59
     /** 1 day and 1 hour before the deadline. */
     const val DEFAULT_OFFSETS = "1440,60"
-    /** Done by the deadline (default, can be changed in the settings); late is 0 – a deadline is a deadline. */
-    const val POINTS_ON_TIME = 10
+    /** Done by the deadline: 1 point; late is 0 – a deadline is a deadline. */
+    const val POINTS_ON_TIME = 1
     /** Offered as chips in the task dialog: 15 min, 1 h, 3 h, 1 day, 2 days, 1 week. */
     val PRESET_OFFSETS = listOf(15, 60, 3 * 60, 24 * 60, 2 * 24 * 60, 7 * 24 * 60)
 
@@ -69,24 +69,16 @@ object TaskDeadline {
     /** True from the minute after the deadline on. */
     fun isMissed(deadline: LocalDateTime?, now: LocalDateTime): Boolean = deadline != null && !now.isBefore(deadline.plusMinutes(1))
 
-    /**
-     * Points for ticking off at [doneAt]: [full] by the deadline, 0 when late or without a deadline.
-     * With a [graceMinutes] window, being late by at most that long still gives half.
-     */
-    fun points(deadline: LocalDateTime?, doneAt: LocalDateTime, full: Int = POINTS_ON_TIME, graceMinutes: Int = 0): Int = when {
-        deadline == null -> 0
-        !isMissed(deadline, doneAt) -> full
-        graceMinutes > 0 && !isMissed(deadline.plusMinutes(graceMinutes.toLong()), doneAt) -> full / 2
-        else -> 0
-    }
+    /** Points for ticking off at [doneAt]: [POINTS_ON_TIME] by the deadline, 0 when late or without a deadline. */
+    fun points(deadline: LocalDateTime?, doneAt: LocalDateTime): Int =
+        if (deadline != null && !isMissed(deadline, doneAt)) POINTS_ON_TIME else 0
 
     /**
      * "I did it on time but forgot to tick it off" is offered only for late tasks: open past the deadline
      * ([doneAt] null) or ticked off after it.
      */
-    fun canClaimOnTime(
-        deadline: LocalDateTime?, doneAt: LocalDateTime?, now: LocalDateTime, full: Int = POINTS_ON_TIME, graceMinutes: Int = 0
-    ): Boolean = deadline != null && points(deadline, doneAt ?: now, full, graceMinutes) < full
+    fun canClaimOnTime(deadline: LocalDateTime?, doneAt: LocalDateTime?, now: LocalDateTime): Boolean =
+        deadline != null && points(deadline, doneAt ?: now) < POINTS_ON_TIME
 
     /** Old fixed reminder time as minutes before the deadline; null if it was not before it. */
     fun legacyOffset(dueEpochDay: Long, dueMinute: Int, reminderAt: Long, zone: ZoneId = ZoneId.systemDefault()): Int? {

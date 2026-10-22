@@ -116,7 +116,7 @@ fun HabitsHost(
     val toggleTask: (TaskItem) -> Unit = { task ->
         vm.toggleTask(task)
         if (task.doneAt == null && TaskActions.canClaimOnTime(task, ts)) scope.launch {
-            val got = TaskDeadline.points(TaskDeadline.deadline(task.dueEpochDay, task.dueMinute), LocalDateTime.now(), ts.points, ts.graceMinutes)
+            val got = TaskDeadline.points(TaskDeadline.deadline(task.dueEpochDay, task.dueMinute), LocalDateTime.now())
             val r = snackbar.showSnackbar(HabitsStr.doneLate.of(lang).format(got), HabitsStr.wasOnTime.of(lang), duration = SnackbarDuration.Short)
             if (r == SnackbarResult.ActionPerformed) claimTask = task
         }
@@ -431,7 +431,7 @@ private fun TaskItemRow(task: TaskItem, now: LocalDateTime, lang: String, ts: Ta
     // What was actually booked: tasks done before points existed show nothing instead of points they never got
     val booked = if (done) earned else null
     val onTime = booked != null && booked > 0
-    // Done: "+10" (or half within the grace time) or "0 – too late"; open past the deadline: "Deadline missed"
+    // Done: "+1" or "0 – too late"; open past the deadline: "Deadline missed"
     val status = when {
         ts.showPoints && onTime -> HabitsStr.pointsEarned.of(lang).format(booked)
         ts.showPoints && booked == 0 -> HabitsStr.tooLate.of(lang)

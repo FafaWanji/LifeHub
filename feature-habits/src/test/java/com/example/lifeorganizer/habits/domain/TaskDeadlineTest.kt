@@ -61,11 +61,11 @@ class TaskDeadlineTest {
     }
 
     @Test
-    fun tenPointsByTheDeadlineZeroWhenLate() {
-        assertEquals(10, TaskDeadline.points(deadline, deadline.minusDays(3)))
-        assertEquals(10, TaskDeadline.points(deadline, deadline))
+    fun onePointByTheDeadlineZeroWhenLate() {
+        assertEquals(1, TaskDeadline.points(deadline, deadline.minusDays(3)))
+        assertEquals(1, TaskDeadline.points(deadline, deadline))
         // The deadline minute itself still counts
-        assertEquals(10, TaskDeadline.points(deadline, deadline.plusSeconds(59)))
+        assertEquals(1, TaskDeadline.points(deadline, deadline.plusSeconds(59)))
         assertEquals(0, TaskDeadline.points(deadline, deadline.plusMinutes(1)))
         assertEquals(0, TaskDeadline.points(null, deadline))
     }
@@ -75,17 +75,6 @@ class TaskDeadlineTest {
         assertFalse(TaskDeadline.isMissed(deadline, deadline.plusSeconds(59)))
         assertTrue(TaskDeadline.isMissed(deadline, deadline.plusMinutes(1)))
         assertFalse(TaskDeadline.isMissed(null, LocalDateTime.MAX))
-    }
-
-    @Test
-    fun pointsPerTaskAndHalfWithinGrace() {
-        assertEquals(20, TaskDeadline.points(deadline, deadline, full = 20))
-        // Grace of 1 hour: half up to an hour late, then nothing
-        assertEquals(10, TaskDeadline.points(deadline, deadline.plusMinutes(30), full = 20, graceMinutes = 60))
-        assertEquals(10, TaskDeadline.points(deadline, deadline.plusMinutes(60), full = 20, graceMinutes = 60))
-        assertEquals(0, TaskDeadline.points(deadline, deadline.plusMinutes(61), full = 20, graceMinutes = 60))
-        // A grace time makes a half-point task still worth claiming
-        assertTrue(TaskDeadline.canClaimOnTime(deadline, deadline.plusMinutes(30), deadline.plusDays(1), full = 20, graceMinutes = 60))
     }
 
     @Test

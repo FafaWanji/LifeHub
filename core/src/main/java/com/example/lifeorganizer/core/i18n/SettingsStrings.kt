@@ -42,15 +42,6 @@ object SetStr {
         "只选日期时使用，快速添加也适用。"
     )
     val defaultReminders = Txt("Reminders of new tasks", "Erinnerungen bei neuen Aufgaben", "Yeni görevlerin hatırlatıcıları", "Recordatorios de las tareas nuevas", "新任务的提醒")
-    val pointsPerTask = Txt("Points per task on time", "Punkte pro rechtzeitiger Aufgabe", "Zamanında görev başına puan", "Puntos por tarea a tiempo", "每项按时任务的积分")
-    val latePoints = Txt("Half points when late by at most", "Halbe Punkte bei höchstens so viel Verspätung", "En fazla bu kadar gecikmede yarım puan", "Mitad de puntos si llegas tarde como mucho", "逾期不超过以下时间得一半积分")
-    val latePointsHint = Txt(
-        "Off: a deadline is a deadline – late is 0.",
-        "Aus: Deadline ist Deadline – zu spät gibt 0.",
-        "Kapalı: son tarih son tarihtir – geç kalan 0.",
-        "Desactivado: una fecha límite es una fecha límite, tarde es 0.",
-        "关闭：截止就是截止 – 逾期为 0。"
-    )
     val showPoints = Txt("Show points", "Punkte anzeigen", "Puanları göster", "Mostrar puntos", "显示积分")
     val doneShown = Txt("Done tasks in the list", "Erledigte Aufgaben in der Liste", "Listedeki tamamlanan görevler", "Tareas hechas en la lista", "列表中的已完成任务")
     val quietHours = Txt("Quiet hours", "Ruhezeit", "Sessiz saatler", "Horas de silencio", "免打扰时段")

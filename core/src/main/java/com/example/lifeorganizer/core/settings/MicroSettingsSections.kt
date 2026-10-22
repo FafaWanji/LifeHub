@@ -88,14 +88,6 @@ private fun HabitsSection(lang: String) {
     OffsetsSetting(SetStr.defaultReminders.of(lang), lang)
     val showPoints = rememberMicro(MicroSettings.SHOW_POINTS)
     SwitchSetting(SetStr.showPoints.of(lang), MicroSettings.SHOW_POINTS)
-    if (showPoints) {
-        ChoiceSetting(SetStr.pointsPerTask.of(lang), MicroSettings.TASK_POINTS, listOf(5, 10, 20, 50).map { it to "+$it" })
-        ChoiceSetting(
-            SetStr.latePoints.of(lang), MicroSettings.TASK_LATE_GRACE,
-            listOf(0 to SetStr.off.of(lang), 60 to durationLabel(60, lang), 1440 to durationLabel(1440, lang)),
-            SetStr.latePointsHint.of(lang)
-        )
-    }
     ChoiceSetting(SetStr.doneShown.of(lang), MicroSettings.DONE_TASKS_SHOWN, listOf(10 to "10", 30 to "30", 100 to "100", 0 to SetStr.all.of(lang)))
     val quiet = rememberMicro(MicroSettings.QUIET_HOURS)
     SwitchSetting(SetStr.quietHours.of(lang), MicroSettings.QUIET_HOURS, SetStr.quietHoursHint.of(lang))

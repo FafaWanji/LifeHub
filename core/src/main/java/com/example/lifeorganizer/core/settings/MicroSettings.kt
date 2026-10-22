@@ -28,9 +28,6 @@ object MicroSettings {
     val TASK_DEFAULT_OFFSETS = StringKey("task_default_offsets", "1440,60")
     /** Deadline time of a new task when none is given, minutes after midnight. */
     val TASK_DEFAULT_MINUTE = IntKey("task_default_minute", 23 * 60 + 59)
-    val TASK_POINTS = IntKey("task_points", 10)
-    /** Done late but within this many minutes: half the points. 0 = a deadline is a deadline. */
-    val TASK_LATE_GRACE = IntKey("task_late_grace", 0)
     val SHOW_POINTS = BoolKey("show_points", true)
     /** Done tasks listed in the tasks tab, 0 = all. */
     val DONE_TASKS_SHOWN = IntKey("done_tasks_shown", 30)
@@ -128,7 +125,7 @@ object MicroSettings {
 
     /** Every key, for the backup. */
     val all: List<Key<*>> = listOf(
-        TASK_DEFAULT_OFFSETS, TASK_DEFAULT_MINUTE, TASK_POINTS, TASK_LATE_GRACE, SHOW_POINTS, DONE_TASKS_SHOWN,
+        TASK_DEFAULT_OFFSETS, TASK_DEFAULT_MINUTE, SHOW_POINTS, DONE_TASKS_SHOWN,
         QUIET_HOURS, QUIET_START, QUIET_END, SOON_DAYS, WIDGET_DONE_HABITS, CONFIRM_DELETE_TASK,
         DEADLINE_REPEAT, SNOOZE_MINUTES,
         WEEK_START, EVENT_LENGTH, EVENT_REMINDER, WEEK_NUMBERS, WIDGET_BIRTHDAYS,

@@ -25,8 +25,7 @@ object TaskActions {
             dao.updateTask(updated)
             if (done) {
                 val deadline = TaskDeadline.deadline(task.dueEpochDay, task.dueMinute)
-                val settings = TaskSettings.read(app)
-                val points = TaskDeadline.points(deadline, TaskDeadline.toLocal(now), settings.points, settings.graceMinutes)
+                val points = TaskDeadline.points(deadline, TaskDeadline.toLocal(now))
                 dao.insertPoints(TaskPoints(taskId = task.id, title = task.title, points = points, earnedAt = now))
             } else {
                 dao.deletePointsOf(task.id)
@@ -41,8 +40,7 @@ object TaskActions {
     /** Only late tasks need it: open past the deadline, or ticked off after it. */
     fun canClaimOnTime(task: TaskItem, settings: TaskSettings, now: Long = System.currentTimeMillis()): Boolean = settings.showPoints &&
         TaskDeadline.canClaimOnTime(
-            TaskDeadline.deadline(task.dueEpochDay, task.dueMinute), task.doneAt?.let { TaskDeadline.toLocal(it) }, TaskDeadline.toLocal(now),
-            settings.points, settings.graceMinutes
+            TaskDeadline.deadline(task.dueEpochDay, task.dueMinute), task.doneAt?.let { TaskDeadline.toLocal(it) }, TaskDeadline.toLocal(now)
         )
 
     /**
