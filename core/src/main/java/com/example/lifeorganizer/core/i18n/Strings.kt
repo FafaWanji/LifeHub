@@ -41,6 +41,19 @@ object Str {
     val subNotesTitle = Txt("Sub-notes", "Unternotizen", "Alt notlar", "Subnotas", "子笔记")
     val subNoteOf = Txt("Sub-note of %s", "Unternotiz von %s", "%s notunun alt notu", "Subnota de %s", "%s 的子笔记")
     val addSubNote = Txt("Sub-note", "Unternotiz", "Alt not", "Subnota", "子笔记")
+    val moveToSubNote = Txt("Move content to a sub-note", "Inhalt in Unternotiz verschieben", "İçeriği alt nota taşı", "Mover contenido a una subnota", "将内容移到子笔记")
+    val moveToSubNoteHint = Txt(
+        "The text goes into a new sub-note. This note keeps its title and, if you like, gets a template as new text.",
+        "Der Text wandert in eine neue Unternotiz. Diese Notiz behält ihren Titel und bekommt auf Wunsch eine Vorlage als neuen Text.",
+        "Metin yeni bir alt nota taşınır. Bu not başlığını korur ve istersen yeni metin olarak bir şablon alır.",
+        "El texto pasa a una nueva subnota. Esta nota conserva su título y, si quieres, recibe una plantilla como texto nuevo.",
+        "正文会移到新的子笔记中。此笔记保留标题，并可选用一个模板作为新正文。"
+    )
+    val subNoteTitle = Txt("Title of the sub-note", "Titel der Unternotiz", "Alt not başlığı", "Título de la subnota", "子笔记标题")
+    val keepAsText = Txt("New text of this note", "Neuer Text dieser Notiz", "Bu notun yeni metni", "Texto nuevo de esta nota", "此笔记的新正文")
+    val noTemplate = Txt("Empty", "Leer", "Boş", "Vacío", "空白")
+    val movedToSubNote = Txt("Moved to \"%s\"", "Nach „%s“ verschoben", "\"%s\" notuna taşındı", "Movido a «%s»", "已移到「%s」")
+    val move = Txt("Move", "Verschieben", "Taşı", "Mover", "移动")
     val makeSubNote = Txt("Make sub-note of …", "Zur Unternotiz machen …", "Alt not yap …", "Convertir en subnota de …", "设为子笔记…")
     val detachSubNote = Txt("Make it a note of its own", "Zur eigenen Notiz machen", "Bağımsız not yap", "Convertir en nota propia", "设为独立笔记")
     val pickMainNote = Txt("Main note", "Hauptnotiz", "Ana not", "Nota principal", "主笔记")

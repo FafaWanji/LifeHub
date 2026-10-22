@@ -133,6 +133,7 @@ fun NoteEditorScreen(
     var showReminderDate by remember { mutableStateOf(false) }
     var reminderDate by remember { mutableStateOf<LocalDate?>(null) }
     var showTemplateDialog by remember { mutableStateOf(false) }
+    var showMoveToSub by remember { mutableStateOf(false) }
     val snackbarHostState = remember { SnackbarHostState() }
 
     val allLabels by viewModel.labels.collectAsState()
@@ -291,6 +292,12 @@ fun NoteEditorScreen(
                         } else if (subNotes.isEmpty()) {
                             MenuEntry(Icons.AutoMirrored.Filled.Notes, Str.makeSubNote.text()) {
                                 showMenu = false; pickParent = true
+                            }
+                        }
+                        // Only main notes can get sub-notes (one level)
+                        if (parent == null && body.text.isNotBlank()) {
+                            MenuEntry(Icons.AutoMirrored.Filled.Notes, Str.moveToSubNote.text()) {
+                                showMenu = false; showMoveToSub = true
                             }
                         }
                         HorizontalDivider()
@@ -583,6 +590,27 @@ fun NoteEditorScreen(
         )
     }
 
+    if (showMoveToSub) {
+        val templates by viewModel.templates.collectAsState()
+        MoveToSubNoteDialog(
+            lang = lang, templates = templates,
+            onDismiss = { showMoveToSub = false },
+            onMove = { subTitle, template ->
+                showMoveToSub = false
+                val content = body.text
+                // This note keeps its title; its text becomes the chosen template (or nothing)
+                val newText = template?.let { expandPlaceholders(it.content, lang) }.orEmpty()
+                body = TextFieldValue(newText, TextRange(newText.length))
+                save { id ->
+                    scope.launch {
+                        viewModel.createSubNote(id, subTitle, content)
+                        snackbarHostState.showSnackbar(Str.movedToSubNote.of(lang).format(subTitle))
+                    }
+                }
+            }
+        )
+    }
+
     if (showTemplateDialog) {
         var name by remember { mutableStateOf(title) }
         AlertDialog(
@@ -850,5 +878,43 @@ internal fun MarkdownHelpDialog(onDismiss: () -> Unit) {
             }
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(Str.done.text()) } }
+    )
+}
+
+/** Title of the new sub-note (today's date, editable) and an optional template as the new text of the main note. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun MoveToSubNoteDialog(
+    lang: String,
+    templates: List<com.example.lifeorganizer.notes.data.NoteTemplate>,
+    onDismiss: () -> Unit,
+    onMove: (String, com.example.lifeorganizer.notes.data.NoteTemplate?) -> Unit
+) {
+    val today = remember(lang) { LocalDate.now().format(com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "yyyyMMdd")) }
+    var subTitle by remember { mutableStateOf(today) }
+    var template by remember { mutableStateOf<com.example.lifeorganizer.notes.data.NoteTemplate?>(null) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(Str.moveToSubNote.text()) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(Str.moveToSubNoteHint.text(), style = MaterialTheme.typography.bodySmall)
+                OutlinedTextField(
+                    value = subTitle, onValueChange = { subTitle = it }, label = { Text(Str.subNoteTitle.text()) },
+                    singleLine = true, modifier = Modifier.fillMaxWidth()
+                )
+                Text(Str.keepAsText.text(), style = MaterialTheme.typography.labelLarge)
+                androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(selected = template == null, onClick = { template = null }, label = { Text(Str.noTemplate.text()) })
+                    templates.forEach { t ->
+                        FilterChip(selected = template?.id == t.id, onClick = { template = t }, label = { Text(t.name, maxLines = 1) })
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = subTitle.isNotBlank(), onClick = { onMove(subTitle.trim(), template) }) { Text(Str.move.text()) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(Str.cancel.text()) } }
     )
 }

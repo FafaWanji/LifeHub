@@ -240,6 +240,14 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     /** Title of any active note (e.g. the main note of a sub-note found by a search). */
+    /** "Move content to a sub-note": a new sub-note of [parentId] holding [content]. Returns its id. */
+    suspend fun createSubNote(parentId: Long, title: String, content: String): Long {
+        val now = System.currentTimeMillis()
+        return noteDao.insertNote(
+            Note(title = title, content = content, createdAt = now, updatedAt = now, isChecklist = hasChecklist(content), parentId = parentId)
+        )
+    }
+
     fun titleOf(noteId: Long): String? = allActiveNotes.value.firstOrNull { it.note.id == noteId }?.note?.title
 
     /** Notes that can take [noteId] as a sub-note: main notes (no parent themselves), not the note itself. */
