@@ -25,8 +25,8 @@ android {
         applicationId = "de.fayaz.lifehub"
         minSdk = 26
         targetSdk = 36
-        versionCode = 16
-        versionName = "1.3"
+        versionCode = 17
+        versionName = "1.3.1"
 
         buildConfigField("String", "GOOGLE_MAPS_API_KEY", "\"$mapsApiKey\"")
         manifestPlaceholders["GOOGLE_MAPS_API_KEY"] = mapsApiKey

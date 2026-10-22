@@ -31,6 +31,11 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.3.1", listOf(
+            Txt("Glow also along the screen edge – around windows, at the edge or both, and wider", "Leuchten jetzt auch am Bildschirmrand – um Fenster, am Rand oder beides, und breiter", "Işıltı artık ekran kenarında da – pencerelerin etrafında, kenarda ya da ikisinde, ve daha geniş", "El brillo ahora también en el borde de la pantalla – alrededor de ventanas, en el borde o ambos, y más ancho", "光效现在也可显示在屏幕边缘 – 窗口周围、边缘或两者，并且更宽")
+        )
+    ),
+    Release(
         "1.3", listOf(
             Txt("Optional glow around windows: in your design's colours, a rainbow or a colour you pick", "Optionales Leuchten um Fenster: in den Farben deines Designs, als Regenbogen oder in einer Farbe deiner Wahl", "Pencerelerin etrafında isteğe bağlı ışıltı: tasarımının renklerinde, gökkuşağı ya da seçtiğin bir renkte", "Brillo opcional alrededor de las ventanas: con los colores de tu diseño, arcoíris o un color a elegir", "窗口周围的可选光效：使用设计配色、彩虹或你选择的颜色"),
             Txt("PC access can start by itself: when LifeHub opens, in any or only your remembered Wi-Fi, or always – with the battery cost shown; off below a battery level you choose", "PC-Zugriff startet auf Wunsch von selbst: beim Öffnen, in jedem oder nur gemerkten WLAN oder immer – mit Angabe des Akkuverbrauchs; aus unter einem Akkustand deiner Wahl", "PC erişimi istersen kendiliğinden başlar: açılışta, her veya yalnızca kayıtlı Wi-Fi'da ya da her zaman – pil kullanımı gösterilir; seçtiğin pil seviyesinin altında kapanır", "El acceso desde PC puede iniciarse solo: al abrir, en cualquier Wi-Fi o solo en las guardadas, o siempre – con el consumo de batería indicado; se apaga por debajo del nivel de batería que elijas", "电脑访问可自动开启：打开应用时、在任意或仅已记住的 Wi-Fi 下，或始终开启 – 并显示耗电情况；电量低于设定值时关闭"),
