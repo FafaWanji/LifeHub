@@ -2,6 +2,8 @@ package com.example.lifeorganizer.core.settings
 
 import android.content.Intent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -88,14 +90,14 @@ private fun HabitsSection(lang: String) {
     OffsetsSetting(SetStr.defaultReminders.of(lang), lang)
     val showPoints = rememberMicro(MicroSettings.SHOW_POINTS)
     SwitchSetting(SetStr.showPoints.of(lang), MicroSettings.SHOW_POINTS)
-    ChoiceSetting(SetStr.doneShown.of(lang), MicroSettings.DONE_TASKS_SHOWN, listOf(10 to "10", 30 to "30", 100 to "100", 0 to SetStr.all.of(lang)))
+    NumberSetting(SetStr.doneShown.of(lang), MicroSettings.DONE_TASKS_SHOWN, listOf(10 to "10", 30 to "30", 100 to "100", 0 to SetStr.all.of(lang)), lang, NumberUnit.COUNT, 1..999)
     val quiet = rememberMicro(MicroSettings.QUIET_HOURS)
     SwitchSetting(SetStr.quietHours.of(lang), MicroSettings.QUIET_HOURS, SetStr.quietHoursHint.of(lang))
     if (quiet) {
         TimeSetting(SetStr.from.of(lang), MicroSettings.QUIET_START, lang)
         TimeSetting(SetStr.to.of(lang), MicroSettings.QUIET_END, lang)
     }
-    ChoiceSetting(SetStr.soonDays.of(lang), MicroSettings.SOON_DAYS, listOf(3, 7, 14).map { it to SetStr.days.of(lang).format(it) })
+    NumberSetting(SetStr.soonDays.of(lang), MicroSettings.SOON_DAYS, listOf(3, 7, 14).map { it to SetStr.days.of(lang).format(it) }, lang, NumberUnit.DAYS, 1..365)
     SwitchSetting(SetStr.widgetDoneHabits.of(lang), MicroSettings.WIDGET_DONE_HABITS)
     SwitchSetting(SetStr.confirmDeleteTask.of(lang), MicroSettings.CONFIRM_DELETE_TASK)
 }
@@ -125,10 +127,10 @@ private fun NotificationsSection(lang: String, habitsOn: Boolean) {
             colors = transparent()
         )
     }
-    ChoiceSetting(SetStr.snoozeLength.of(lang), MicroSettings.SNOOZE_MINUTES, listOf(5, 10, 15, 30, 60).map { it to durationLabel(it, lang) })
-    if (habitsOn) ChoiceSetting(
+    NumberSetting(SetStr.snoozeLength.of(lang), MicroSettings.SNOOZE_MINUTES, listOf(5, 10, 15, 30, 60).map { it to durationLabel(it, lang) }, lang, NumberUnit.MINUTES, 1..1440)
+    if (habitsOn) NumberSetting(
         SetStr.deadlineRepeat.of(lang), MicroSettings.DEADLINE_REPEAT,
-        listOf(0 to SetStr.off.of(lang)) + listOf(15, 30, 60).map { it to durationLabel(it, lang) }
+        listOf(0 to SetStr.off.of(lang)) + listOf(15, 30, 60).map { it to durationLabel(it, lang) }, lang, NumberUnit.MINUTES, 1..10080
     )
 }
 
@@ -141,11 +143,11 @@ private fun CalendarSection(lang: String) {
         listOf("system" to SetStr.system.of(lang)) +
             listOf(java.time.DayOfWeek.MONDAY, java.time.DayOfWeek.SUNDAY, java.time.DayOfWeek.SATURDAY).map { it.name to day(it) }
     )
-    ChoiceSetting(SetStr.eventLength.of(lang), MicroSettings.EVENT_LENGTH, listOf(30, 60, 90, 120).map { it to durationLabel(it, lang) })
-    ChoiceSetting(
+    NumberSetting(SetStr.eventLength.of(lang), MicroSettings.EVENT_LENGTH, listOf(30, 60, 90, 120).map { it to durationLabel(it, lang) }, lang, NumberUnit.MINUTES, 5..10080)
+    NumberSetting(
         SetStr.eventReminder.of(lang), MicroSettings.EVENT_REMINDER,
         listOf(-1 to SetStr.off.of(lang)) + listOf(30, 60, 120, 180, 1440).map { it to durationLabel(it, lang) },
-        SetStr.eventReminderHint.of(lang)
+        lang, NumberUnit.MINUTES, 1..40320, SetStr.eventReminderHint.of(lang)
     )
     SwitchSetting(SetStr.weekNumbers.of(lang), MicroSettings.WEEK_NUMBERS)
     SwitchSetting(SetStr.widgetBirthdays.of(lang), MicroSettings.WIDGET_BIRTHDAYS)
@@ -159,9 +161,9 @@ private fun NotesSection(lang: String) {
         SetStr.noteFont.of(lang), MicroSettings.NOTE_FONT,
         listOf(85 to SetStr.fontSmall.of(lang), 100 to SetStr.fontNormal.of(lang), 120 to SetStr.fontLarge.of(lang))
     )
-    ChoiceSetting(
+    NumberSetting(
         SetStr.trashDays.of(lang), MicroSettings.TRASH_DAYS,
-        listOf(0 to SetStr.never.of(lang)) + listOf(7, 30, 90).map { it to SetStr.days.of(lang).format(it) }
+        listOf(0 to SetStr.never.of(lang)) + listOf(7, 30, 90).map { it to SetStr.days.of(lang).format(it) }, lang, NumberUnit.DAYS, 1..3650
     )
 }
 
@@ -190,7 +192,7 @@ private fun FinanceSection(lang: String) {
         },
         colors = transparent()
     )
-    ChoiceSetting(SetStr.budgetWarn.of(lang), MicroSettings.BUDGET_WARN, listOf(70, 80, 90).map { it to "$it %" })
+    NumberSetting(SetStr.budgetWarn.of(lang), MicroSettings.BUDGET_WARN, listOf(70, 80, 90).map { it to "$it %" }, lang, NumberUnit.PERCENT, 1..100)
 }
 
 @Composable
@@ -231,7 +233,7 @@ private fun PrivacySection(lang: String, modules: Set<AppModule>) {
         MultiChoiceRow(MicroSettings.LOCKED_VIEWS, views.map { (id, label) -> id to label.of(lang) })
     }
     HorizontalDivider(Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-    ChoiceSetting(SetStr.backupKeep.of(lang), MicroSettings.BACKUP_KEEP, listOf(3, 5, 10, 20).map { it to it.toString() })
+    NumberSetting(SetStr.backupKeep.of(lang), MicroSettings.BACKUP_KEEP, listOf(3, 5, 10, 20).map { it to it.toString() }, lang, NumberUnit.COUNT, 1..100)
     SwitchSetting(SetStr.backupWifi.of(lang), MicroSettings.BACKUP_WIFI_ONLY, SetStr.backupWifiHint.of(lang))
 }
 
@@ -304,6 +306,97 @@ private fun <T> ChoiceRow(key: MicroSettings.Key<T>, options: List<Pair<T, Strin
             FilterChip(selected = current == value, onClick = { MicroSettings.set(context, key, value) }, label = { Text(text) })
         }
     }
+}
+
+/** How an own value is entered and shown. */
+private enum class NumberUnit { COUNT, DAYS, MINUTES, PERCENT }
+
+private fun numberLabel(value: Int, unit: NumberUnit, lang: String): String = when (unit) {
+    NumberUnit.COUNT -> value.toString()
+    NumberUnit.DAYS -> SetStr.days.of(lang).format(value)
+    NumberUnit.MINUTES -> durationLabel(value, lang)
+    NumberUnit.PERCENT -> "$value %"
+}
+
+/**
+ * Like [ChoiceSetting] for numbers, plus a pencil chip for an own value in [range]. While an own value is set,
+ * the pencil chip shows it and is the marked one.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun NumberSetting(
+    label: String, key: MicroSettings.IntKey, options: List<Pair<Int, String>>, lang: String,
+    unit: NumberUnit, range: IntRange, hint: String? = null
+) {
+    val context = LocalContext.current
+    val current = rememberMicro(key)
+    var editing by remember { mutableStateOf(false) }
+    val custom = options.none { it.first == current }
+    Label(label, hint)
+    FlowRow(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        options.forEach { (value, text) ->
+            FilterChip(selected = current == value, onClick = { MicroSettings.set(context, key, value) }, label = { Text(text) })
+        }
+        FilterChip(
+            selected = custom,
+            onClick = { editing = true },
+            leadingIcon = { Icon(Icons.Outlined.Edit, SetStr.customValue.of(lang), Modifier.size(18.dp)) },
+            label = { Text(if (custom) numberLabel(current, unit, lang) else SetStr.customShort.of(lang)) }
+        )
+    }
+    if (editing) CustomNumberDialog(
+        title = label, initial = if (custom && current in range) current else null, unit = unit, range = range, lang = lang,
+        onDismiss = { editing = false },
+        onSave = { MicroSettings.set(context, key, it); editing = false }
+    )
+}
+
+/** Small window for an own number; durations can be typed in minutes, hours or days. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun CustomNumberDialog(
+    title: String, initial: Int?, unit: NumberUnit, range: IntRange, lang: String,
+    onDismiss: () -> Unit, onSave: (Int) -> Unit
+) {
+    // Minutes are shown in the largest unit that fits evenly: 90 → 90 min, 120 → 2 h, 2880 → 2 days
+    val factors = listOf(1 to SetStr.unitMinutes, 60 to SetStr.unitHours, 1440 to SetStr.unitDays)
+    var factor by remember {
+        mutableStateOf(if (unit == NumberUnit.MINUTES && initial != null) factors.last { initial % it.first == 0 }.first else 1)
+    }
+    var text by remember { mutableStateOf(initial?.let { (it / factor).toString() }.orEmpty()) }
+    val value = text.toIntOrNull()?.let { it.toLong() * factor }?.takeIf { it in range.first.toLong()..range.last.toLong() }?.toInt()
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                androidx.compose.material3.OutlinedTextField(
+                    value = text, onValueChange = { new -> text = new.filter(Char::isDigit).take(6) },
+                    singleLine = true, isError = text.isNotEmpty() && value == null,
+                    suffix = when (unit) {
+                        NumberUnit.DAYS -> ({ Text(SetStr.unitDays.of(lang)) })
+                        NumberUnit.PERCENT -> ({ Text("%") })
+                        else -> null
+                    },
+                    supportingText = {
+                        Text(SetStr.allowedRange.of(lang).format(numberLabel(range.first, unit, lang), numberLabel(range.last, unit, lang)))
+                    },
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number),
+                    modifier = Modifier.fillMaxWidth()
+                )
+                if (unit == NumberUnit.MINUTES) FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    factors.forEach { (f, name) ->
+                        FilterChip(selected = factor == f, onClick = { factor = f }, label = { Text(name.of(lang)) })
+                    }
+                }
+            }
+        },
+        confirmButton = { TextButton(enabled = value != null, onClick = { value?.let(onSave) }) { Text(com.example.lifeorganizer.core.i18n.Str.save.of(lang)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(com.example.lifeorganizer.core.i18n.Str.cancel.of(lang)) } }
+    )
 }
 
 @OptIn(ExperimentalLayoutApi::class)

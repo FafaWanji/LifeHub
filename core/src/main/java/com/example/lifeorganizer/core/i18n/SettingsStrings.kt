@@ -18,6 +18,12 @@ object SetStr {
     val hourShort = Txt("%d h", "%d Std.", "%d sa", "%d h", "%d 小时")
     val oneDay = Txt("1 day", "1 Tag", "1 gün", "1 día", "1 天")
     val days = Txt("%d days", "%d Tage", "%d gün", "%d días", "%d 天")
+    val customValue = Txt("Own value", "Eigener Wert", "Özel değer", "Valor propio", "自定义数值")
+    val customShort = Txt("Own", "Eigene", "Özel", "Otro", "自定义")
+    val allowedRange = Txt("From %1\$s to %2\$s", "Von %1\$s bis %2\$s", "%1\$s ile %2\$s arası", "De %1\$s a %2\$s", "%1\$s 至 %2\$s")
+    val unitMinutes = Txt("Minutes", "Minuten", "Dakika", "Minutos", "分钟")
+    val unitHours = Txt("Hours", "Stunden", "Saat", "Horas", "小时")
+    val unitDays = Txt("Days", "Tage", "Gün", "Días", "天")
     val oneWeek = Txt("1 week", "1 Woche", "1 hafta", "1 semana", "1 周")
     val weeks = Txt("%d weeks", "%d Wochen", "%d hafta", "%d semanas", "%d 周")
 
