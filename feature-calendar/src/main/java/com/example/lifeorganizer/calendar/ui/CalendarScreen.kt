@@ -1824,49 +1824,27 @@ fun SettingsDialog(
                                 }
                             )
                             
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = Str.enableSmartAlarms.of(lang),
-                                    modifier = Modifier.weight(1f, fill = false),
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                                com.example.lifeorganizer.core.theme.InfoTip(com.example.lifeorganizer.core.theme.Tips.smartAlarm)
-                                Spacer(Modifier.weight(1f))
-                                Switch(
-                                    checked = smartAlarmsEnabled,
-                                    onCheckedChange = {
-                                        smartAlarmsEnabled = it
-                                        viewModel.saveEnableSmartAlarms(it)
-                                    }
-                                )
-                            }
+                            com.example.lifeorganizer.core.theme.SwitchWithTip(
+                                label = Str.enableSmartAlarms.of(lang),
+                                tip = com.example.lifeorganizer.core.theme.Tips.smartAlarm,
+                                checked = smartAlarmsEnabled,
+                                onCheckedChange = {
+                                    smartAlarmsEnabled = it
+                                    viewModel.saveEnableSmartAlarms(it)
+                                },
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
+                            )
                             
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                            ) {
-                                Text(
-                                    text = Translations.get(TransKey.USE_SYSTEM_ALARM, lang),
-                                    modifier = Modifier.weight(1f, fill = false),
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                                com.example.lifeorganizer.core.theme.InfoTip(com.example.lifeorganizer.core.theme.Tips.systemAlarm)
-                                Spacer(Modifier.weight(1f))
-                                Switch(
-                                    checked = systemAlarmEnabled,
-                                    onCheckedChange = {
-                                        systemAlarmEnabled = it
-                                        viewModel.saveUseSystemAlarmForReminders(it)
-                                    }
-                                )
-                            }
+                            com.example.lifeorganizer.core.theme.SwitchWithTip(
+                                label = Translations.get(TransKey.USE_SYSTEM_ALARM, lang),
+                                tip = com.example.lifeorganizer.core.theme.Tips.systemAlarm,
+                                checked = systemAlarmEnabled,
+                                onCheckedChange = {
+                                    systemAlarmEnabled = it
+                                    viewModel.saveUseSystemAlarmForReminders(it)
+                                },
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
+                            )
                             DeviceCalendarRow(viewModel)
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                             ListItem(

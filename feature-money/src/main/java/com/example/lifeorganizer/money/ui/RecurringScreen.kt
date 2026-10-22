@@ -111,12 +111,11 @@ fun RecurringDialog(vm: MoneyViewModel, initial: Recurring, onDismiss: () -> Uni
                     value = dayText, onValueChange = { dayText = it.filter(Char::isDigit).take(2) }, label = { Text(MoneyStr.dayOfMonth.text()) },
                     singleLine = true, isError = day == null, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth()
                 )
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(MoneyStr.showInCalendar.text(), Modifier.weight(1f, fill = false))
-                    com.example.lifeorganizer.core.theme.InfoTip(com.example.lifeorganizer.core.theme.Tips.fixedInCalendar)
-                    Spacer(Modifier.weight(1f))
-                    Switch(checked = calendar, onCheckedChange = { calendar = it })
-                }
+                com.example.lifeorganizer.core.theme.SwitchWithTip(
+                    MoneyStr.showInCalendar.text(), com.example.lifeorganizer.core.theme.Tips.fixedInCalendar,
+                    checked = calendar, onCheckedChange = { calendar = it },
+                    modifier = Modifier.fillMaxWidth(), style = androidx.compose.material3.LocalTextStyle.current
+                )
                 if (initial.id != 0L) {
                     com.example.lifeorganizer.core.theme.DeleteButton(MoneyStr.delete.text(), onClick = { confirmDelete = true })
                 }

@@ -3,6 +3,7 @@ package com.example.lifeorganizer.core.theme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Info
@@ -57,6 +58,25 @@ fun InfoTip(tip: Txt, modifier: Modifier = Modifier) {
                 }
             }
         }
+    }
+}
+
+/**
+ * A setting with an ⓘ and a switch. The label gets all the width up to the switch and the ⓘ follows its
+ * last line, so long labels in any language wrap normally instead of being squeezed into half the row.
+ */
+@Composable
+fun SwitchWithTip(
+    label: String, tip: Txt, checked: Boolean, onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier, style: androidx.compose.ui.text.TextStyle = MaterialTheme.typography.bodyLarge
+) {
+    androidx.compose.foundation.layout.Row(modifier, verticalAlignment = Alignment.CenterVertically) {
+        androidx.compose.foundation.layout.Row(Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+            Text(label, Modifier.weight(1f, fill = false), style = style)
+            InfoTip(tip)
+        }
+        androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
+        androidx.compose.material3.Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
 
