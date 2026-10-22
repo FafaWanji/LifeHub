@@ -32,6 +32,11 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.3.2", listOf(
+            Txt("\"What's new\" after an update shows every version you skipped", "„Was ist neu“ nach einem Update zeigt alle übersprungenen Versionen", "Güncellemeden sonra \"Yenilikler\" atlanan tüm sürümleri gösterir", "\"Novedades\" tras una actualización muestra todas las versiones que te saltaste", "更新后的「新内容」会显示你跳过的所有版本")
+        )
+    ),
+    Release(
         "1.3.1", listOf(
             Txt("Glow also along the screen edge – around windows, at the edge or both, and wider", "Leuchten jetzt auch am Bildschirmrand – um Fenster, am Rand oder beides, und breiter", "Işıltı artık ekran kenarında da – pencerelerin etrafında, kenarda ya da ikisinde, ve daha geniş", "El brillo ahora también en el borde de la pantalla – alrededor de ventanas, en el borde o ambos, y más ancho", "光效现在也可显示在屏幕边缘 – 窗口周围、边缘或两者，并且更宽")
         )
