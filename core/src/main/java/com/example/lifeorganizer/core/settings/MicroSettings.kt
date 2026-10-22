@@ -62,7 +62,7 @@ object MicroSettings {
 
     // Notes
     val NOTE_CHECKLIST = BoolKey("note_checklist", false)
-    val NOTE_DONE_BOTTOM = BoolKey("note_done_bottom", false)
+    val NOTE_DONE_BOTTOM = BoolKey("note_done_bottom", true)
     /** Editor text size: 0.85, 1.0 or 1.2 (stored as percent). */
     val NOTE_FONT = IntKey("note_font", 100)
     /** Notes in the trash are deleted after this many days, 0 = never. */
