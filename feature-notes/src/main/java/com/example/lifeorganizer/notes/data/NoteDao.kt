@@ -67,6 +67,9 @@ interface NoteDao {
     @Query("DELETE FROM notes WHERE isDeleted = 1")
     suspend fun emptyTrash()
 
+    @Query("UPDATE notes SET isDone = :done WHERE id = :noteId")
+    suspend fun setDone(noteId: Long, done: Boolean)
+
     @Query("UPDATE notes SET parentId = :parentId WHERE id = :noteId")
     suspend fun setParent(noteId: Long, parentId: Long?)
 

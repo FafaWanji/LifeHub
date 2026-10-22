@@ -18,7 +18,8 @@ data class ImportedNote(
     val labelNames: List<String> = emptyList(),
     val createdAt: Long,
     val updatedAt: Long,
-    val isDeleted: Boolean = false
+    val isDeleted: Boolean = false,
+    val isDone: Boolean = false
 )
 
 data class ImportedWaypoint(

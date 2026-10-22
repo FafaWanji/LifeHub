@@ -24,7 +24,9 @@ data class Note(
     val templateId: Long? = null,
     val documentId: Long? = null, // attached Dokki document
     /** Main note this one is a sub-note of; one level only (a main note is never a sub-note itself). */
-    val parentId: Long? = null
+    val parentId: Long? = null,
+    /** Sub-notes can be ticked off as done (shown with a check on the main note). */
+    @androidx.room.ColumnInfo(defaultValue = "0") val isDone: Boolean = false
 )
 
 @Entity(tableName = "note_labels")

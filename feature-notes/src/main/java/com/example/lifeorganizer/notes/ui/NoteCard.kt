@@ -68,6 +68,8 @@ fun NoteCard(
     /** Sub-notes of this main note, listed foldable at the bottom of the card. */
     subNotes: List<NoteWithLabels> = emptyList(),
     onSubNoteClick: ((Long) -> Unit)? = null,
+    /** Ticks a sub-note off (or opens it again); without it the rows show no checkbox. */
+    onSubNoteDone: ((Long, Boolean) -> Unit)? = null,
     /** Shown above the title when the card is a sub-note listed on its own (search, label filter). */
     parentTitle: String? = null
 ) {
@@ -210,16 +212,26 @@ fun NoteCard(
                         style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary
                     )
                 }
-                if (expanded) subNotes.forEach { sub ->
+                if (expanded) subNotes.sortedBy { it.note.isDone }.forEach { sub ->
+                    val done = sub.note.isDone
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth().clickable { onSubNoteClick?.invoke(sub.note.id) }.padding(start = 8.dp, top = 6.dp, bottom = 2.dp)
+                        modifier = Modifier.fillMaxWidth().clickable { onSubNoteClick?.invoke(sub.note.id) }.padding(start = 4.dp, top = 2.dp, bottom = 2.dp)
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.Notes, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (onSubNoteDone != null) {
+                            androidx.compose.material3.Checkbox(
+                                checked = done, onCheckedChange = { onSubNoteDone(sub.note.id, it) },
+                                modifier = Modifier.size(32.dp)
+                            )
+                        } else {
+                            Icon(Icons.AutoMirrored.Filled.Notes, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
                         Spacer(Modifier.width(6.dp))
                         Text(
                             sub.note.title.ifBlank { markdownToPlainText(sub.note.content).lineSequence().firstOrNull()?.takeIf { it.isNotBlank() } ?: Str.untitledNote.text() },
-                            style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis
+                            style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                            textDecoration = if (done) androidx.compose.ui.text.style.TextDecoration.LineThrough else null,
+                            color = if (done) MaterialTheme.colorScheme.onSurfaceVariant else androidx.compose.ui.graphics.Color.Unspecified
                         )
                     }
                 }

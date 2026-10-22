@@ -130,7 +130,8 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             deletedAt = existing?.deletedAt,
             templateId = draft.templateId,
             documentId = draft.documentId,
-            parentId = draft.parentId
+            parentId = draft.parentId,
+            isDone = existing?.isDone ?: false
         )
         val id = if (existing != null) {
             noteDao.updateNote(note)
@@ -246,6 +247,11 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         return noteDao.insertNote(
             Note(title = title, content = content, createdAt = now, updatedAt = now, isChecklist = hasChecklist(content), parentId = parentId)
         )
+    }
+
+    /** Ticks a sub-note off as done or opens it again. */
+    fun setSubNoteDone(noteId: Long, done: Boolean) {
+        viewModelScope.launch { noteDao.setDone(noteId, done) }
     }
 
     fun titleOf(noteId: Long): String? = allActiveNotes.value.firstOrNull { it.note.id == noteId }?.note?.title

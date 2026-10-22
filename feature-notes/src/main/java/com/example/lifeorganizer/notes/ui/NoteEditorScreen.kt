@@ -452,12 +452,18 @@ fun NoteEditorScreen(
                     Str.subNotesTitle.text(), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
                 )
-                subNotes.forEach { sub ->
+                subNotes.sortedBy { it.note.isDone }.forEach { sub ->
+                    val done = sub.note.isDone
                     ListItem(
                         headlineContent = {
-                            Text(sub.note.title.ifBlank { markdownToPlainText(sub.note.content).lineSequence().firstOrNull()?.takeIf { it.isNotBlank() } ?: Str.untitledNote.text() }, maxLines = 1)
+                            Text(
+                                sub.note.title.ifBlank { markdownToPlainText(sub.note.content).lineSequence().firstOrNull()?.takeIf { it.isNotBlank() } ?: Str.untitledNote.text() },
+                                maxLines = 1, textDecoration = if (done) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
+                            )
                         },
-                        leadingContent = { Icon(Icons.AutoMirrored.Filled.Notes, null) },
+                        leadingContent = {
+                            androidx.compose.material3.Checkbox(checked = done, onCheckedChange = { viewModel.setSubNoteDone(sub.note.id, it) })
+                        },
                         modifier = Modifier.clickable { leaveTo(sub.note.id) },
                         colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                     )

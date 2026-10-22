@@ -318,6 +318,7 @@ fun NotesMainView(
                                 onToggleItem = { line -> viewModel.toggleChecklistItem(n, line) },
                                 subNotes = if (grouped) childrenOf[n.note.id].orEmpty() else emptyList(),
                                 onSubNoteClick = { id -> onCardClick(id) },
+                                onSubNoteDone = { id, done -> viewModel.setSubNoteDone(id, done) },
                                 parentTitle = parentTitleOf(n)
                             )
                         }
@@ -334,6 +335,7 @@ fun NotesMainView(
                             onToggleItem = { line -> viewModel.toggleChecklistItem(n, line) },
                             subNotes = if (grouped) childrenOf[n.note.id].orEmpty() else emptyList(),
                             onSubNoteClick = { id -> onCardClick(id) },
+                                onSubNoteDone = { id, done -> viewModel.setSubNoteDone(id, done) },
                             parentTitle = parentTitleOf(n)
                         )
                     }

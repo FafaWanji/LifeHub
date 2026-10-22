@@ -112,6 +112,7 @@ class BackupManager(context: Context) {
                         .put("labels", JSONArray(n.labels.map { it.name }))
                         .put("documentTitle", documentTitles[note.documentId])
                         .put("parentId", note.parentId)
+                        .put("isDone", note.isDone)
                 }))
                 .put("templates", JSONArray(noteDao.getTemplatesSync().map { t ->
                     JSONObject().put("name", t.name).put("content", t.content).put("isChecklist", t.isChecklist)
@@ -296,7 +297,8 @@ class BackupManager(context: Context) {
                     isPinned = n.isPinned,
                     isChecklist = n.content.contains(Regex("(?m)^\\s*[-*+]\\s+\\[[ xX]]")),
                     isDeleted = n.isDeleted,
-                    deletedAt = if (n.isDeleted) System.currentTimeMillis() else null
+                    deletedAt = if (n.isDeleted) System.currentTimeMillis() else null,
+                    isDone = n.isDone
                 )
             )
             n.labelNames.forEach { name -> noteDao.insertCrossRef(NoteLabelCrossRef(id, labelId(name, 0xFFCE93D8.toInt()))) }
@@ -356,7 +358,8 @@ class BackupManager(context: Context) {
                     labelNames = n.optJSONArray("labels")?.let { a -> (0 until a.length()).map { a.optString(it) } }.orEmpty(),
                     createdAt = n.optLong("createdAt"),
                     updatedAt = n.optLong("updatedAt"),
-                    isDeleted = n.optBoolean("isDeleted")
+                    isDeleted = n.optBoolean("isDeleted"),
+                    isDone = n.optBoolean("isDone")
                 )
             },
             ImportSource.LIFEORGANIZER_BACKUP

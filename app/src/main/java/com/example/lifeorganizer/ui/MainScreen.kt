@@ -186,6 +186,8 @@ fun MainScreen(
     val habitTasks by remember { com.example.lifeorganizer.habits.data.HabitDatabase.getDatabase(appContext).habitDao().tasks() }
         .collectAsState(initial = emptyList())
     var taskToOpen by remember { mutableStateOf<Long?>(null) }
+    // A deadline tapped in the calendar opens its task right there
+    var calendarTask by remember { mutableStateOf<Long?>(null) }
 
     // Switched-off modules are hidden everywhere; their data is untouched.
     val enabledModules = rememberEnabledModules()
@@ -366,7 +368,7 @@ fun MainScreen(
                                         missed = t.doneAt == null && com.example.lifeorganizer.habits.domain.TaskDeadline.isMissed(at, java.time.LocalDateTime.now())
                                     )
                                 },
-                                onDeadlineClick = { id -> taskToOpen = id; navigate(ActiveView.HABITS) },
+                                onDeadlineClick = { id -> calendarTask = id },
                                 documents = linkableDocuments,
                                 onOpenDocument = { id ->
                                     activeView = ActiveView.DOCUMENTS
@@ -533,6 +535,7 @@ fun MainScreen(
                 )
 
                 if (showChangelog) ChangelogDialog(onDismiss = { showChangelog = false })
+                calendarTask?.let { id -> com.example.lifeorganizer.habits.ui.TaskEditorOverlay(taskId = id, onClose = { calendarTask = null }) }
                 if (showAbout) AboutScreen(onBack = { showAbout = false })
                 if (showWebAccess) Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     com.example.lifeorganizer.web.WebAccessScreen(onBack = { showWebAccess = false })
