@@ -1,6 +1,7 @@
 package com.example.lifeorganizer.core.settings
 
 import android.content.Intent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.outlined.Edit
@@ -17,7 +18,7 @@ import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.outlined.ChevronRight
-import androidx.compose.material3.AlertDialog
+import com.example.lifeorganizer.core.theme.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -198,6 +199,12 @@ private fun FinanceSection(lang: String) {
 @Composable
 private fun AppearanceSection(lang: String, modules: Set<AppModule>) {
     SwitchSetting(SetStr.compact.of(lang), MicroSettings.COMPACT, SetStr.compactHint.of(lang))
+    ChoiceSetting(
+        SetStr.rgbGlow.of(lang), MicroSettings.GLOW_MODE,
+        listOf("off" to SetStr.off.of(lang), "theme" to SetStr.glowTheme.of(lang), "custom" to SetStr.glowCustom.of(lang)),
+        SetStr.rgbGlowHint.of(lang)
+    )
+    if (rememberMicro(MicroSettings.GLOW_MODE) == "custom") GlowColorRow(lang)
     val screens = buildList {
         add("CALENDAR" to Str.calendar)
         add("NOTES" to Str.notes)
@@ -397,6 +404,32 @@ private fun CustomNumberDialog(
         confirmButton = { TextButton(enabled = value != null, onClick = { value?.let(onSave) }) { Text(com.example.lifeorganizer.core.i18n.Str.save.of(lang)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(com.example.lifeorganizer.core.i18n.Str.cancel.of(lang)) } }
     )
+}
+
+/** Own glow colour: rainbow or one of a few strong colours, each shown as a dot. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun GlowColorRow(lang: String) {
+    val context = LocalContext.current
+    val current = rememberMicro(MicroSettings.GLOW_COLOR)
+    val colors = listOf(0xFFFF4D6D, 0xFFFF9F1C, 0xFF2EC4B6, 0xFF4CC9F0, 0xFF7B61FF, 0xFFE056FD).map { it.toInt() }
+    FlowRow(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        FilterChip(selected = current == 0, onClick = { MicroSettings.set(context, MicroSettings.GLOW_COLOR, 0) }, label = { Text(SetStr.rainbow.of(lang)) })
+        colors.forEach { c ->
+            FilterChip(
+                selected = current == c,
+                onClick = { MicroSettings.set(context, MicroSettings.GLOW_COLOR, c) },
+                label = {
+                    androidx.compose.foundation.layout.Box(
+                        Modifier.size(18.dp).background(Color(c), androidx.compose.foundation.shape.CircleShape)
+                    )
+                }
+            )
+        }
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)

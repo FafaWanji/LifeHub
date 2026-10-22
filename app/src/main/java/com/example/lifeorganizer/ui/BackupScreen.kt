@@ -24,6 +24,7 @@ import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material3.*
+import com.example.lifeorganizer.core.theme.AlertDialog
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier

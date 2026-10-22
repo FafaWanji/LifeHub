@@ -60,6 +60,10 @@ object MicroSettings {
     // Notes
     val NOTE_CHECKLIST = BoolKey("note_checklist", false)
     val NOTE_DONE_BOTTOM = BoolKey("note_done_bottom", true)
+    /** Glow around dialog windows: "off", "theme" (design colours) or "custom" ([GLOW_COLOR]). */
+    val GLOW_MODE = StringKey("glow_mode", "off")
+    /** Colour of the custom glow (ARGB); 0 = rainbow. */
+    val GLOW_COLOR = IntKey("glow_color", 0)
     /** Editor text size: 0.85, 1.0 or 1.2 (stored as percent). */
     val NOTE_FONT = IntKey("note_font", 100)
     /** Notes in the trash are deleted after this many days, 0 = never. */
@@ -129,7 +133,7 @@ object MicroSettings {
         QUIET_HOURS, QUIET_START, QUIET_END, SOON_DAYS, WIDGET_DONE_HABITS, CONFIRM_DELETE_TASK,
         DEADLINE_REPEAT, SNOOZE_MINUTES,
         WEEK_START, EVENT_LENGTH, EVENT_REMINDER, WEEK_NUMBERS, WIDGET_BIRTHDAYS,
-        NOTE_CHECKLIST, NOTE_DONE_BOTTOM, NOTE_FONT, TRASH_DAYS,
+        NOTE_CHECKLIST, NOTE_DONE_BOTTOM, GLOW_MODE, GLOW_COLOR, NOTE_FONT, TRASH_DAYS,
         CURRENCY, MONTH_START, BUDGET_WARN,
         COMPACT, START_SCREEN, DATE_ORDER,
         LOCK_SCOPE, LOCKED_VIEWS, BACKUP_KEEP, BACKUP_WIFI_ONLY

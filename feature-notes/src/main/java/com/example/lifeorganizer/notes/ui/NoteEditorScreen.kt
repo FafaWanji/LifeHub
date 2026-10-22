@@ -42,6 +42,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.outlined.Bookmarks
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.*
+import com.example.lifeorganizer.core.theme.AlertDialog
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment

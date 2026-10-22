@@ -52,6 +52,7 @@ import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import com.example.lifeorganizer.core.i18n.Str
 import com.example.lifeorganizer.core.i18n.text
 import androidx.compose.material3.*
+import com.example.lifeorganizer.core.theme.AlertDialog
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
