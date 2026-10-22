@@ -47,4 +47,51 @@ object WebStr {
     val port = Txt("Port", "Port", "Port", "Puerto", "端口")
     val portHint = Txt("1024–65535", "1024–65535", "1024–65535", "1024–65535", "1024–65535")
     val save = Txt("Save", "Speichern", "Kaydet", "Guardar", "保存")
+
+    // Automatic start
+    val autoTitle = Txt("Switch on automatically", "Automatisch einschalten", "Otomatik aç", "Activar automáticamente", "自动开启")
+    val modeOff = Txt("Off", "Aus", "Kapalı", "Desactivado", "关闭")
+    val modeOffHint = Txt(
+        "Only with the switch above. No battery use.",
+        "Nur mit dem Schalter oben. Kein Akkuverbrauch.",
+        "Yalnızca yukarıdaki anahtarla. Pil kullanmaz.",
+        "Solo con el interruptor de arriba. Sin consumo de batería.",
+        "仅通过上方开关。不耗电。"
+    )
+    val modeAppOpen = Txt("When LifeHub opens", "Beim Öffnen von LifeHub", "LifeHub açıldığında", "Al abrir LifeHub", "打开 LifeHub 时")
+    val modeAppOpenHint = Txt(
+        "In a Wi-Fi; off after 30 min without use. Barely any battery.",
+        "Im WLAN; aus nach 30 Min. ohne Nutzung. Kaum Akku.",
+        "Wi-Fi'da; 30 dk kullanılmazsa kapanır. Neredeyse hiç pil harcamaz.",
+        "En una Wi-Fi; se apaga tras 30 min sin uso. Casi sin batería.",
+        "仅在 Wi-Fi 下；30 分钟未使用后关闭。几乎不耗电。"
+    )
+    val modeWifi = Txt("In Wi-Fi", "Im WLAN", "Wi-Fi'da", "En Wi-Fi", "在 Wi-Fi 下")
+    val modeWifiHint = Txt(
+        "Runs while in a Wi-Fi. Estimated 1–3 % battery a day, more while a PC tab is open.",
+        "Läuft, solange das Handy im WLAN ist. Geschätzt 1–3 % Akku pro Tag, mehr bei offenem PC-Tab.",
+        "Telefon Wi-Fi'dayken çalışır. Tahmini günde %1–3 pil, açık bir PC sekmesinde daha fazla.",
+        "Funciona mientras estés en una Wi-Fi. Aprox. 1–3 % de batería al día, más con una pestaña abierta en el PC.",
+        "手机连接 Wi-Fi 时运行。估计每天耗电 1–3%，电脑标签页打开时更多。"
+    )
+    val modeAlways = Txt("Always on", "Immer an", "Her zaman açık", "Siempre activo", "始终开启")
+    val modeAlwaysHint = Txt(
+        "Also in public networks. Estimated 2–4 % battery a day, more while a PC tab is open. Permanent notification.",
+        "Auch in öffentlichen Netzen. Geschätzt 2–4 % Akku pro Tag, mehr bei offenem PC-Tab. Dauerhafte Benachrichtigung.",
+        "Halka açık ağlarda da. Tahmini günde %2–4 pil, açık bir PC sekmesinde daha fazla. Kalıcı bildirim.",
+        "También en redes públicas. Aprox. 2–4 % de batería al día, más con una pestaña abierta. Notificación permanente.",
+        "公共网络中也会运行。估计每天耗电 2–4%，电脑标签页打开时更多。常驻通知。"
+    )
+    val allWifi = Txt("Every Wi-Fi", "Jedes WLAN", "Her Wi-Fi", "Cualquier Wi-Fi", "任何 Wi-Fi")
+    val knownWifi = Txt("Only remembered ones", "Nur gemerkte", "Yalnızca kayıtlı olanlar", "Solo las guardadas", "仅已记住的")
+    val rememberWifi = Txt("Remember this Wi-Fi", "Dieses WLAN merken", "Bu Wi-Fi'ı hatırla", "Recordar esta Wi-Fi", "记住此 Wi-Fi")
+    val noKnownWifi = Txt("No Wi-Fi remembered yet.", "Noch kein WLAN gemerkt.", "Henüz kayıtlı Wi-Fi yok.", "Aún no hay ninguna Wi-Fi guardada.", "尚未记住任何 Wi-Fi。")
+    val notInWifi = Txt("The phone is not in a Wi-Fi.", "Das Handy ist in keinem WLAN.", "Telefon bir Wi-Fi'a bağlı değil.", "El móvil no está en una Wi-Fi.", "手机未连接 Wi-Fi。")
+    val lowBattery = Txt("Switch off when the battery is below", "Ausschalten bei Akku unter", "Pil şu seviyenin altındaysa kapat", "Desactivar con la batería por debajo de", "电量低于此值时关闭")
+    val lowBatteryHint = Txt("Not while charging.", "Nicht beim Laden.", "Şarj olurken değil.", "No mientras se carga.", "充电时除外。")
+    val connectedNow = Txt("connected", "verbunden", "bağlı", "conectado", "已连接")
+    val notifWaiting = Txt("PC access is waiting", "PC-Zugriff wartet", "PC erişimi bekliyor", "Acceso desde PC en espera", "电脑访问等待中")
+    val waitWifi = Txt("Starts again in a Wi-Fi", "Startet wieder im WLAN", "Wi-Fi'da yeniden başlar", "Se reanuda en una Wi-Fi", "连接 Wi-Fi 后重新开启")
+    val waitKnownWifi = Txt("Starts again in a remembered Wi-Fi", "Startet wieder in einem gemerkten WLAN", "Kayıtlı bir Wi-Fi'da yeniden başlar", "Se reanuda en una Wi-Fi guardada", "连接已记住的 Wi-Fi 后重新开启")
+    val waitBattery = Txt("Paused: battery low", "Pausiert: Akku niedrig", "Duraklatıldı: pil düşük", "En pausa: batería baja", "已暂停：电量低")
 }

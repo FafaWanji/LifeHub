@@ -2,6 +2,13 @@ package com.example.lifeorganizer.web
 
 import android.text.format.DateUtils
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.semantics.Role
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -55,11 +62,14 @@ fun WebAccessScreen(onBack: () -> Unit) {
     val state by WebAccessService.state.collectAsStateWithLifecycle()
     val store = remember { PrefsTokenStore(context) }
     var browsers by remember { mutableStateOf(store.load()) }
+    val lastSeen by WebAccessService.lastSeen.collectAsStateWithLifecycle()
+    var now by remember { mutableStateOf(System.currentTimeMillis()) }
     BackHandler(onBack = onBack)
     // Pairings happen in the browser: refresh the list while the screen is open
     LaunchedEffect(Unit) {
         while (true) {
             browsers = store.load()
+            now = System.currentTimeMillis()
             delay(2_000)
         }
     }
@@ -76,12 +86,22 @@ fun WebAccessScreen(onBack: () -> Unit) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(WebStr.switchLabel.text(), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
-                Switch(checked = state.running, onCheckedChange = { on ->
+                Switch(checked = state.running || state.waiting != null, onCheckedChange = { on ->
                     if (on) WebAccessService.start(context) else WebAccessService.stop(context)
                 })
             }
             Text(WebStr.intro.text(), color = MaterialTheme.colorScheme.onSurfaceVariant)
             if (state.failed) Text(WebStr.startFailed.text(), color = MaterialTheme.colorScheme.error)
+            state.waiting?.let { reason ->
+                Text(
+                    when (reason) {
+                        WaitReason.WIFI -> WebStr.waitWifi
+                        WaitReason.KNOWN_WIFI -> WebStr.waitKnownWifi
+                        WaitReason.BATTERY -> WebStr.waitBattery
+                    }.text(),
+                    color = MaterialTheme.colorScheme.tertiary
+                )
+            }
 
             if (state.running) {
                 Card(Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(contentColor = MaterialTheme.colorScheme.onSurface)) {
@@ -104,6 +124,8 @@ fun WebAccessScreen(onBack: () -> Unit) {
                 }
             }
 
+            AutoStartSettings()
+
             AddressSettings(onSaved = { WebAccessService.restart(context) })
 
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -115,8 +137,20 @@ fun WebAccessScreen(onBack: () -> Unit) {
             if (browsers.isEmpty()) Text(WebStr.noBrowsers.text(), color = MaterialTheme.colorScheme.onSurfaceVariant)
             browsers.forEach { b ->
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Green dot while this browser is asking the phone right now
+                    val online = lastSeen[b.id]?.let { now - it < WebAccessService.ONLINE_MS } == true && state.running
                     Column(Modifier.weight(1f)) {
-                        Text(b.name)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(b.name, Modifier.weight(1f, fill = false))
+                            if (online) {
+                                androidx.compose.foundation.layout.Spacer(Modifier.width(8.dp))
+                                androidx.compose.foundation.layout.Box(
+                                    Modifier.size(8.dp).background(androidx.compose.ui.graphics.Color(0xFF43A047), androidx.compose.foundation.shape.CircleShape)
+                                )
+                                androidx.compose.foundation.layout.Spacer(Modifier.width(4.dp))
+                                Text(WebStr.connectedNow.text(), style = MaterialTheme.typography.labelSmall, color = androidx.compose.ui.graphics.Color(0xFF43A047))
+                            }
+                        }
                         Text(
                             WebStr.lastUsed.text().format(DateUtils.getRelativeTimeSpanString(b.lastUsed)),
                             style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -169,4 +203,89 @@ private fun AddressSettings(onSaved: () -> Unit) {
         name = settings.name
         onSaved()
     }) { Text(WebStr.save.text()) }
+}
+
+/** When PC access switches itself on, with an estimate of what it costs, and switching off on low battery. */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun AutoStartSettings() {
+    val context = LocalContext.current
+    val settings = remember { WebSettings(context) }
+    var mode by remember { mutableStateOf(settings.autoStart) }
+    var onlyKnown by remember { mutableStateOf(settings.onlyKnownWifi) }
+    var known by remember { mutableStateOf(settings.knownNetworks) }
+    var lowBattery by remember { mutableStateOf(settings.lowBatteryOff) }
+    var notInWifi by remember { mutableStateOf(false) }
+
+    Text(WebStr.autoTitle.text(), style = MaterialTheme.typography.titleSmall)
+    Column {
+        listOf(
+            AutoStart.OFF to (WebStr.modeOff to WebStr.modeOffHint),
+            AutoStart.APP_OPEN to (WebStr.modeAppOpen to WebStr.modeAppOpenHint),
+            AutoStart.WIFI to (WebStr.modeWifi to WebStr.modeWifiHint),
+            AutoStart.ALWAYS to (WebStr.modeAlways to WebStr.modeAlwaysHint)
+        ).forEach { (m, texts) ->
+            Row(
+                verticalAlignment = Alignment.Top,
+                modifier = Modifier.fillMaxWidth()
+                    .selectable(selected = mode == m, role = Role.RadioButton, onClick = {
+                        mode = m
+                        settings.autoStart = m
+                        WebAutoStart.apply(context)
+                    })
+                    .padding(vertical = 4.dp)
+            ) {
+                RadioButton(selected = mode == m, onClick = null)
+                Column(Modifier.padding(start = 8.dp)) {
+                    Text(texts.first.text())
+                    Text(texts.second.text(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
+            // Which Wi-Fi: every one, or only remembered ones
+            if (m == AutoStart.WIFI && mode == AutoStart.WIFI) {
+                Column(Modifier.padding(start = 40.dp, bottom = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FilterChip(selected = !onlyKnown, onClick = { onlyKnown = false; settings.onlyKnownWifi = false }, label = { Text(WebStr.allWifi.text()) })
+                        FilterChip(selected = onlyKnown, onClick = { onlyKnown = true; settings.onlyKnownWifi = true }, label = { Text(WebStr.knownWifi.text()) })
+                    }
+                    if (onlyKnown) {
+                        if (known.isEmpty()) Text(WebStr.noKnownWifi.text(), style = MaterialTheme.typography.bodySmall)
+                        known.keys.sorted().forEach { label ->
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text(label, Modifier.weight(1f))
+                                IconButton(onClick = {
+                                    known = known - label
+                                    settings.knownNetworks = known
+                                }) { Icon(Icons.Outlined.Close, WebStr.remove.text()) }
+                            }
+                        }
+                        TextButton(onClick = {
+                            val ids = NetworkId.currentIds(context)
+                            val label = NetworkId.label(context)
+                            if (ids.isEmpty() || label == null) {
+                                notInWifi = true
+                            } else {
+                                notInWifi = false
+                                known = known + (label to ids)
+                                settings.knownNetworks = known
+                            }
+                        }) { Text(WebStr.rememberWifi.text()) }
+                        if (notInWifi) Text(WebStr.notInWifi.text(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                    }
+                }
+            }
+        }
+    }
+
+    Text(WebStr.lowBattery.text(), style = MaterialTheme.typography.titleSmall)
+    Text(WebStr.lowBatteryHint.text(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+    androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        listOf(0, 10, 15, 20, 30).forEach { p ->
+            FilterChip(
+                selected = lowBattery == p,
+                onClick = { lowBattery = p; settings.lowBatteryOff = p },
+                label = { Text(if (p == 0) WebStr.modeOff.text() else "$p %") }
+            )
+        }
+    }
 }

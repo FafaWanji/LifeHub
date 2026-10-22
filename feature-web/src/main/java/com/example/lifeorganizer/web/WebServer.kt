@@ -31,7 +31,7 @@ class PrefsTokenStore(context: Context) : TokenStore {
  */
 class WebServer(context: Context, val port: Int = DEFAULT_PORT) {
     private val app = context.applicationContext
-    val auth = WebAuth(PrefsTokenStore(app))
+    val auth = WebAuth(PrefsTokenStore(app), onSeen = { WebAccessService.markSeen(it) })
     private val api = WebApi(app)
     private var engine: EmbeddedServer<*, *>? = null
 

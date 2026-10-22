@@ -279,6 +279,8 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
 
     override fun onStart() {
         super.onStart()
+        // PC access set to start by itself (when the app opens / in Wi-Fi / always)
+        runCatching { com.example.lifeorganizer.web.WebAutoStart.onAppOpen(applicationContext) }
         if (backgroundedAt != 0L && SystemClock.elapsedRealtime() - backgroundedAt > RELOCK_AFTER_MS) {
             isUnlocked = false
         }

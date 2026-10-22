@@ -31,7 +31,12 @@ interface TokenStore {
  * Pairing: the phone shows a 6-digit code, the browser sends it once and gets a long random token.
  * After 5 wrong codes a new code is drawn, so guessing does not work.
  */
-class WebAuth(private val store: TokenStore, private val clock: () -> Long = System::currentTimeMillis) {
+class WebAuth(
+    private val store: TokenStore,
+    /** Told the id of every browser that makes an authorised request (for "connected now"). */
+    private val onSeen: (String) -> Unit = {},
+    private val clock: () -> Long = System::currentTimeMillis
+) {
     private val random = SecureRandom()
     private var failures = 0
 
@@ -66,6 +71,7 @@ class WebAuth(private val store: TokenStore, private val clock: () -> Long = Sys
         val h = hash(token)
         val list = store.load()
         val match = list.firstOrNull { it.tokenHash == h } ?: return false
+        onSeen(match.id)
         if (clock() - match.lastUsed > 60_000) store.save(list.map { if (it.id == match.id) it.copy(lastUsed = clock()) else it })
         return true
     }
