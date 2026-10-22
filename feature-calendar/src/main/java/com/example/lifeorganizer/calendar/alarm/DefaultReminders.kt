@@ -12,7 +12,6 @@ import com.example.lifeorganizer.core.settings.MicroSettings
 import com.example.lifeorganizer.core.settings.SettingsManager
 import kotlinx.coroutines.flow.first
 import java.time.LocalDate
-import java.util.Locale
 
 /**
  * Plans the default reminder of events that have none of their own (see [DefaultReminderRules]). Nothing is stored
@@ -75,8 +74,10 @@ object DefaultReminders {
         val now = System.currentTimeMillis()
         val handled = prefs(app).getLong(KEY_HANDLED, now)
         if (offset >= 0) {
-            val soundUri = SettingsManager(app).notificationSoundUri.first()
-            val label = com.example.lifeorganizer.core.i18n.reminderLabel(offset * 60_000L, Locale.getDefault().language)
+            val settings = SettingsManager(app)
+            val soundUri = settings.notificationSoundUri.first()
+            // In the app's language, like every other reminder
+            val label = com.example.lifeorganizer.core.i18n.reminderLabel(offset * 60_000L, settings.languageCode.first())
             due(app, offset, now).filter { (occ, at) -> at in (handled + 1)..now && occ.start > now }.forEach { (occ, _) ->
                 DebugLogger.log("Default reminder: ${occ.title}")
                 NotificationHelper(app).showNotification(
