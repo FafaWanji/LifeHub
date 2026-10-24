@@ -85,6 +85,13 @@ object WebStr {
     val allWifi = Txt("Every Wi-Fi", "Jedes WLAN", "Her Wi-Fi", "Cualquier Wi-Fi", "任何 Wi-Fi")
     val knownWifi = Txt("Only remembered ones", "Nur gemerkte", "Yalnızca kayıtlı olanlar", "Solo las guardadas", "仅已记住的")
     val rememberWifi = Txt("Remember this Wi-Fi", "Dieses WLAN merken", "Bu Wi-Fi'ı hatırla", "Recordar esta Wi-Fi", "记住此 Wi-Fi")
+    val wifiNameHint = Txt(
+        "Saved by router address. For the Wi-Fi name, allow location access and turn on location.",
+        "Nach Router-Adresse gespeichert. Für den WLAN-Namen Standortzugriff erlauben und Standort einschalten.",
+        "Yönlendirici adresiyle kaydedildi. Wi-Fi adı için konum erişimine izin verin ve konumu açın.",
+        "Guardada por la dirección del router. Para ver el nombre, permite el acceso a la ubicación y actívala.",
+        "已按路由器地址保存。要显示 Wi-Fi 名称，请允许位置权限并开启定位。"
+    )
     val noKnownWifi = Txt("No Wi-Fi remembered yet.", "Noch kein WLAN gemerkt.", "Henüz kayıtlı Wi-Fi yok.", "Aún no hay ninguna Wi-Fi guardada.", "尚未记住任何 Wi-Fi。")
     val notInWifi = Txt("The phone is not in a Wi-Fi.", "Das Handy ist in keinem WLAN.", "Telefon bir Wi-Fi'a bağlı değil.", "El móvil no está en una Wi-Fi.", "手机未连接 Wi-Fi。")
     val lowBattery = Txt("Switch off when the battery is below", "Ausschalten bei Akku unter", "Pil şu seviyenin altındaysa kapat", "Desactivar con la batería por debajo de", "电量低于此值时关闭")

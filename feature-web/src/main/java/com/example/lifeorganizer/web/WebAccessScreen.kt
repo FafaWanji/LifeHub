@@ -216,6 +216,32 @@ private fun AutoStartSettings() {
     var known by remember { mutableStateOf(settings.knownNetworks) }
     var lowBattery by remember { mutableStateOf(settings.lowBatteryOff) }
     var notInWifi by remember { mutableStateOf(false) }
+    var noName by remember { mutableStateOf(false) }
+
+    // Saved under its name when readable; an entry for the same network (e.g. saved by router address) is merged in
+    fun saveCurrent() {
+        val ids = NetworkId.currentIds(context)
+        val label = NetworkId.label(context)
+        notInWifi = ids.isEmpty() || label == null
+        if (notInWifi) return
+        noName = NetworkId.ssid(context) == null
+        val same = known.filterValues { it.any { id -> id in ids } }
+        known = known - same.keys + (label!! to (ids + same.values.flatten()))
+        settings.knownNetworks = known
+    }
+    val askLocation = androidx.activity.compose.rememberLauncherForActivityResult(
+        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
+    ) { saveCurrent() }
+    // Entries saved before the name was readable get it once the phone is in that network again
+    LaunchedEffect(Unit) {
+        val ssid = NetworkId.ssid(context) ?: return@LaunchedEffect
+        val ids = NetworkId.currentIds(context)
+        val same = known.filterValues { it.any { id -> id in ids } }
+        if (same.isNotEmpty() && same.keys != setOf(ssid)) {
+            known = known - same.keys + (ssid to (ids + same.values.flatten()))
+            settings.knownNetworks = known
+        }
+    }
 
     Text(WebStr.autoTitle.text(), style = MaterialTheme.typography.titleSmall)
     Column {
@@ -260,16 +286,13 @@ private fun AutoStartSettings() {
                             }
                         }
                         TextButton(onClick = {
-                            val ids = NetworkId.currentIds(context)
-                            val label = NetworkId.label(context)
-                            if (ids.isEmpty() || label == null) {
-                                notInWifi = true
-                            } else {
-                                notInWifi = false
-                                known = known + (label to ids)
-                                settings.knownNetworks = known
-                            }
+                            // The Wi-Fi name is only readable with location access
+                            val granted = androidx.core.content.ContextCompat.checkSelfPermission(
+                                context, android.Manifest.permission.ACCESS_FINE_LOCATION
+                            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                            if (granted) saveCurrent() else askLocation.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
                         }) { Text(WebStr.rememberWifi.text()) }
+                        if (noName && !notInWifi) Text(WebStr.wifiNameHint.text(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         if (notInWifi) Text(WebStr.notInWifi.text(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                     }
                 }
