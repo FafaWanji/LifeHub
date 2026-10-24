@@ -25,6 +25,14 @@ object SetStr {
     val glowWindow = Txt("Around windows", "Um Fenster", "Pencerelerin etrafında", "Alrededor de ventanas", "窗口周围")
     val glowEdge = Txt("Screen edge", "Bildschirmrand", "Ekran kenarı", "Borde de la pantalla", "屏幕边缘")
     val glowBoth = Txt("Both", "Beides", "İkisi de", "Ambos", "两者")
+    val releaseTiers = Txt("Tier list", "Tier-Liste", "Seviye listesi", "Lista de niveles", "等级列表")
+    val releaseTiersHint = Txt(
+        "Rank your series from S to F; the list is grouped by tier.",
+        "Serien von S bis F einstufen; die Liste wird nach Tier gruppiert.",
+        "Dizilerini S'den F'ye sırala; liste seviyeye göre gruplanır.",
+        "Clasifica tus series de S a F; la lista se agrupa por nivel.",
+        "将剧集从 S 到 F 评级；列表按等级分组。"
+    )
     val rainbow = Txt("Rainbow", "Regenbogen", "Gökkuşağı", "Arcoíris", "彩虹")
     val rgbGlowHint = Txt("A slowly turning coloured glow around dialogs.", "Ein langsam drehender farbiger Schein um Dialoge.", "Diyalogların etrafında yavaşça dönen renkli ışıltı.", "Un brillo de color que gira despacio alrededor de los diálogos.", "对话框周围缓慢旋转的彩色光晕。")
     val customValue = Txt("Own value", "Eigener Wert", "Özel değer", "Valor propio", "自定义数值")

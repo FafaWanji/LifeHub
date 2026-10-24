@@ -94,13 +94,6 @@ fun MenuDrawerSheet(
                 selected = currentView == ActiveView.HABITS,
                 onClick = { onNavigate(ActiveView.HABITS) }
             )
-            if (AppModule.RELEASES in enabledModules) DrawerEntry(
-                selectedIcon = Icons.Filled.NewReleases,
-                icon = Icons.Outlined.NewReleases,
-                label = Str.releaseRadar.text(),
-                selected = currentView == ActiveView.RELEASES,
-                onClick = { onNavigate(ActiveView.RELEASES) }
-            )
             if (AppModule.FINANCE in enabledModules) DrawerEntry(
                 selectedIcon = Icons.Filled.Savings,
                 icon = Icons.Outlined.Savings,
@@ -115,6 +108,13 @@ fun MenuDrawerSheet(
             )
 
             SectionLabel(Str.tools.text())
+            if (AppModule.RELEASES in enabledModules) DrawerEntry(
+                selectedIcon = Icons.Filled.NewReleases,
+                icon = Icons.Outlined.NewReleases,
+                label = Str.releaseRadar.text(),
+                selected = currentView == ActiveView.RELEASES,
+                onClick = { onNavigate(ActiveView.RELEASES) }
+            )
             if (AppModule.WAYPOINTS in enabledModules) DrawerEntry(
                 selectedIcon = Icons.Filled.Place,
                 icon = Icons.Outlined.Place,

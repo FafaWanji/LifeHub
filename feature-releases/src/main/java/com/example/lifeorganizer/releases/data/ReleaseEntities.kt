@@ -1,5 +1,6 @@
 package com.example.lifeorganizer.releases.data
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.Index
@@ -21,6 +22,12 @@ data class WatchItem(
     val status: String = "",
     /** A notification when an episode or the film is out. */
     val notify: Boolean = true,
+    /** Poster, from the source. */
+    val imageUrl: String? = null,
+    /** First release, "2017-10-03" or only the year; "" = unknown. Sorts as text. */
+    @ColumnInfo(defaultValue = "") val premiered: String = "",
+    /** Own ranking "S" … "F", null = not ranked. */
+    val tier: String? = null,
     /** Last successful update from the source, epoch millis; 0 = never. */
     val lastSync: Long = 0,
     val createdAt: Long = System.currentTimeMillis()

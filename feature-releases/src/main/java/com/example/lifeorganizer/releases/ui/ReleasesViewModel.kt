@@ -54,7 +54,7 @@ class ReleasesViewModel(application: Application) : AndroidViewModel(application
     fun clearSearch() { searchJob?.cancel(); search.value = SearchState.Idle }
 
     fun add(hit: SearchHit) = viewModelScope.launch(Dispatchers.IO) {
-        val id = dao.insert(WatchItem(source = hit.source, sourceId = hit.id, title = hit.title, format = hit.format, status = hit.status))
+        val id = dao.insert(WatchItem(source = hit.source, sourceId = hit.id, title = hit.title, format = hit.format, status = hit.status, premiered = hit.premiered, imageUrl = hit.imageUrl))
         if (id <= 0) return@launch
         offline.value = !ReleaseSync.refresh(app, dao.find(hit.source, hit.id) ?: return@launch)
         ReleaseSync.schedule(app)
@@ -73,6 +73,9 @@ class ReleasesViewModel(application: Application) : AndroidViewModel(application
         dao.update(item.copy(notify = on))
         ReleaseSync.announce(app)
     }
+
+    /** null takes the title out of the tier list. */
+    fun setTier(item: WatchItem, tier: String?) = viewModelScope.launch(Dispatchers.IO) { dao.update(item.copy(tier = tier)) }
 
     fun refreshAll() = viewModelScope.launch(Dispatchers.IO) {
         refreshing.value = true

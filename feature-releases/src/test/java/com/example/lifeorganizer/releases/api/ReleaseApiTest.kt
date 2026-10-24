@@ -13,7 +13,7 @@ class ReleaseApiTest {
     @Test fun aniListSearch() {
         val body = """{"data":{"Page":{"media":[{"id":210482,"title":{"romaji":"JoJo no Kimyou na Bouken: Steel Ball Run","english":null},"format":"ONA","status":"RELEASING","startDate":{"year":2026}}]}}}"""
         assertEquals(
-            listOf(SearchHit(Source.ANILIST, 210482, "JoJo no Kimyou na Bouken: Steel Ball Run", "ONA", "RELEASING", 2026)),
+            listOf(SearchHit(Source.ANILIST, 210482, "JoJo no Kimyou na Bouken: Steel Ball Run", "ONA", "RELEASING", "2026")),
             ReleaseApi.parseAniListSearch(body)
         )
     }
@@ -29,6 +29,7 @@ class ReleaseApiTest {
         assertEquals("Steel Ball Run", f.title)
         assertEquals(listOf(FetchedDate("ep6", "E6", 1793347200000), FetchedDate("ep7", "E7", 1793952000000)), f.dates)
         assertEquals(listOf(99L), f.sequels)
+        assertEquals("2026-09-25", f.premiered)
     }
 
     @Test fun aniListFilmWithOnlyAStartDay() {
@@ -52,6 +53,7 @@ class ReleaseApiTest {
             {"id":4,"season":3,"number":null,"name":"Special","airstamp":null}]}}"""
         val now = java.time.Instant.parse("2026-10-24T00:00:00Z").toEpochMilli()
         val f = ReleaseApi.parseTvMazeShow(body, now)
+        assertEquals(null, f.imageUrl)
         assertEquals(
             listOf(
                 FetchedDate("2", "S3E1", java.time.Instant.parse("2027-01-15T02:00:00Z").toEpochMilli()),

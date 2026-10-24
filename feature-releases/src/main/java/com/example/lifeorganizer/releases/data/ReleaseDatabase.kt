@@ -75,7 +75,7 @@ class ReleaseConverters {
     @TypeConverter fun toSource(s: String): Source = Source.valueOf(s)
 }
 
-@Database(entities = [WatchItem::class, ReleaseDate::class], version = 1, exportSchema = true)
+@Database(entities = [WatchItem::class, ReleaseDate::class], version = 2, exportSchema = true)
 @TypeConverters(ReleaseConverters::class)
 abstract class ReleaseDatabase : RoomDatabase() {
     abstract fun dao(): ReleaseDao
@@ -83,8 +83,18 @@ abstract class ReleaseDatabase : RoomDatabase() {
     companion object {
         @Volatile private var instance: ReleaseDatabase? = null
 
+        /** Poster, first release and tier; filled in by the next update. */
+        val MIGRATION_1_2 = object : androidx.room.migration.Migration(1, 2) {
+            override fun migrate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE watch_items ADD COLUMN imageUrl TEXT")
+                db.execSQL("ALTER TABLE watch_items ADD COLUMN premiered TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE watch_items ADD COLUMN tier TEXT")
+            }
+        }
+
         fun get(context: Context): ReleaseDatabase = instance ?: synchronized(this) {
             instance ?: Room.databaseBuilder(context.applicationContext, ReleaseDatabase::class.java, "releases.db")
+                .addMigrations(MIGRATION_1_2)
                 .build().also { instance = it }
         }
     }

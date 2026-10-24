@@ -70,7 +70,12 @@ object ReleaseSync {
         val fetched = runCatching { ReleaseApi.fetch(item.source, item.sourceId) }.getOrElse { return false }
         val now = System.currentTimeMillis()
         dao.replaceFuture(item.id, fetched.dates.filter { it.at > now }.map { ReleaseDate(item.id, it.key, it.label, it.at) }, now)
-        dao.update(item.copy(title = fetched.title.ifBlank { item.title }, format = fetched.format, status = fetched.status, lastSync = now))
+        dao.update(
+            item.copy(
+                title = fetched.title.ifBlank { item.title }, format = fetched.format, status = fetched.status,
+                premiered = fetched.premiered.ifBlank { item.premiered }, imageUrl = fetched.imageUrl ?: item.imageUrl, lastSync = now
+            )
+        )
         // A finished anime with an announced follow-up: the next season goes on the radar by itself
         if (item.source == Source.ANILIST && fetched.status == "FINISHED") {
             for (id in fetched.sequels) {

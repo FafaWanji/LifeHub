@@ -70,6 +70,9 @@ fun MicroSettingsSections(lang: String) {
         Section(Str.calendar.of(lang), open == "calendar", { toggle("calendar") }) { CalendarSection(lang) }
         Section(Str.notes.of(lang), open == "notes", { toggle("notes") }) { NotesSection(lang) }
         if (AppModule.FINANCE in modules) Section(Str.finance.of(lang), open == "finance", { toggle("finance") }) { FinanceSection(lang) }
+        if (AppModule.RELEASES in modules) Section(Str.releaseRadar.of(lang), open == "releases", { toggle("releases") }) {
+            SwitchSetting(SetStr.releaseTiers.of(lang), MicroSettings.RELEASE_TIERS, SetStr.releaseTiersHint.of(lang))
+        }
         Section(SetStr.appearance.of(lang), open == "appearance", { toggle("appearance") }) { AppearanceSection(lang, modules) }
         Section(SetStr.privacyBackup.of(lang), open == "privacy", { toggle("privacy") }) { PrivacySection(lang, modules) }
     }
