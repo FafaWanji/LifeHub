@@ -72,6 +72,8 @@ fun MicroSettingsSections(lang: String) {
         if (AppModule.FINANCE in modules) Section(Str.finance.of(lang), open == "finance", { toggle("finance") }) { FinanceSection(lang) }
         if (AppModule.RELEASES in modules) Section(Str.releaseRadar.of(lang), open == "releases", { toggle("releases") }) {
             SwitchSetting(SetStr.releaseTiers.of(lang), MicroSettings.RELEASE_TIERS, SetStr.releaseTiersHint.of(lang))
+            Label(SetStr.releaseColor.of(lang), null)
+            ReleaseColorRow(lang)
         }
         Section(SetStr.appearance.of(lang), open == "appearance", { toggle("appearance") }) { AppearanceSection(lang, modules) }
         Section(SetStr.privacyBackup.of(lang), open == "privacy", { toggle("privacy") }) { PrivacySection(lang, modules) }
@@ -413,6 +415,32 @@ private fun CustomNumberDialog(
         confirmButton = { TextButton(enabled = value != null, onClick = { value?.let(onSave) }) { Text(com.example.lifeorganizer.core.i18n.Str.save.of(lang)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(com.example.lifeorganizer.core.i18n.Str.cancel.of(lang)) } }
     )
+}
+
+/** Colour of all release dots in the calendar: the design's or one of a few strong colours. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun ReleaseColorRow(lang: String) {
+    val context = LocalContext.current
+    val current = rememberMicro(MicroSettings.RELEASE_COLOR)
+    val colors = listOf(0xFFFF4D6D, 0xFFFF9F1C, 0xFFFECA57, 0xFF2EC4B6, 0xFF4CC9F0, 0xFF7B61FF, 0xFFE056FD).map { it.toInt() }
+    FlowRow(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        FilterChip(selected = current == 0, onClick = { MicroSettings.set(context, MicroSettings.RELEASE_COLOR, 0) }, label = { Text(SetStr.glowTheme.of(lang)) })
+        colors.forEach { c ->
+            FilterChip(
+                selected = current == c,
+                onClick = { MicroSettings.set(context, MicroSettings.RELEASE_COLOR, c) },
+                label = {
+                    androidx.compose.foundation.layout.Box(
+                        Modifier.size(18.dp).background(Color(c), androidx.compose.foundation.shape.CircleShape)
+                    )
+                }
+            )
+        }
+    }
 }
 
 /** Own glow colour: rainbow or one of a few strong colours, each shown as a dot. */

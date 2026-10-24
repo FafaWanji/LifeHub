@@ -307,7 +307,9 @@ fun CalendarScreen(
         deadlines.filter { !it.done }.map { Instant.ofEpochMilli(it.at).atZone(ZoneId.systemDefault()).toLocalDate() }.toSet()
     }
 
-    val releaseColor = MaterialTheme.colorScheme.secondary
+    // One colour for all releases, set in the release radar settings
+    val releaseColorSetting = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.RELEASE_COLOR)
+    val releaseColor = if (releaseColorSetting != 0) Color(releaseColorSetting) else MaterialTheme.colorScheme.secondary
     val releaseDates = remember(releases) {
         releases.map { Instant.ofEpochMilli(it.at).atZone(ZoneId.systemDefault()).toLocalDate() }.toSet()
     }

@@ -68,6 +68,8 @@ object MicroSettings {
     val RELEASE_TIERS = BoolKey("release_tiers", false)
     /** Release radar order: "next", "oldest" or "name". */
     val RELEASE_SORT = StringKey("release_sort", "next")
+    /** Colour of the release dots in the calendar (ARGB); 0 = the design's colour. */
+    val RELEASE_COLOR = IntKey("release_color", 0)
     /** Colour of the custom glow (ARGB); 0 = rainbow. */
     val GLOW_COLOR = IntKey("glow_color", 0)
     /** Editor text size: 0.85, 1.0 or 1.2 (stored as percent). */
@@ -142,7 +144,7 @@ object MicroSettings {
         NOTE_CHECKLIST, NOTE_DONE_BOTTOM, GLOW_MODE, GLOW_PLACE, GLOW_COLOR, NOTE_FONT, TRASH_DAYS,
         CURRENCY, MONTH_START, BUDGET_WARN,
         COMPACT, START_SCREEN, DATE_ORDER,
-        LOCK_SCOPE, LOCKED_VIEWS, BACKUP_KEEP, BACKUP_WIFI_ONLY, RELEASE_TIERS, RELEASE_SORT
+        LOCK_SCOPE, LOCKED_VIEWS, BACKUP_KEEP, BACKUP_WIFI_ONLY, RELEASE_TIERS, RELEASE_SORT, RELEASE_COLOR
     )
 
     /** Only values that differ from the default, as name → value (Int, Boolean, String or a list of strings). */
