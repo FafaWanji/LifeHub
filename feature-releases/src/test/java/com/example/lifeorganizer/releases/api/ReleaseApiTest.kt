@@ -45,6 +45,22 @@ class ReleaseApiTest {
         assertTrue(ReleaseApi.parseAniListMedia(body, zone).dates.isEmpty())
     }
 
+    @Test fun animeWithoutFutureEpisodesContinuesFromAniList() {
+        val show = """{"id":90817,"name":"Steel Ball Run","language":"Japanese","genres":["Anime"],"status":"Running","_embedded":{"episodes":[
+            {"id":1,"season":2,"number":4,"name":"x","airstamp":"2026-10-16T12:00:00+00:00"},
+            {"id":2,"season":2,"number":5,"name":"Episode 5","airstamp":"2026-10-23T12:00:00+00:00"}]}}"""
+        assertTrue(ReleaseApi.isRunningAnime(show))
+        val last = ReleaseApi.parseTvMazeLast(show)!!
+        assertEquals(ReleaseApi.LastEpisode(2, 5, java.time.Instant.parse("2026-10-23T12:00:00Z").toEpochMilli()), last)
+        // 1793347200 = 30 Oct 08:00 UTC, one week later the next
+        val ani = """{"data":{"Page":{"media":[{"id":210482,"airingSchedule":{"nodes":[{"airingAt":1793952000,"episode":7},{"airingAt":1793347200,"episode":6}]}}]}}}"""
+        val now = java.time.Instant.parse("2026-10-24T15:00:00Z").toEpochMilli()
+        assertEquals(
+            listOf(FetchedDate("al6", "S2E6", 1793347200000), FetchedDate("al7", "S2E7", 1793952000000)),
+            ReleaseApi.continueFromAniList(ani, last, now)
+        )
+    }
+
     @Test fun tvMazeOnlyFutureEpisodes() {
         val body = """{"id":44933,"name":"Severance","type":"Scripted","status":"Running","_embedded":{"episodes":[
             {"id":1,"season":2,"number":9,"name":"The After Hours","airstamp":"2025-03-14T01:00:00+00:00"},

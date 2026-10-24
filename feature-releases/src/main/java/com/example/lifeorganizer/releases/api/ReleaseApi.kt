@@ -56,7 +56,58 @@ object ReleaseApi {
             )),
             zone
         )
-        Source.TVMAZE -> parseTvMazeShow(get("$TVMAZE/shows/$id?embed=episodes"), System.currentTimeMillis())
+        Source.TVMAZE -> {
+            val body = get("$TVMAZE/shows/$id?embed=episodes")
+            val now = System.currentTimeMillis()
+            val show = parseTvMazeShow(body, now)
+            // TVmaze often lists anime episodes only once they aired; AniList knows the schedule ahead
+            val last = if (show.dates.isEmpty() && isRunningAnime(body)) parseTvMazeLast(body) else null
+            if (last == null) show else runCatching {
+                val ani = post(ANILIST, aniListBody(
+                    "query(\$s:String){Page(perPage:1){media(search:\$s,type:ANIME,status:RELEASING){id airingSchedule(notYetAired:true,perPage:50){nodes{airingAt episode}}}}}",
+                    JSONObject().put("s", show.title)
+                ))
+                show.copy(dates = continueFromAniList(ani, last, now))
+            }.getOrDefault(show)
+        }
+    }
+
+    /** The last listed episode of a TVmaze show: season, number, time. */
+    data class LastEpisode(val season: Int, val number: Int, val at: Long)
+
+    fun isRunningAnime(body: String): Boolean {
+        val s = JSONObject(body)
+        val genres = s.optJSONArray("genres") ?: JSONArray()
+        val anime = s.str("language") == "Japanese" || (0 until genres.length()).any { genres.optString(it) == "Anime" }
+        return anime && s.str("status") == "Running"
+    }
+
+    fun parseTvMazeLast(body: String): LastEpisode? {
+        val eps = JSONObject(body).optJSONObject("_embedded")?.optJSONArray("episodes") ?: return null
+        return (0 until eps.length()).mapNotNull { i ->
+            val e = eps.getJSONObject(i)
+            if (e.isNull("number")) return@mapNotNull null
+            val at = runCatching { OffsetDateTime.parse(e.str("airstamp")).toInstant().toEpochMilli() }.getOrNull() ?: return@mapNotNull null
+            LastEpisode(e.optInt("season"), e.getInt("number"), at)
+        }.maxByOrNull { it.at }
+    }
+
+    /**
+     * AniList's coming episodes, numbered on from TVmaze's last one ("S2E5" → "S2E6", …), since both
+     * count seasons differently.
+     */
+    fun continueFromAniList(body: String, last: LastEpisode, now: Long): List<FetchedDate> {
+        val media = JSONObject(body).getJSONObject("data").getJSONObject("Page").getJSONArray("media")
+        if (media.length() == 0) return emptyList()
+        val nodes = media.getJSONObject(0).optJSONObject("airingSchedule")?.optJSONArray("nodes") ?: return emptyList()
+        return (0 until nodes.length()).map { nodes.getJSONObject(it) }
+            .map { it.getInt("episode") to it.getLong("airingAt") * 1000 }
+            .filter { (_, at) -> at > now && at > last.at }
+            .sortedBy { it.second }
+            .mapIndexed { i, (ep, at) ->
+                val number = last.number + i + 1
+                FetchedDate("al$ep", "S${last.season}E$number", at)
+            }
     }
 
     // --- parsing ---
