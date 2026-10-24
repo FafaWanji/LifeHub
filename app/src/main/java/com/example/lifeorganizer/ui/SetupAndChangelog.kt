@@ -32,6 +32,13 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.4", listOf(
+            Txt("Smart quick add: \"Sport daily 7:00\" or \"Gym Mon Wed Fri\" becomes a habit, \"Call mum tomorrow\" a to-do – now also on the Today and Habits tabs", "Schlaues Schnell-Hinzufügen: „Sport täglich 7 Uhr“ oder „Gym Mo Mi Fr“ wird eine Gewohnheit, „Mama anrufen morgen“ eine Aufgabe – jetzt auch im Heute- und Gewohnheiten-Tab", "Akıllı hızlı ekleme: \"Spor her gün 7:00\" veya \"Gym Pzt Çar Cum\" alışkanlık, \"Annemi ara yarın\" görev olur – artık Bugün ve Alışkanlıklar sekmelerinde de", "Añadir rápido inteligente: «Deporte cada día 7:00» o «Gym lun mié vie» se convierte en hábito, «Llamar a mamá mañana» en tarea – ahora también en Hoy y Hábitos", "智能快速添加：「每天 7:00 运动」或「周一三五健身」会成为习惯，「明天给妈妈打电话」成为待办 – 现在也可在「今天」和「习惯」标签使用"),
+            Txt("Turn a to-do into a daily habit with one tap", "Aufgabe mit einem Tipp in eine tägliche Gewohnheit umwandeln", "Bir görevi tek dokunuşla günlük alışkanlığa dönüştür", "Convierte una tarea en hábito diario con un toque", "一键将待办转为每日习惯"),
+            Txt("PC access: remembered Wi-Fi networks are shown by name instead of an address", "PC-Zugriff: gemerkte WLANs werden mit Namen statt Adresse angezeigt", "PC erişimi: kayıtlı Wi-Fi ağları adres yerine adıyla gösterilir", "Acceso desde PC: las Wi-Fi guardadas se muestran por su nombre en lugar de una dirección", "电脑访问：已记住的 Wi-Fi 显示名称而非地址")
+        )
+    ),
+    Release(
         "1.3.2", listOf(
             Txt("\"What's new\" after an update shows every version you skipped", "„Was ist neu“ nach einem Update zeigt alle übersprungenen Versionen", "Güncellemeden sonra \"Yenilikler\" atlanan tüm sürümleri gösterir", "\"Novedades\" tras una actualización muestra todas las versiones que te saltaste", "更新后的「新内容」会显示你跳过的所有版本")
         )
