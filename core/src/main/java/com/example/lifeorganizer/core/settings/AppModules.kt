@@ -19,7 +19,8 @@ enum class AppModule(val key: String, val label: Txt) {
     WAYPOINTS("waypoints", Str.waypoints),
     DOCUMENTS("documents", Str.documents),
     FINANCE("finance", Str.finance),
-    HABITS("habits", Str.habitsTasks)
+    HABITS("habits", Str.habitsTasks),
+    RELEASES("releases", Str.releaseRadar)
 }
 
 /** The modules that are switched on. */

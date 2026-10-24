@@ -214,6 +214,7 @@ private fun AppearanceSection(lang: String, modules: Set<AppModule>) {
         add("CALENDAR" to Str.calendar)
         add("NOTES" to Str.notes)
         if (AppModule.HABITS in modules) add("HABITS" to Str.habitsTasks)
+        if (AppModule.RELEASES in modules) add("RELEASES" to Str.releaseRadar)
         if (AppModule.FINANCE in modules) add("MONEY" to Str.finance)
         if (AppModule.DOCUMENTS in modules) add("DOCUMENTS" to Str.documents)
         if (AppModule.WAYPOINTS in modules) add("WAYPOINTS" to Str.waypoints)

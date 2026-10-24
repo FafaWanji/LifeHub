@@ -73,7 +73,7 @@ import com.example.lifeorganizer.calendar.ui.MainViewModel as CalendarViewModel
 import com.example.lifeorganizer.waypoints.ui.MainViewModel as WaypointsViewModel
 
 enum class ActiveView {
-    CALENDAR, NOTES, NOTE_EDITOR, WAYPOINTS, DOCUMENTS, MONEY, HABITS
+    CALENDAR, NOTES, NOTE_EDITOR, WAYPOINTS, DOCUMENTS, MONEY, HABITS, RELEASES
 }
 
 /** Sub-screens of the embedded Waypoints module. */
@@ -186,6 +186,9 @@ fun MainScreen(
     val habitTasks by remember { com.example.lifeorganizer.habits.data.HabitDatabase.getDatabase(appContext).habitDao().tasks() }
         .collectAsState(initial = emptyList())
     var taskToOpen by remember { mutableStateOf<Long?>(null) }
+    // Releases of the release radar for the calendar
+    val releaseRows by remember { com.example.lifeorganizer.releases.data.ReleaseDatabase.get(appContext).dao().releases() }
+        .collectAsState(initial = emptyList())
     // A deadline tapped in the calendar opens its task right there
     var calendarTask by remember { mutableStateOf<Long?>(null) }
 
@@ -201,6 +204,7 @@ fun MainScreen(
         ActiveView.DOCUMENTS -> AppModule.DOCUMENTS
         ActiveView.MONEY -> AppModule.FINANCE
         ActiveView.HABITS -> AppModule.HABITS
+        ActiveView.RELEASES -> AppModule.RELEASES
         else -> null
     }
     LaunchedEffect(activeView, enabledModules) {
@@ -251,6 +255,7 @@ fun MainScreen(
                 }
                 MainActivity.ACTION_WAYPOINTS -> navigate(ActiveView.WAYPOINTS)
                 MainActivity.ACTION_HABITS -> navigate(ActiveView.HABITS)
+                MainActivity.ACTION_RELEASES -> navigate(ActiveView.RELEASES)
                 MainActivity.ACTION_SEARCH -> showUniversalSearch = true
                 MainActivity.ACTION_AGENDA -> activeView = ActiveView.CALENDAR
                 else -> return@LaunchedEffect
@@ -275,7 +280,7 @@ fun MainScreen(
 
     // Secondary modules return to the calendar instead of closing the app – except the chosen start screen.
     BackHandler(enabled = activeView != startView && (activeView == ActiveView.NOTES || activeView == ActiveView.DOCUMENTS ||
-        activeView == ActiveView.HABITS ||
+        activeView == ActiveView.HABITS || activeView == ActiveView.RELEASES ||
         (activeView == ActiveView.WAYPOINTS && waypointRoute == WaypointRoute.List))
     ) {
         activeView = ActiveView.CALENDAR
@@ -369,6 +374,13 @@ fun MainScreen(
                                     )
                                 },
                                 onDeadlineClick = { id -> calendarTask = id },
+                                releases = if (AppModule.RELEASES !in enabledModules) emptyList() else releaseRows.map { r ->
+                                    com.example.lifeorganizer.calendar.ui.CalendarRelease(
+                                        key = "${r.itemId}_${r.key}", title = r.title,
+                                        label = com.example.lifeorganizer.releases.work.ReleaseSync.label(r.label, lang), at = r.at
+                                    )
+                                },
+                                onReleaseClick = { navigate(ActiveView.RELEASES) },
                                 documents = linkableDocuments,
                                 onOpenDocument = { id ->
                                     activeView = ActiveView.DOCUMENTS
@@ -477,6 +489,7 @@ fun MainScreen(
                             ActiveView.HABITS -> com.example.lifeorganizer.habits.ui.HabitsHost(
                                 onMenuClick = openMenu, openTaskId = taskToOpen, onTaskOpened = { taskToOpen = null }
                             )
+                            ActiveView.RELEASES -> com.example.lifeorganizer.releases.ui.ReleasesHost(onMenuClick = openMenu)
                         }
                     }
 }

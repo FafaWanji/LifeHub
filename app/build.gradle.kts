@@ -104,6 +104,7 @@ dependencies {
     implementation(project(":feature-money"))
     implementation(project(":feature-habits"))
     implementation(project(":feature-web"))
+    implementation(project(":feature-releases"))
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.material3)

@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.ArrowDropDown
@@ -125,6 +126,16 @@ data class CalendarDeadline(
     val missed: Boolean
 )
 
+/** A release from the release radar (episode or film start); the app shell hands them in. */
+data class CalendarRelease(
+    val key: String,
+    val title: String,
+    /** E.g. "Episode 6", empty for a start. */
+    val label: String,
+    /** Epoch millis. */
+    val at: Long
+)
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun CalendarScreen(
@@ -138,6 +149,9 @@ fun CalendarScreen(
     /** Task deadlines and how to open one. */
     deadlines: List<CalendarDeadline> = emptyList(),
     onDeadlineClick: ((Long) -> Unit)? = null,
+    /** Release radar dates and what tapping one does. */
+    releases: List<CalendarRelease> = emptyList(),
+    onReleaseClick: (() -> Unit)? = null,
     /** Creates a note linked to the event (app shell), then opens it. */
     onCreateNoteForEvent: ((com.example.lifeorganizer.calendar.data.Event) -> Unit)? = null,
     /** Dokki documents (id to title) for attaching, and how to open one. */
@@ -291,6 +305,11 @@ fun CalendarScreen(
     val deadlineColor = MaterialTheme.colorScheme.tertiary
     val deadlineDates = remember(deadlines) {
         deadlines.filter { !it.done }.map { Instant.ofEpochMilli(it.at).atZone(ZoneId.systemDefault()).toLocalDate() }.toSet()
+    }
+
+    val releaseColor = MaterialTheme.colorScheme.secondary
+    val releaseDates = remember(releases) {
+        releases.map { Instant.ofEpochMilli(it.at).atZone(ZoneId.systemDefault()).toLocalDate() }.toSet()
     }
 
     val birthdayDates = remember(eventsWithReminders) {
@@ -530,7 +549,8 @@ fun CalendarScreen(
                                     day = day,
                                     isSelected = selectedDate == day.date,
                                     eventColors = (eventColorsByDate[day.date] ?: emptyList()) +
-                                        if (day.date in deadlineDates) listOf(deadlineColor) else emptyList(),
+                                        (if (day.date in deadlineDates) listOf(deadlineColor) else emptyList()) +
+                                        if (day.date in releaseDates) listOf(releaseColor) else emptyList(),
                                     hasBirthday = birthdayDates.contains(day.date),
                                     dragDropState = dragDropState,
                                     onClick = {
@@ -672,6 +692,49 @@ fun CalendarScreen(
                                         color = if (d.missed) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onTertiaryContainer,
                                         textDecoration = if (d.done) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
                                     )
+                                }
+                            }
+                        }
+                    }
+
+                    val dayReleases = if (searchQuery.isNotBlank()) emptyList() else releases.filter {
+                        Instant.ofEpochMilli(it.at).atZone(ZoneId.systemDefault()).toLocalDate() == selectedDate
+                    }.sortedBy { it.at }
+                    if (dayReleases.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = Str.releaseRadar.of(lang),
+                                style = MaterialTheme.typography.titleSmall,
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
+                        items(dayReleases, key = { "release_${it.key}" }) { r ->
+                            val time = Instant.ofEpochMilli(r.at).atZone(ZoneId.systemDefault()).toLocalTime()
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                                    .clickable { onReleaseClick?.invoke() },
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+                            ) {
+                                Row(modifier = Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.NewReleases, contentDescription = Str.releaseRadar.text(),
+                                        tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column {
+                                        Text(
+                                            "%02d:%02d".format(time.hour, time.minute) + "  " + r.title,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                                        )
+                                        if (r.label.isNotEmpty()) Text(
+                                            r.label, style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSecondaryContainer
+                                        )
+                                    }
                                 }
                             }
                         }

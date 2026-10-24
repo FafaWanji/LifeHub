@@ -75,6 +75,7 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
         const val ACTION_SEARCH = "com.example.lifeorganizer.ACTION_SEARCH"
         const val ACTION_AGENDA = "com.example.lifeorganizer.ACTION_AGENDA"
         const val ACTION_HABITS = com.example.lifeorganizer.habits.reminder.HabitReminders.ACTION_OPEN_HABITS
+        const val ACTION_RELEASES = com.example.lifeorganizer.releases.work.ReleaseSync.ACTION_OPEN_RELEASES
         const val ACTION_OPEN_NOTE = com.example.lifeorganizer.calendar.alarm.NotificationHelper.ACTION_OPEN_NOTE
 
         /** Re-lock when the app was in the background longer than this. */
@@ -100,6 +101,7 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
         super.onCreate(savedInstanceState)
         com.example.lifeorganizer.backup.AutoBackup.schedule(applicationContext)
         com.example.lifeorganizer.money.work.RecurringWorker.schedule(applicationContext)
+        com.example.lifeorganizer.releases.work.ReleaseSync.schedule(applicationContext)
         // Re-arms habit/task reminders, e.g. after the app was force-stopped
         lifecycleScope.launch { com.example.lifeorganizer.habits.reminder.HabitReminders.scheduleAll(applicationContext) }
         com.example.lifeorganizer.money.MoneyIntegration.calendar = com.example.lifeorganizer.money.FixedCostCalendarSync(applicationContext)

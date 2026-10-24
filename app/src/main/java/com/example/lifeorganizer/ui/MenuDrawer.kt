@@ -28,6 +28,8 @@ import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material.icons.outlined.Savings
 import androidx.compose.material.icons.filled.TaskAlt
+import androidx.compose.material.icons.filled.NewReleases
+import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.SettingsBackupRestore
@@ -91,6 +93,13 @@ fun MenuDrawerSheet(
                 label = Str.habitsTasks.text(),
                 selected = currentView == ActiveView.HABITS,
                 onClick = { onNavigate(ActiveView.HABITS) }
+            )
+            if (AppModule.RELEASES in enabledModules) DrawerEntry(
+                selectedIcon = Icons.Filled.NewReleases,
+                icon = Icons.Outlined.NewReleases,
+                label = Str.releaseRadar.text(),
+                selected = currentView == ActiveView.RELEASES,
+                onClick = { onNavigate(ActiveView.RELEASES) }
             )
             if (AppModule.FINANCE in enabledModules) DrawerEntry(
                 selectedIcon = Icons.Filled.Savings,
