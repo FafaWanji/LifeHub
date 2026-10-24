@@ -63,6 +63,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -107,6 +108,12 @@ fun HabitsHost(
     var showAddMenu by remember { mutableStateOf(false) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    // A line that became a habit outside the habits tab says so, since it lands elsewhere
+    val quickAdd = { habitOnly: Boolean ->
+        val habit = vm.quickAdd(quickText, habitOnly)
+        quickText = ""
+        if (habit != null && !habitOnly) scope.launch { snackbar.showSnackbar(HabitsStr.habitAdded.of(lang).format(habit), duration = SnackbarDuration.Short) }
+    }
     val confirmOnTimeClaim by vm.confirmOnTimeClaim.collectAsStateWithLifecycle()
     val onTimeClaimUsed by vm.onTimeClaimUsed.collectAsStateWithLifecycle()
     var claimTask by remember { mutableStateOf<TaskItem?>(null) }
@@ -191,6 +198,7 @@ fun HabitsHost(
                     HabitsTab.TODAY -> {
                         val dueHabits = habits.filter { it.dueToday }
                         val urgent = openTasks.filter { taskGroup(it.dueEpochDay, it.dueMinute, now, ts.soonDays).let { g -> g == TaskGroup.OVERDUE || g == TaskGroup.TODAY } }
+                        item(key = "quickAdd") { QuickAddTask(quickText, { quickText = it }, HabitsStr.quickAddAny.of(lang), lang) { quickAdd(false) } }
                         if (dueHabits.isEmpty() && urgent.isEmpty()) item { EmptyHint(HabitsStr.nothingToday.text()) }
                         if (dueHabits.isNotEmpty()) {
                             header(HabitsStr.habits.of(lang))
@@ -205,7 +213,7 @@ fun HabitsHost(
                         if (ts.showPoints) item(key = "points") { PointsHeader(totalPoints, ts.points, lang) }
                         item(key = "permissions") { ReminderPermissionBanner(lang, onAllowed = { vm.rescheduleAll() }) }
                         item(key = "quickAdd") {
-                            QuickAddTask(quickText, { quickText = it }, lang) { vm.quickAddTask(quickText); quickText = "" }
+                            QuickAddTask(quickText, { quickText = it }, HabitsStr.quickAdd.of(lang), lang) { quickAdd(false) }
                         }
                         if (tasks.isEmpty()) item { EmptyHint(HabitsStr.noTasks.text()) }
                         val groups = openTasks.groupBy { taskGroup(it.dueEpochDay, it.dueMinute, now, ts.soonDays) }
@@ -226,6 +234,7 @@ fun HabitsHost(
                         ) { editTask = it }
                     }
                     HabitsTab.HABITS -> {
+                        item(key = "quickAdd") { QuickAddTask(quickText, { quickText = it }, HabitsStr.quickAddHabit.of(lang), lang) { quickAdd(true) } }
                         if (habits.isEmpty()) item { EmptyHint(HabitsStr.noHabits.text()) }
                         items(habits, key = { "h${it.habit.id}" }) { row ->
                             HabitItem(row, lang, showSchedule = true, onToggle = { vm.toggleHabit(row) }, onClick = { editHabit = row.habit })
@@ -302,13 +311,13 @@ private fun PointsHeader(total: Int, perTask: Int, lang: String) {
     )
 }
 
-/** Type a task with its deadline in one line, e.g. "Exercise 5 tomorrow 14:00". */
+/** Type a task with its deadline ("Exercise 5 tomorrow 14:00") or a habit ("Gym Mon Wed Fri") in one line. */
 @Composable
-private fun QuickAddTask(text: String, onText: (String) -> Unit, lang: String, onAdd: () -> Unit) {
+private fun QuickAddTask(text: String, onText: (String) -> Unit, placeholder: String, lang: String, onAdd: () -> Unit) {
     val add = { if (text.isNotBlank()) onAdd() }
     OutlinedTextField(
         value = text, onValueChange = onText, singleLine = true,
-        placeholder = { Text(HabitsStr.quickAdd.of(lang), maxLines = 1) },
+        placeholder = { Text(placeholder, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         trailingIcon = {
             IconButton(onClick = add, enabled = text.isNotBlank()) { Icon(Icons.Default.Add, HabitsStr.add.of(lang)) }
         },

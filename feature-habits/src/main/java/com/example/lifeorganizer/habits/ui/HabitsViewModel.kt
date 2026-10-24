@@ -13,6 +13,7 @@ import com.example.lifeorganizer.habits.data.HabitDatabase
 import com.example.lifeorganizer.habits.data.TaskItem
 import com.example.lifeorganizer.habits.domain.HabitSchedule
 import com.example.lifeorganizer.habits.domain.TaskDeadline
+import com.example.lifeorganizer.habits.domain.HabitQuickParse
 import com.example.lifeorganizer.habits.domain.TaskQuickParse
 import com.example.lifeorganizer.habits.reminder.HabitReminders
 import kotlinx.coroutines.flow.SharingStarted
@@ -82,6 +83,18 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
         val saved = if (edited.id == 0L) edited.copy(id = dao.insertTask(edited)) else { dao.updateTask(edited); edited }
         HabitReminders.scheduleTask(app, saved)
         HabitsIntegration.changed(app)
+    }
+
+    /**
+     * The smart quick-add line: "Sport täglich 7 Uhr" or "Gym Mo Mi Fr" becomes a habit (reminder at the
+     * time given), anything else a task. With [habitOnly] (habits tab) it is always a habit, daily by default.
+     * Returns the habit's title, or null when it became a task.
+     */
+    fun quickAdd(text: String, habitOnly: Boolean = false): String? {
+        val habit = HabitQuickParse.parse(text, repeatNeeded = !habitOnly)
+        if (habit == null) { quickAddTask(text); return null }
+        saveHabit(Habit(title = habit.title, weekdays = habit.weekdays, reminderMinutes = habit.reminderMinutes))
+        return habit.title
     }
 
     /** "Exercise 5 tomorrow 14:00" → a task with that deadline and the default reminders. */

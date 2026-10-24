@@ -15,7 +15,7 @@ data class QuickTask(val title: String, val dueEpochDay: Long, val dueMinute: In
  * Without a date the deadline is today (23:59, or at the given time; a time already past means tomorrow).
  */
 object TaskQuickParse {
-    private val weekdays = mapOf(
+    internal val weekdays = mapOf(
         "montag" to DayOfWeek.MONDAY, "mo" to DayOfWeek.MONDAY, "monday" to DayOfWeek.MONDAY, "mon" to DayOfWeek.MONDAY,
         "dienstag" to DayOfWeek.TUESDAY, "di" to DayOfWeek.TUESDAY, "tuesday" to DayOfWeek.TUESDAY, "tue" to DayOfWeek.TUESDAY,
         "mittwoch" to DayOfWeek.WEDNESDAY, "mi" to DayOfWeek.WEDNESDAY, "wednesday" to DayOfWeek.WEDNESDAY, "wed" to DayOfWeek.WEDNESDAY,
@@ -38,7 +38,26 @@ object TaskQuickParse {
     private val dateRx = Regex("""(?i)$LEAD\s+(\d{1,2})\.(\d{1,2})\.(\d{2,4})?$""")
     private val wordRx = Regex("""(?i)$LEAD\s+(?:nächsten\s+|naechsten\s+|next\s+)?(\p{L}+)(\.?)$""")
     // Also everyday words ("Mach das so"), so they only count as a weekday with a dot: "So.", "Do."
-    private val ambiguous = setOf("so", "do")
+    internal val ambiguous = setOf("so", "do")
+
+    /** A time at the end of [text] (which starts with a space): the text before it and the minute of the day. */
+    internal fun timeAtEnd(text: String): Pair<String, Int>? {
+        val m = timeRx.find(text) ?: return null
+        val g = m.groupValues
+        val (h, min) = when {
+            g[1].isNotEmpty() -> g[1].toInt() to g[2].toInt()
+            g[3].isNotEmpty() -> g[3].toInt() to g[4].toInt()
+            g[5].isNotEmpty() -> g[5].toInt() to 0
+            else -> {
+                val h12 = g[6].toInt()
+                if (h12 !in 1..12) return null
+                val pm = g[8].equals("pm", true)
+                (h12 % 12 + if (pm) 12 else 0) to (g[7].toIntOrNull() ?: 0)
+            }
+        }
+        if (h !in 0..23 || min !in 0..59) return null
+        return text.substring(0, m.range.first) to h * 60 + min
+    }
 
     /** [defaultMinute] is the deadline time when only a day (or nothing) is given; 23:59 unless set otherwise. */
     fun parse(text: String, now: LocalDateTime = LocalDateTime.now(), defaultMinute: Int = TaskDeadline.END_OF_DAY): QuickTask? {
@@ -50,22 +69,9 @@ object TaskQuickParse {
         var minute: Int? = null
 
         fun takeTime(): Boolean {
-            val m = timeRx.find(rest) ?: return false
-            val g = m.groupValues
-            val (h, min) = when {
-                g[1].isNotEmpty() -> g[1].toInt() to g[2].toInt()
-                g[3].isNotEmpty() -> g[3].toInt() to g[4].toInt()
-                g[5].isNotEmpty() -> g[5].toInt() to 0
-                else -> {
-                    val h12 = g[6].toInt()
-                    if (h12 !in 1..12) return false
-                    val pm = g[8].equals("pm", true)
-                    (h12 % 12 + if (pm) 12 else 0) to (g[7].toIntOrNull() ?: 0)
-                }
-            }
-            if (h !in 0..23 || min !in 0..59) return false
-            minute = h * 60 + min
-            rest = rest.substring(0, m.range.first)
+            val (before, m) = timeAtEnd(rest) ?: return false
+            minute = m
+            rest = before
             return true
         }
 

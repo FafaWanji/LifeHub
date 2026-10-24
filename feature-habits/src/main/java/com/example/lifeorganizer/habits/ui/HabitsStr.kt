@@ -119,6 +119,21 @@ object HabitsStr {
         "Añadir rápido, p. ej. «Ejercicio 5 mañana 14:00»",
         "快速添加，例如「第 5 题 明天 14:00」"
     )
+    val quickAddHabit = Txt(
+        "Quick add, e.g. “Gym Mon Wed Fri 18:00”",
+        "Schnell hinzufügen, z. B. „Sport Mo Mi Fr 18 Uhr“",
+        "Hızlı ekle, ör. “Spor her gün 18:00”",
+        "Añadir rápido, p. ej. «Gimnasio cada día 18:00»",
+        "快速添加，例如「健身 每天 18:00」"
+    )
+    val quickAddAny = Txt(
+        "Quick add, e.g. “Read daily” or “Call mum tomorrow”",
+        "Schnell hinzufügen, z. B. „Lesen täglich“ oder „Mama anrufen morgen“",
+        "Hızlı ekle, ör. “Kitap oku her gün” ya da “Annemi ara yarın”",
+        "Añadir rápido, p. ej. «Leer cada día» o «Llamar a mamá mañana»",
+        "快速添加，例如「每天阅读」或「明天给妈妈打电话」"
+    )
+    val habitAdded = Txt("Habit added: %s", "Gewohnheit angelegt: %s", "Alışkanlık eklendi: %s", "Hábito añadido: %s", "已添加习惯：%s")
     val add = Txt("Add", "Hinzufügen", "Ekle", "Añadir", "添加")
     val notificationsOff = Txt(
         "Notifications are off – task reminders can't reach you.",
