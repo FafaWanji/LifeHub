@@ -3,8 +3,6 @@ package com.example.lifeorganizer.releases.ui
 import com.example.lifeorganizer.core.i18n.Txt
 
 object ReleaseStr {
-    val anime = Txt("Anime", "Anime", "Anime", "Anime", "动画")
-    val series = Txt("Series", "Serien", "Diziler", "Series", "剧集")
     val searchHint = Txt("Search a title, e.g. “Steel Ball Run”", "Titel suchen, z. B. „Steel Ball Run“", "Başlık ara, ör. “Steel Ball Run”", "Busca un título, p. ej. «Steel Ball Run»", "搜索标题，例如「Steel Ball Run」")
     val search = Txt("Search", "Suchen", "Ara", "Buscar", "搜索")
     val noResults = Txt("Nothing found.", "Nichts gefunden.", "Hiçbir şey bulunamadı.", "No se encontró nada.", "未找到结果。")

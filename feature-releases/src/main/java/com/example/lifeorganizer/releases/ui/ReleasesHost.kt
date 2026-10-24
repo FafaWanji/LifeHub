@@ -1,6 +1,5 @@
 package com.example.lifeorganizer.releases.ui
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -24,7 +23,6 @@ import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.NotificationsOff
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
@@ -77,7 +75,6 @@ fun ReleasesHost(onMenuClick: () -> Unit, vm: ReleasesViewModel = viewModel()) {
     val refreshing by vm.refreshing.collectAsStateWithLifecycle()
     val offline by vm.offline.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf("") }
-    var source by rememberSaveable { mutableStateOf(Source.ANILIST) }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
     // Dates older than half a day count as stale: update when the screen opens
@@ -100,7 +97,8 @@ fun ReleasesHost(onMenuClick: () -> Unit, vm: ReleasesViewModel = viewModel()) {
     ) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 32.dp)) {
             item(key = "search") {
-                val run = { vm.search(source, query) }
+                // TVmaze has a whole anime as one series, not every season on its own like AniList
+                val run = { vm.search(Source.TVMAZE, query) }
                 OutlinedTextField(
                     value = query, onValueChange = { query = it; if (it.isBlank()) vm.clearSearch() }, singleLine = true,
                     placeholder = { Text(ReleaseStr.searchHint.of(lang), maxLines = 1, overflow = TextOverflow.Ellipsis) },
@@ -112,15 +110,6 @@ fun ReleasesHost(onMenuClick: () -> Unit, vm: ReleasesViewModel = viewModel()) {
                     keyboardActions = KeyboardActions(onSearch = { run() }),
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)
                 )
-                Row(Modifier.padding(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(Source.ANILIST to ReleaseStr.anime, Source.TVMAZE to ReleaseStr.series).forEach { (s, label) ->
-                        FilterChip(
-                            selected = source == s,
-                            onClick = { source = s; if (query.isNotBlank()) vm.search(s, query) },
-                            label = { Text(label.of(lang)) }
-                        )
-                    }
-                }
             }
             when (val s = search) {
                 SearchState.Idle -> Unit
