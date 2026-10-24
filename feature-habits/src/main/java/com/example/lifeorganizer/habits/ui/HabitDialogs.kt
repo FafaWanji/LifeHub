@@ -121,7 +121,9 @@ fun HabitDialog(initial: Habit, onDismiss: () -> Unit, onSave: (Habit) -> Unit, 
 fun TaskDialog(
     initial: TaskItem, onDismiss: () -> Unit, onSave: (TaskItem) -> Unit, onDelete: (() -> Unit)?,
     /** Shown for late tasks: "I did it on time – forgot to tick it off". */
-    onClaimOnTime: (() -> Unit)? = null
+    onClaimOnTime: (() -> Unit)? = null,
+    /** Turns the open task into a daily habit with the title as typed. */
+    onMakeHabit: ((String) -> Unit)? = null
 ) {
     val lang = LocalAppLanguage.current
     val today = LocalDate.now()
@@ -183,6 +185,9 @@ fun TaskDialog(
                 if (onClaimOnTime != null) OutlinedButton(onClick = onClaimOnTime, modifier = Modifier.fillMaxWidth()) {
                     Text(HabitsStr.claimOnTime.text(), textAlign = TextAlign.Center)
                 }
+                if (onMakeHabit != null) TextButton(
+                    enabled = title.isNotBlank(), onClick = { onMakeHabit(title.trim()) }, modifier = Modifier.fillMaxWidth()
+                ) { Text(HabitsStr.makeDailyHabit.text(), textAlign = TextAlign.Center) }
                 if (onDelete != null) com.example.lifeorganizer.core.theme.DeleteButton(
                     HabitsStr.delete.text(), onClick = onDelete, modifier = Modifier.fillMaxWidth()
                 )

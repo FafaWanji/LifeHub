@@ -36,6 +36,7 @@ fun TaskEditorOverlay(taskId: Long, onClose: () -> Unit, vm: HabitsViewModel = v
             onDismiss = onClose,
             onSave = { vm.saveTask(it); onClose() },
             onClaimOnTime = if (TaskActions.canClaimOnTime(task, ts)) ({ claimTask = task }) else null,
+            onMakeHabit = if (task.doneAt == null) ({ title -> vm.taskToHabit(task, title); onClose() }) else null,
             onDelete = { confirmDelete = task }
         )
     }

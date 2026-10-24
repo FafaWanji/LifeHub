@@ -262,6 +262,10 @@ fun HabitsHost(
             onDismiss = { editTask = null },
             onSave = { vm.saveTask(it); editTask = null },
             onClaimOnTime = if (t.id != 0L && TaskActions.canClaimOnTime(t, ts)) ({ editTask = null; claimTask = t }) else null,
+            onMakeHabit = if (t.id != 0L && t.doneAt == null) ({ title ->
+                vm.taskToHabit(t, title); editTask = null
+                scope.launch { snackbar.showSnackbar(HabitsStr.habitAdded.of(lang).format(title), duration = SnackbarDuration.Short) }
+            }) else null,
             onDelete = if (t.id == 0L) null else ({ if (ts.confirmDelete) confirmDelete = t else deleteTask(t) })
         )
     }

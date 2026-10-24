@@ -97,6 +97,14 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
         return habit.title
     }
 
+    /** The task becomes a daily habit (reminder at its deadline time, unless that is end of day); the task goes. */
+    fun taskToHabit(task: TaskItem, title: String) = viewModelScope.launch {
+        saveHabit(Habit(title = title, reminderMinutes = task.dueMinute.takeIf { task.dueEpochDay != null && it != TaskDeadline.END_OF_DAY }))
+        HabitReminders.cancelTask(app, task.id)
+        dao.deleteTask(task)
+        HabitsIntegration.changed(app)
+    }
+
     /** "Exercise 5 tomorrow 14:00" → a task with that deadline and the default reminders. */
     fun quickAddTask(text: String) {
         val settings = TaskSettings.read(app)

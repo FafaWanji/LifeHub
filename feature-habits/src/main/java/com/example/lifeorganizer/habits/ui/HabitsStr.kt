@@ -133,6 +133,10 @@ object HabitsStr {
         "Añadir rápido, p. ej. «Leer cada día» o «Llamar a mamá mañana»",
         "快速添加，例如「每天阅读」或「明天给妈妈打电话」"
     )
+    val makeDailyHabit = Txt(
+        "Make it a daily habit", "In tägliche Gewohnheit umwandeln", "Günlük alışkanlığa dönüştür",
+        "Convertir en hábito diario", "转为每日习惯"
+    )
     val habitAdded = Txt("Habit added: %s", "Gewohnheit angelegt: %s", "Alışkanlık eklendi: %s", "Hábito añadido: %s", "已添加习惯：%s")
     val add = Txt("Add", "Hinzufügen", "Ekle", "Añadir", "添加")
     val notificationsOff = Txt(
