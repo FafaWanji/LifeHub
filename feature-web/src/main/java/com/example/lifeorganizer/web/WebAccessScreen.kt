@@ -21,6 +21,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Close
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.foundation.clickable
+import com.example.lifeorganizer.core.theme.AlertDialog
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -216,31 +219,38 @@ private fun AutoStartSettings() {
     var known by remember { mutableStateOf(settings.knownNetworks) }
     var lowBattery by remember { mutableStateOf(settings.lowBatteryOff) }
     var notInWifi by remember { mutableStateOf(false) }
-    var noName by remember { mutableStateOf(false) }
+    var renaming by remember { mutableStateOf<String?>(null) }
 
-    // Saved under its name when readable; an entry for the same network (e.g. saved by router address) is merged in
+    // An entry for the same network is merged in; without a readable Wi-Fi name it is named by hand
     fun saveCurrent() {
         val ids = NetworkId.currentIds(context)
         val label = NetworkId.label(context)
         notInWifi = ids.isEmpty() || label == null
         if (notInWifi) return
-        noName = NetworkId.ssid(context) == null
         val same = known.filterValues { it.any { id -> id in ids } }
-        known = known - same.keys + (label!! to (ids + same.values.flatten()))
+        val name = same.keys.firstOrNull() ?: label!!
+        known = known - same.keys + (name to (ids + same.values.flatten()))
         settings.knownNetworks = known
+        if (same.isEmpty() && NetworkId.ssid(context) == null) renaming = name
     }
-    val askLocation = androidx.activity.compose.rememberLauncherForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.RequestPermission()
-    ) { saveCurrent() }
-    // Entries saved before the name was readable get it once the phone is in that network again
-    LaunchedEffect(Unit) {
-        val ssid = NetworkId.ssid(context) ?: return@LaunchedEffect
-        val ids = NetworkId.currentIds(context)
-        val same = known.filterValues { it.any { id -> id in ids } }
-        if (same.isNotEmpty() && same.keys != setOf(ssid)) {
-            known = known - same.keys + (ssid to (ids + same.values.flatten()))
-            settings.knownNetworks = known
-        }
+    renaming?.let { old ->
+        var name by remember(old) { mutableStateOf(old) }
+        AlertDialog(
+            onDismissRequest = { renaming = null },
+            title = { Text(WebStr.wifiName.text()) },
+            text = { OutlinedTextField(value = name, onValueChange = { name = it }, singleLine = true, modifier = Modifier.fillMaxWidth()) },
+            confirmButton = {
+                TextButton(enabled = name.isNotBlank(), onClick = {
+                    val new = name.trim()
+                    // Renamed to a name already used: one entry with the ids of both
+                    val ids = known[old].orEmpty() + known[new].orEmpty()
+                    known = known - old - new + (new to ids)
+                    settings.knownNetworks = known
+                    renaming = null
+                }) { Text(WebStr.save.text()) }
+            },
+            dismissButton = { TextButton(onClick = { renaming = null }) { Text(com.example.lifeorganizer.core.i18n.Str.cancel.text()) } }
+        )
     }
 
     Text(WebStr.autoTitle.text(), style = MaterialTheme.typography.titleSmall)
@@ -278,21 +288,15 @@ private fun AutoStartSettings() {
                         if (known.isEmpty()) Text(WebStr.noKnownWifi.text(), style = MaterialTheme.typography.bodySmall)
                         known.keys.sorted().forEach { label ->
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(label, Modifier.weight(1f))
+                                Text(label, Modifier.weight(1f).clickable { renaming = label }.padding(vertical = 8.dp))
+                                IconButton(onClick = { renaming = label }) { Icon(Icons.Outlined.Edit, WebStr.wifiName.text()) }
                                 IconButton(onClick = {
                                     known = known - label
                                     settings.knownNetworks = known
                                 }) { Icon(Icons.Outlined.Close, WebStr.remove.text()) }
                             }
                         }
-                        TextButton(onClick = {
-                            // The Wi-Fi name is only readable with location access
-                            val granted = androidx.core.content.ContextCompat.checkSelfPermission(
-                                context, android.Manifest.permission.ACCESS_FINE_LOCATION
-                            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
-                            if (granted) saveCurrent() else askLocation.launch(android.Manifest.permission.ACCESS_FINE_LOCATION)
-                        }) { Text(WebStr.rememberWifi.text()) }
-                        if (noName && !notInWifi) Text(WebStr.wifiNameHint.text(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        TextButton(onClick = { saveCurrent() }) { Text(WebStr.rememberWifi.text()) }
                         if (notInWifi) Text(WebStr.notInWifi.text(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
                     }
                 }
