@@ -32,6 +32,13 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.5", listOf(
+            Txt("New: Release radar – follow series and anime; upcoming episodes appear in the calendar and you get a notification when one is out", "Neu: Release-Radar – Serien und Anime verfolgen; kommende Folgen erscheinen im Kalender, mit Benachrichtigung, wenn eine da ist", "Yeni: Yayın radarı – dizi ve animeleri takip et; yaklaşan bölümler takvimde görünür, çıkınca bildirim gelir", "Nuevo: Radar de estrenos – sigue series y anime; los próximos episodios aparecen en el calendario y recibes un aviso cuando sale uno", "新功能：上映雷达 – 关注剧集和动画；即将播出的剧集显示在日历中，上线时会通知你"),
+            Txt("Release radar: posters, sorting by next episode, first air date or name, and an optional tier list (S–F)", "Release-Radar: Poster, Sortierung nach nächster Folge, Erstausstrahlung oder Name und eine optionale Tier-Liste (S–F)", "Yayın radarı: posterler, sonraki bölüm, ilk yayın veya ada göre sıralama ve isteğe bağlı seviye listesi (S–F)", "Radar de estrenos: pósteres, orden por próximo episodio, primera emisión o nombre, y una lista de niveles opcional (S–F)", "上映雷达：海报、按下一集/首播时间/名称排序，以及可选的等级列表（S–F）"),
+            Txt("Release radar: choose the colour of its dots in the calendar", "Release-Radar: Farbe der Punkte im Kalender wählbar", "Yayın radarı: takvimdeki noktaların rengi seçilebilir", "Radar de estrenos: elige el color de sus puntos en el calendario", "上映雷达：可选择日历中圆点的颜色")
+        )
+    ),
+    Release(
         "1.4.1", listOf(
             Txt("PC access: name remembered Wi-Fi networks yourself – no location access needed", "PC-Zugriff: gemerkte WLANs selbst benennen – ohne Standortzugriff", "PC erişimi: kayıtlı Wi-Fi ağlarını kendin adlandır – konum erişimi gerekmez", "Acceso desde PC: pon tú el nombre a las Wi-Fi guardadas – sin acceso a la ubicación", "电脑访问：可自行命名已记住的 Wi-Fi – 无需位置权限")
         )
