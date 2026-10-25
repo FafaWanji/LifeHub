@@ -1603,25 +1603,9 @@ fun SettingsDialog(
                                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                                 )
                                 val accentColor by viewModel.accentColor.collectAsState()
-                                val colorOptions = if (designStyle == "pastel") {
-                                    listOf(
-                                        null to "Mist Blue",
-                                        0xFFF48FB1.toInt() to "Blush Pink",
-                                        0xFFCE93D8.toInt() to "Lavender",
-                                        0xFF90CAF9.toInt() to "Mist Blue",
-                                        0xFF80CBC4.toInt() to "Soft Mint",
-                                        0xFFFFCC80.toInt() to "Peach Cream"
-                                    )
-                                } else {
-                                    listOf(
-                                        null to "Electric Mint",
-                                        0xFF00FFB2.toInt() to "Electric Mint",
-                                        0xFF00E5FF.toInt() to "Neon Cyan",
-                                        0xFFD4FF00.toInt() to "Acid Lime",
-                                        0xFFD500F9.toInt() to "Plasma Purple",
-                                        0xFFFF007F.toInt() to "Hot Magenta"
-                                    )
-                                }
+                                // The first colour is the design's own: picking it stores no accent
+                                val colorOptions = com.example.lifeorganizer.core.theme.AccentPalette.forStyle(designStyle).orEmpty()
+                                val currentAccent = accentColor ?: colorOptions.firstOrNull()
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -1630,30 +1614,19 @@ fun SettingsDialog(
                                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    colorOptions.forEach { (colorValue, name) ->
-                                        val isSelected = accentColor == colorValue || (accentColor == null && colorValue == null)
-                                        val bgColor = if (colorValue == null) MaterialTheme.colorScheme.primary else Color(colorValue)
+                                    colorOptions.forEach { colorValue ->
+                                        val isSelected = currentAccent == colorValue
                                         Box(
                                             modifier = Modifier
                                                 .size(40.dp)
-                                                .background(color = bgColor, shape = CircleShape)
+                                                .background(color = Color(colorValue), shape = CircleShape)
                                                 .border(
                                                     width = if (isSelected) 3.dp else 0.dp,
                                                     color = if (isSelected) MaterialTheme.colorScheme.onSurface else Color.Transparent,
                                                     shape = CircleShape
                                                 )
-                                                .clickable { viewModel.saveAccentColor(colorValue) },
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            if (colorValue == null) {
-                                                Icon(
-                                                    Icons.Default.Palette,
-                                                    contentDescription = name,
-                                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                                    modifier = Modifier.size(20.dp)
-                                                )
-                                            }
-                                        }
+                                                .clickable { viewModel.saveAccentColor(if (colorValue == colorOptions.first()) null else colorValue) }
+                                        )
                                     }
                                 }
                             }

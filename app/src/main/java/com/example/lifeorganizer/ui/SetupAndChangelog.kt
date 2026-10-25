@@ -325,10 +325,12 @@ fun SetupScreen(settings: SettingsManager, onRestore: ((android.net.Uri) -> Unit
             if (style == "pastel" || style == "neon") {
                 Section(Str.accent.text()) {
                     // The first colour is the design's own (blue for Pastel, mint for Neon): picking it clears the choice
-                    val options = if (style == "pastel") listOf(0xFF90CAF9.toInt(), 0xFFF48FB1.toInt(), 0xFFCE93D8.toInt(), 0xFF80CBC4.toInt(), 0xFFFFCC80.toInt())
-                    else listOf(0xFF00FFB2.toInt(), 0xFF00E5FF.toInt(), 0xFFD4FF00.toInt(), 0xFFD500F9.toInt(), 0xFFFF007F.toInt())
-                    val current = accent ?: options.first()
-                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    val options = com.example.lifeorganizer.core.theme.AccentPalette.forStyle(style).orEmpty()
+                    val current = accent ?: options.firstOrNull()
+                    @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                    androidx.compose.foundation.layout.FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
                         options.forEach { c ->
                             Box(
                                 Modifier.size(36.dp).background(Color(c), CircleShape)
