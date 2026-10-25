@@ -215,6 +215,12 @@ private fun AppearanceSection(lang: String, modules: Set<AppModule>) {
         listOf("window" to SetStr.glowWindow.of(lang), "edge" to SetStr.glowEdge.of(lang), "both" to SetStr.glowBoth.of(lang))
     )
     if (glowMode == "custom") GlowColorRow(lang)
+    Label(SetStr.moduleRing.of(lang), SetStr.moduleRingHint.of(lang))
+    ChoiceRow(MicroSettings.RING_MODE, listOf("all" to SetStr.ringAll.of(lang), "favorites" to SetStr.ringFavorites.of(lang)))
+    if (rememberMicro(MicroSettings.RING_MODE) == "favorites") MultiChoiceRow(
+        MicroSettings.RING_FAVORITES,
+        AppModule.entries.filter { it in modules }.map { it.key to it.label.of(lang) } + ("web" to SetStr.pcAccess.of(lang))
+    )
     val screens = buildList {
         add("CALENDAR" to Str.calendar)
         add("NOTES" to Str.notes)

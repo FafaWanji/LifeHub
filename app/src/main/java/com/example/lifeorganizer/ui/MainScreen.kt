@@ -1,5 +1,6 @@
 package com.example.lifeorganizer.ui
 
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.layout.boundsInRoot
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.foundation.background
@@ -308,6 +309,11 @@ fun MainScreen(
     val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
     var ringCenter by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
     var ringHover by remember { mutableIntStateOf(-1) }
+    var ringSpin by remember { mutableFloatStateOf(0f) }
+    val ringMode = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.RING_MODE)
+    val ringFavorites = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.RING_FAVORITES)
+    val ringOrder = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.RING_ORDER)
+    val ringContext = androidx.compose.ui.platform.LocalContext.current
     LaunchedEffect(activeView) { launcherOpen = false }
     BackHandler(enabled = launcherOpen) { launcherOpen = false }
 
@@ -522,7 +528,12 @@ fun MainScreen(
 
                 // Unified action cluster: Smart Add, contextual "+" and the calendar/notes switcher in the corner.
                 val showCluster = activeView == ActiveView.CALENDAR || activeView == ActiveView.NOTES
-                val ringItems = sideModules(enabledModules, lang, ::navigate) { showWebAccess = true }
+                // In the order set by drag and drop; only the favourites if so chosen (all while none is picked)
+                val order = ringOrder.split(",").filter { it.isNotBlank() }
+                val allRingItems = sideModules(enabledModules, lang, ::navigate) { showWebAccess = true }
+                    .sortedBy { order.indexOf(it.key).let { i -> if (i < 0) Int.MAX_VALUE else i } }
+                val ringItems = if (ringMode == "favorites" && allRingItems.any { it.key in ringFavorites }) allRingItems.filter { it.key in ringFavorites }
+                else allRingItems
                 val density = androidx.compose.ui.platform.LocalDensity.current
                 val ringRadiusPx = with(density) { ringRadius(ringItems.size).toPx() }
                 val ringHitPx = with(density) { 40.dp.toPx() }
@@ -573,17 +584,18 @@ fun MainScreen(
                                     },
                                     onHoldStart = {
                                         if (ringItems.isNotEmpty()) {
+                                            ringSpin = 0f
                                             launcherOpen = true
                                             haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                                         }
                                     },
                                     onHoldMove = { p ->
-                                        val hit = ringHit(ringItems.size, ringCenter, ringRadiusPx, p, ringHitPx)
+                                        val hit = ringHit(ringItems.size, ringCenter, ringRadiusPx, p, ringHitPx, ringSpin)
                                         if (hit != ringHover && hit >= 0) haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
                                         ringHover = hit
                                     },
                                     onHoldEnd = { p ->
-                                        val hit = ringHit(ringItems.size, ringCenter, ringRadiusPx, p, ringHitPx)
+                                        val hit = ringHit(ringItems.size, ringCenter, ringRadiusPx, p, ringHitPx, ringSpin)
                                         ringHover = -1
                                         // Let go on a module: open it; anywhere else the ring stays for a tap
                                         if (hit >= 0) { launcherOpen = false; ringItems[hit].open() }
@@ -593,7 +605,18 @@ fun MainScreen(
                     }
                 }
                 if (showCluster && ringItems.isNotEmpty()) ModuleRing(
-                    items = ringItems, open = launcherOpen, center = ringCenter, hovered = ringHover,
+                    items = ringItems, open = launcherOpen, center = ringCenter, hovered = ringHover, spin = ringSpin,
+                    onSpin = { ringSpin = it },
+                    onSwap = { a, b ->
+                        // Swap in the full order, so favourites and the rest keep their places
+                        val keys = allRingItems.map { it.key }.toMutableList()
+                        val i = keys.indexOf(a)
+                        val j = keys.indexOf(b)
+                        if (i >= 0 && j >= 0) {
+                            keys[i] = b; keys[j] = a
+                            com.example.lifeorganizer.core.settings.MicroSettings.set(ringContext, com.example.lifeorganizer.core.settings.MicroSettings.RING_ORDER, keys.joinToString(","))
+                        }
+                    },
                     onPick = { i -> launcherOpen = false; ringItems[i].open() },
                     onDismiss = { launcherOpen = false }
                 )

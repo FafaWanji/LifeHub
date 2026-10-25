@@ -25,6 +25,17 @@ object SetStr {
     val glowWindow = Txt("Around windows", "Um Fenster", "Pencerelerin etrafında", "Alrededor de ventanas", "窗口周围")
     val glowEdge = Txt("Screen edge", "Bildschirmrand", "Ekran kenarı", "Borde de la pantalla", "屏幕边缘")
     val glowBoth = Txt("Both", "Beides", "İkisi de", "Ambos", "两者")
+    val moduleRing = Txt("Module ring", "Modul-Kreis", "Modül halkası", "Anillo de módulos", "模块环")
+    val moduleRingHint = Txt(
+        "Hold the calendar/notes switch: the other modules appear around it. Hold one and drop it on another to swap them.",
+        "Kalender/Notizen-Schalter halten: die anderen Module erscheinen drumherum. Eins halten und auf ein anderes ziehen tauscht sie.",
+        "Takvim/not düğmesini basılı tut: diğer modüller etrafında belirir. Birini basılı tutup diğerinin üstüne bırakmak yerlerini değiştirir.",
+        "Mantén pulsado el botón calendario/notas: los demás módulos aparecen alrededor. Mantén uno y suéltalo sobre otro para intercambiarlos.",
+        "按住日历/笔记切换键：其他模块会出现在周围。按住一个拖到另一个上即可交换位置。"
+    )
+    val ringAll = Txt("All", "Alle", "Hepsi", "Todos", "全部")
+    val ringFavorites = Txt("Only favourites", "Nur Favoriten", "Yalnızca favoriler", "Solo favoritos", "仅收藏")
+    val pcAccess = Txt("PC access", "PC-Zugriff", "PC erişimi", "Acceso desde PC", "电脑访问")
     val releaseColor = Txt("Colour in the calendar", "Farbe im Kalender", "Takvimdeki renk", "Color en el calendario", "日历中的颜色")
     val releaseTiers = Txt("Tier list", "Tier-Liste", "Seviye listesi", "Lista de niveles", "等级列表")
     val releaseTiersHint = Txt(

@@ -27,5 +27,5 @@ fun sideModules(
         }
         LauncherItem(m.key, m.label.of(lang), icon) { navigate(view) }
     }
-    return modules + LauncherItem("web", com.example.lifeorganizer.web.WebStr.title.of(lang), Icons.Outlined.Computer, openWebAccess)
+    return modules + LauncherItem("web", com.example.lifeorganizer.core.i18n.SetStr.pcAccess.of(lang), Icons.Outlined.Computer, openWebAccess)
 }
