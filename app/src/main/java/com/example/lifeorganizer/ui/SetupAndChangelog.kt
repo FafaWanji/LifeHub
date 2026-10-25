@@ -32,6 +32,15 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.6", listOf(
+            Txt("Modul-Kreis: Kalender/Notizen-Schalter halten – die anderen Module erscheinen drumherum; draufziehen und loslassen öffnet eins"),
+            Txt("Modul-Kreis: Module per Halten und Ziehen tauschen; in den Einstellungen alle oder nur Favoriten zeigen"),
+            Txt("Zahnrad oben rechts in jedem Modul öffnet die Einstellungen"),
+            Txt("Zurückwischen bei einem neuen Eintrag fragt: speichern, verwerfen oder weiter bearbeiten"),
+            Txt("Unternotizen: Zurückwischen führt zur Hauptnotiz")
+        )
+    ),
+    Release(
         "1.5.1", listOf(
             Txt("More accent colours: 14 for Pastel, 13 for Neon", "Mehr Akzentfarben: 14 für Pastel, 13 für Neon", "Daha fazla vurgu rengi: Pastel için 14, Neon için 13", "Más colores de acento: 14 para Pastel, 13 para Neón", "更多强调色：Pastel 14 种，Neon 13 种"),
             Txt("Setup shows the right default accent colour", "Einrichtung zeigt die richtige Standard-Akzentfarbe", "Kurulum doğru varsayılan vurgu rengini gösterir", "La configuración muestra el color de acento predeterminado correcto", "初始设置显示正确的默认强调色"),
