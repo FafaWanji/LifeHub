@@ -15,6 +15,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
@@ -138,11 +139,21 @@ fun AlertDialog(
     titleContentColor: Color = AlertDialogDefaults.titleContentColor,
     textContentColor: Color = AlertDialogDefaults.textContentColor,
     tonalElevation: Dp = AlertDialogDefaults.TonalElevation,
-    properties: DialogProperties = DialogProperties()
+    properties: DialogProperties = DialogProperties(),
+    /** A new entry with input: back / tap outside asks first (see [LeaveNewEntryDialog]). */
+    unsavedNew: Boolean = false,
+    /** Saves that entry from the question; null when it cannot be saved yet. */
+    onSaveUnsaved: (() -> Unit)? = null
 ) {
     val colors = glowColors()
+    var asking by androidx.compose.runtime.saveable.rememberSaveable { androidx.compose.runtime.mutableStateOf(false) }
+    if (asking) LeaveNewEntryDialog(
+        onSave = onSaveUnsaved?.let { save -> { asking = false; save() } },
+        onDiscard = { asking = false; onDismissRequest() },
+        onKeep = { asking = false }
+    )
     androidx.compose.material3.AlertDialog(
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = { if (unsavedNew) asking = true else onDismissRequest() },
         confirmButton = confirmButton,
         modifier = if (colors != null && glowPlace() != "edge") Modifier.rgbGlow(colors).then(modifier) else modifier,
         dismissButton = dismissButton,

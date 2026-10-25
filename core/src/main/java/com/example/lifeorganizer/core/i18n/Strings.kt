@@ -226,6 +226,11 @@ object Str {
     val show = Txt("Show", "Anzeigen", "Göster", "Mostrar", "显示")
     val repeatingEvents = Txt("Repeating events", "Wiederholungen", "Tekrarlanan etkinlikler", "Eventos periódicos", "重复日程")
     val discard = Txt("Discard", "Verwerfen", "Vazgeç", "Descartar", "放弃")
+    val keepEditing = Txt("Keep editing", "Weiter bearbeiten", "Düzenlemeye devam et", "Seguir editando", "继续编辑")
+    val leaveNewEntry = Txt("Save new entry?", "Neuen Eintrag speichern?", "Yeni kayıt kaydedilsin mi?", "¿Guardar la nueva entrada?", "保存新条目？")
+    val leaveNewEntryHint = Txt(
+        "It has not been saved yet.", "Er ist noch nicht gespeichert.", "Henüz kaydedilmedi.", "Todavía no se ha guardado.", "尚未保存。"
+    )
     val retry = Txt("Retry", "Erneut versuchen", "Tekrar dene", "Reintentar", "重试")
     val globalSearch = Txt("Search everywhere", "Überall suchen", "Her yerde ara", "Buscar en todo", "全局搜索")
     val weekView = Txt("Week", "Woche", "Hafta", "Semana", "周")

@@ -2060,9 +2060,21 @@ fun AddEventDialog(
                             )
                         }
 
+    // A new event with a title asks before back throws it away; an edited one saves itself as before
+    var askLeave by remember { mutableStateOf(false) }
+    if (askLeave) com.example.lifeorganizer.core.theme.LeaveNewEntryDialog(
+        onSave = { askLeave = false; commit() },
+        onDiscard = { askLeave = false; onDismiss() },
+        onKeep = { askLeave = false }
+    )
     Dialog(
-        // Closing (back / tap outside) saves automatically; "Discard" is the explicit way out.
-        onDismissRequest = { if (title.isNotBlank()) commit() else onDismiss() },
+        onDismissRequest = {
+            when {
+                title.isBlank() -> onDismiss()
+                editingEvent == null -> askLeave = true
+                else -> commit()
+            }
+        },
         properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)
     ) {
         Card(

@@ -52,6 +52,7 @@ fun AddWaypointScreen(
     initialSelectedLabels: List<LabelEntity> = emptyList()
 ) {
     var name by remember { mutableStateOf(initialWaypoint?.name ?: "") }
+    var askLeave by remember { mutableStateOf(false) }
     var address by remember { mutableStateOf(initialWaypoint?.address ?: "") }
     var notes by remember { mutableStateOf(initialWaypoint?.notes ?: "") }
     
@@ -71,6 +72,29 @@ fun AddWaypointScreen(
     var lat by remember { mutableStateOf(initialWaypoint?.lat) }
     var lng by remember { mutableStateOf(initialWaypoint?.lng) }
     
+    fun save() {
+        val entity = WaypointEntity(
+            id = initialWaypoint?.id ?: 0,
+            name = name,
+            address = address,
+            notes = notes,
+            lat = lat,
+            lng = lng,
+            isPinned = initialWaypoint?.isPinned ?: false
+        )
+        onSave(entity, availableLabels.filter { selectedLabelIds.contains(it.id) })
+    }
+    // A new place with input asks before back throws it away
+    fun leave() {
+        if (initialWaypoint == null && (name.isNotBlank() || address.isNotBlank())) askLeave = true else onBackClick()
+    }
+    androidx.activity.compose.BackHandler { leave() }
+    if (askLeave) com.example.lifeorganizer.core.theme.LeaveNewEntryDialog(
+        onSave = if (name.isNotBlank() && address.isNotBlank()) ({ askLeave = false; save() }) else null,
+        onDiscard = { askLeave = false; onBackClick() },
+        onKeep = { askLeave = false }
+    )
+
     val locationPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -131,7 +155,7 @@ fun AddWaypointScreen(
             TopAppBar(
                 title = { Text(if (initialWaypoint == null) WpStr.addWaypoint.text() else WpStr.editWaypoint.text()) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = { leave() }) {
                         Icon(Icons.Filled.ArrowBack, contentDescription = Str.back.text())
                     }
                 }
@@ -301,19 +325,7 @@ fun AddWaypointScreen(
                 }
 
                 Button(
-                    onClick = {
-                        val entity = WaypointEntity(
-                            id = initialWaypoint?.id ?: 0,
-                            name = name,
-                            address = address,
-                            notes = notes,
-                            lat = lat,
-                            lng = lng,
-                            isPinned = initialWaypoint?.isPinned ?: false
-                        )
-                        val selectedLabels = availableLabels.filter { selectedLabelIds.contains(it.id) }
-                        onSave(entity, selectedLabels)
-                    },
+                    onClick = { save() },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = name.isNotBlank() && address.isNotBlank()
                 ) {

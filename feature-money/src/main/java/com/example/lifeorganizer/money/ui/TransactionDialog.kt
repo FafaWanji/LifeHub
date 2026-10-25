@@ -85,8 +85,18 @@ fun TransactionDialog(vm: MoneyViewModel, initial: MoneyTransaction, onDismiss: 
     val cents = Amounts.parseCents(amountText)?.let { abs(it) }
     val kind = if (income) CategoryKind.INCOME else CategoryKind.EXPENSE
 
+    val saveTransaction = save@{
+        val value = cents ?: return@save
+        val category = categoryId ?: categories.firstOrNull { it.kind == kind && it.isFallback }?.id
+        vm.saveTransaction(
+            initial.copy(amountCents = if (income) value else -value, title = title.trim(), note = note.trim(), categoryId = category, epochDay = epochDay)
+        )
+        onDismiss()
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
+        unsavedNew = initial.id == 0L && (amountText.isNotBlank() || title.isNotBlank()),
+        onSaveUnsaved = if (cents != null && cents > 0) saveTransaction else null,
         title = { Text(if (initial.id == 0L) MoneyStr.newTransaction.text() else MoneyStr.editTransaction.text()) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -105,14 +115,7 @@ fun TransactionDialog(vm: MoneyViewModel, initial: MoneyTransaction, onDismiss: 
             }
         },
         confirmButton = {
-            TextButton(enabled = cents != null && cents > 0, onClick = {
-                val value = cents ?: return@TextButton
-                val category = categoryId ?: categories.firstOrNull { it.kind == kind && it.isFallback }?.id
-                vm.saveTransaction(
-                    initial.copy(amountCents = if (income) value else -value, title = title.trim(), note = note.trim(), categoryId = category, epochDay = epochDay)
-                )
-                onDismiss()
-            }) { Text(MoneyStr.save.text()) }
+            TextButton(enabled = cents != null && cents > 0, onClick = saveTransaction) { Text(MoneyStr.save.text()) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(MoneyStr.cancel.text()) } }
     )

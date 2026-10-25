@@ -60,9 +60,12 @@ fun HabitDialog(initial: Habit, onDismiss: () -> Unit, onSave: (Habit) -> Unit, 
     var reminder by remember { mutableStateOf(initial.reminderMinutes) }
     var pickTime by remember { mutableStateOf(false) }
     val letters = HabitsStr.weekdayLetters.of(lang)
+    val save = { onSave(initial.copy(title = title.trim(), weekdays = weekdays, reminderMinutes = reminder)) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
+        unsavedNew = initial.id == 0L && title.isNotBlank(),
+        onSaveUnsaved = if (weekdays != 0) save else null,
         title = { Text(if (initial.id == 0L) HabitsStr.newHabit.text() else HabitsStr.editHabit.text()) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -95,9 +98,7 @@ fun HabitDialog(initial: Habit, onDismiss: () -> Unit, onSave: (Habit) -> Unit, 
             }
         },
         confirmButton = {
-            TextButton(enabled = title.isNotBlank() && weekdays != 0, onClick = {
-                onSave(initial.copy(title = title.trim(), weekdays = weekdays, reminderMinutes = reminder))
-            }) { Text(HabitsStr.save.text()) }
+            TextButton(enabled = title.isNotBlank() && weekdays != 0, onClick = save) { Text(HabitsStr.save.text()) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(HabitsStr.cancel.text()) } }
     )
@@ -137,8 +138,20 @@ fun TaskDialog(
     var ownOffset by remember { mutableStateOf(false) }
     val dateFormat = com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "yyyyMMMdEEE")
 
+    val saveTask = {
+        onSave(
+            initial.copy(
+                title = title.trim(), note = note.trim(), dueEpochDay = due, dueMinute = dueMinute,
+                reminderOffsets = TaskDeadline.formatOffsets(offsets),
+                // The fixed reminder of old tasks is replaced by the reminders before the deadline
+                reminderAt = null
+            )
+        )
+    }
     AlertDialog(
         onDismissRequest = onDismiss,
+        unsavedNew = initial.id == 0L && title.isNotBlank(),
+        onSaveUnsaved = if (due != null) saveTask else null,
         title = { Text(if (initial.id == 0L) HabitsStr.newTask.text() else HabitsStr.editTask.text()) },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -194,16 +207,7 @@ fun TaskDialog(
             }
         },
         confirmButton = {
-            TextButton(enabled = title.isNotBlank() && due != null, onClick = {
-                onSave(
-                    initial.copy(
-                        title = title.trim(), note = note.trim(), dueEpochDay = due, dueMinute = dueMinute,
-                        reminderOffsets = TaskDeadline.formatOffsets(offsets),
-                        // The fixed reminder of old tasks is replaced by the reminders before the deadline
-                        reminderAt = null
-                    )
-                )
-            }) { Text(HabitsStr.save.text()) }
+            TextButton(enabled = title.isNotBlank() && due != null, onClick = saveTask) { Text(HabitsStr.save.text()) }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text(HabitsStr.cancel.text()) } }
     )

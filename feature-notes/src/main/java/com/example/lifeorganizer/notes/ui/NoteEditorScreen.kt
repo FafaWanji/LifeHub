@@ -185,8 +185,12 @@ fun NoteEditorScreen(
 
     fun currentDraft() = draft(currentId, title, body.text, colorLabel, isPinned, pinnedToDate, templateId, labelIds, documentId, parent)
 
+    // A new note thrown away from the leave question: nothing is saved any more, not even on dispose
+    var discarded by remember { mutableStateOf(false) }
+    var askLeave by remember { mutableStateOf(false) }
+
     fun save(onSaved: (Long) -> Unit = {}) {
-        if (!loaded || deleted) return
+        if (!loaded || deleted || discarded) return
         val d = currentDraft()
         // An untouched empty checklist item ("- [ ] " from the notes settings) counts as empty too
         val isEmpty = d.title.isBlank() && (d.content.isBlank() || d.content.trim() == "- [ ]")
@@ -211,10 +215,25 @@ fun NoteEditorScreen(
     LifecycleEventEffect(Lifecycle.Event.ON_STOP) { saveLatest() }
     DisposableEffect(Unit) { onDispose { saveLatest() } }
 
-    BackHandler {
-        save()
-        onBack()
+    // A sub-note goes back to its main note, everything else where it came from
+    fun goBack() {
+        val p = parent
+        if (p != null) onOpenNote(p) else onBack()
     }
+
+    /** Back: a new note with input asks first; an existing one saves itself as before. */
+    fun leave() {
+        val d = currentDraft()
+        val empty = d.title.isBlank() && (d.content.isBlank() || d.content.trim() == "- [ ]")
+        if (d.id == null && !empty) askLeave = true else { save(); goBack() }
+    }
+
+    BackHandler { leave() }
+    if (askLeave) com.example.lifeorganizer.core.theme.LeaveNewEntryDialog(
+        onSave = { askLeave = false; save(); goBack() },
+        onDiscard = { askLeave = false; discarded = true; goBack() },
+        onKeep = { askLeave = false }
+    )
 
     val dateFormatter = remember(lang) {
         DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(Locale.forLanguageTag(lang))
@@ -231,7 +250,7 @@ fun NoteEditorScreen(
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = noteTint),
                 title = {},
                 navigationIcon = {
-                    IconButton(onClick = { save(); onBack() }) {
+                    IconButton(onClick = { leave() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, Str.back.text())
                     }
                 },
