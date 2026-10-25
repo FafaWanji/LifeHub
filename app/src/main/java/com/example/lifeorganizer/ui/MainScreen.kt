@@ -1,5 +1,7 @@
 package com.example.lifeorganizer.ui
 
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -301,8 +303,11 @@ fun MainScreen(
         activeView = ActiveView.CALENDAR
         settingsRequest++
     }
-    // Side-module launcher above the action cluster
+    // Side modules on a ring around the calendar/notes switch (hold it)
     var launcherOpen by remember { mutableStateOf(false) }
+    val haptics = androidx.compose.ui.platform.LocalHapticFeedback.current
+    var ringCenter by remember { mutableStateOf(androidx.compose.ui.geometry.Offset.Zero) }
+    var ringHover by remember { mutableIntStateOf(-1) }
     LaunchedEffect(activeView) { launcherOpen = false }
     BackHandler(enabled = launcherOpen) { launcherOpen = false }
 
@@ -517,12 +522,10 @@ fun MainScreen(
 
                 // Unified action cluster: Smart Add, contextual "+" and the calendar/notes switcher in the corner.
                 val showCluster = activeView == ActiveView.CALENDAR || activeView == ActiveView.NOTES
-                // Tapping anywhere else closes the module list
-                if (showCluster && launcherOpen) Box(
-                    Modifier.fillMaxSize()
-                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.25f))
-                        .clickable(interactionSource = null, indication = null) { launcherOpen = false }
-                )
+                val ringItems = sideModules(enabledModules, lang, ::navigate) { showWebAccess = true }
+                val density = androidx.compose.ui.platform.LocalDensity.current
+                val ringRadiusPx = with(density) { ringRadius(ringItems.size).toPx() }
+                val ringHitPx = with(density) { 40.dp.toPx() }
                 AnimatedVisibility(
                     visible = showCluster,
                     modifier = Modifier
@@ -536,8 +539,6 @@ fun MainScreen(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
-                        val launcherItems = sideModules(enabledModules, lang, ::navigate) { showWebAccess = true }
-                        if (launcherItems.isNotEmpty()) ModuleLauncher(launcherItems, launcherOpen, { launcherOpen = it }, Str.modules.of(lang))
                         SmallFloatingActionButton(
                             onClick = { openSmartAdd() },
                             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
@@ -557,14 +558,45 @@ fun MainScreen(
                                 contentDescription = if (activeView == ActiveView.NOTES) Str.newNote.text() else Str.newEvent.text()
                             )
                         }
+                        // Tap: calendar ↔ notes. Hold: the side modules fade in around it; slide onto one and let go
                         ViewSwitcherButton(
                             showingNotes = activeView == ActiveView.NOTES,
                             onToggle = {
                                 activeView = if (activeView == ActiveView.NOTES) ActiveView.CALENDAR else ActiveView.NOTES
-                            }
+                            },
+                            modifier = Modifier
+                                .onGloballyPositioned { c -> ringCenter = c.boundsInRoot().center }
+                                .switchGesture(
+                                    onTap = {
+                                        if (launcherOpen) launcherOpen = false
+                                        else activeView = if (activeView == ActiveView.NOTES) ActiveView.CALENDAR else ActiveView.NOTES
+                                    },
+                                    onHoldStart = {
+                                        if (ringItems.isNotEmpty()) {
+                                            launcherOpen = true
+                                            haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                                        }
+                                    },
+                                    onHoldMove = { p ->
+                                        val hit = ringHit(ringItems.size, ringCenter, ringRadiusPx, p, ringHitPx)
+                                        if (hit != ringHover && hit >= 0) haptics.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.TextHandleMove)
+                                        ringHover = hit
+                                    },
+                                    onHoldEnd = { p ->
+                                        val hit = ringHit(ringItems.size, ringCenter, ringRadiusPx, p, ringHitPx)
+                                        ringHover = -1
+                                        // Let go on a module: open it; anywhere else the ring stays for a tap
+                                        if (hit >= 0) { launcherOpen = false; ringItems[hit].open() }
+                                    }
+                                )
                         )
                     }
                 }
+                if (showCluster && ringItems.isNotEmpty()) ModuleRing(
+                    items = ringItems, open = launcherOpen, center = ringCenter, hovered = ringHover,
+                    onPick = { i -> launcherOpen = false; ringItems[i].open() },
+                    onDismiss = { launcherOpen = false }
+                )
 
                 SnackbarHost(
                     hostState = snackbarHostState,

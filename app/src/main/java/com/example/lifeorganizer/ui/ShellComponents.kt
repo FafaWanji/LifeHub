@@ -46,6 +46,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -70,7 +72,7 @@ import com.example.lifeorganizer.waypoints.ui.MainViewModel as WaypointsViewMode
  * squircle, the colour cross-fades and the icon spins into the next one.
  */
 @Composable
-fun ViewSwitcherButton(showingNotes: Boolean, onToggle: () -> Unit) {
+fun ViewSwitcherButton(showingNotes: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
     val springSpec = spring<Float>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow)
     val corner by animateIntAsState(if (showingNotes) 30 else 50, label = "switcher_corner")
     val rotation by animateFloatAsState(if (showingNotes) 180f else 0f, springSpec, label = "switcher_rotation")
@@ -84,16 +86,20 @@ fun ViewSwitcherButton(showingNotes: Boolean, onToggle: () -> Unit) {
     )
     val description = if (showingNotes) Str.switchToCalendar.text() else Str.switchToNotes.text()
 
+    // The gesture (tap / hold) comes in with [modifier]; [onToggle] stays for accessibility services
     Surface(
-        onClick = onToggle,
         shape = RoundedCornerShape(corner),
         color = container,
         contentColor = content,
         shadowElevation = 3.dp,
         tonalElevation = 3.dp,
-        modifier = Modifier
+        modifier = modifier
             .size(48.dp)
-            .semantics { contentDescription = description }
+            .semantics {
+                contentDescription = description
+                role = androidx.compose.ui.semantics.Role.Button
+                onClick { onToggle(); true }
+            }
     ) {
         Box(contentAlignment = Alignment.Center, modifier = Modifier.rotate(rotation)) {
             AnimatedContent(
