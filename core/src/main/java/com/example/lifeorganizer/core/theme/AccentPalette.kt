@@ -17,7 +17,9 @@ object AccentPalette {
         0xFFC5E1A5, // Sage
         0xFF80DEEA, // Aqua
         0xFF9FA8DA, // Periwinkle
-        0xFFB39DDB  // Lilac
+        0xFFB39DDB, // Lilac
+        0xFFA5D6A7, // Seafoam
+        0xFFE6C9A8  // Sand
     ).map { it.toInt() }
 
     val neon: List<Int> = listOf(
@@ -31,7 +33,9 @@ object AccentPalette {
         0xFF76FF03, // Toxic Green
         0xFF2979FF, // Laser Blue
         0xFF651FFF, // Ultra Violet
-        0xFFFF1744  // Signal Red
+        0xFFFF1744, // Signal Red
+        0xFF00B0FF, // Ice Blue
+        0xFFF50057  // Neon Pink
     ).map { it.toInt() }
 
     /** Colours for a design, null when it has no accent choice. */
