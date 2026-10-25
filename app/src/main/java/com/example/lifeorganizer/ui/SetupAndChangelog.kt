@@ -32,6 +32,13 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.5.1", listOf(
+            Txt("More accent colours: 14 for Pastel, 13 for Neon", "Mehr Akzentfarben: 14 für Pastel, 13 für Neon", "Daha fazla vurgu rengi: Pastel için 14, Neon için 13", "Más colores de acento: 14 para Pastel, 13 para Neón", "更多强调色：Pastel 14 种，Neon 13 种"),
+            Txt("Setup shows the right default accent colour", "Einrichtung zeigt die richtige Standard-Akzentfarbe", "Kurulum doğru varsayılan vurgu rengini gösterir", "La configuración muestra el color de acento predeterminado correcto", "初始设置显示正确的默认强调色"),
+            Txt("Waypoints: the buttons of the last places are no longer hidden behind the search and add buttons", "Waypoints: Knöpfe der letzten Orte liegen nicht mehr unter den Such- und Plus-Knöpfen", "Waypoints: son yerlerin düğmeleri artık arama ve ekleme düğmelerinin altında kalmıyor", "Waypoints: los botones de los últimos lugares ya no quedan bajo los botones de buscar y añadir", "Waypoints：最后几个地点的按钮不再被搜索和添加按钮遮挡")
+        )
+    ),
+    Release(
         "1.5", listOf(
             Txt("New: Release radar – follow series and anime; upcoming episodes appear in the calendar and you get a notification when one is out", "Neu: Release-Radar – Serien und Anime verfolgen; kommende Folgen erscheinen im Kalender, mit Benachrichtigung, wenn eine da ist", "Yeni: Yayın radarı – dizi ve animeleri takip et; yaklaşan bölümler takvimde görünür, çıkınca bildirim gelir", "Nuevo: Radar de estrenos – sigue series y anime; los próximos episodios aparecen en el calendario y recibes un aviso cuando sale uno", "新功能：上映雷达 – 关注剧集和动画；即将播出的剧集显示在日历中，上线时会通知你"),
             Txt("Release radar: posters, sorting by next episode, first air date or name, and an optional tier list (S–F)", "Release-Radar: Poster, Sortierung nach nächster Folge, Erstausstrahlung oder Name und eine optionale Tier-Liste (S–F)", "Yayın radarı: posterler, sonraki bölüm, ilk yayın veya ada göre sıralama ve isteğe bağlı seviye listesi (S–F)", "Radar de estrenos: pósteres, orden por próximo episodio, primera emisión o nombre, y una lista de niveles opcional (S–F)", "上映雷达：海报、按下一集/首播时间/名称排序，以及可选的等级列表（S–F）"),
