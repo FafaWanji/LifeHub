@@ -39,6 +39,14 @@ class WebSettings(context: Context) {
         set(value) { prefs.edit().putBoolean("only_known_wifi", value).apply() }
 
     /** Below this battery level (in %, not while charging) PC access switches off; 0 = never. */
+    /**
+     * Ended by hand (notification or switch): the automatic start (app open, reboot) leaves it off until it is
+     * switched on again or the mode is changed.
+     */
+    var stoppedByUser: Boolean
+        get() = prefs.getBoolean("stopped_by_user", false)
+        set(value) { prefs.edit().putBoolean("stopped_by_user", value).apply() }
+
     var lowBatteryOff: Int
         get() = prefs.getInt("low_battery_off", 0).coerceIn(0, 100)
         set(value) { prefs.edit().putInt("low_battery_off", value.coerceIn(0, 100)).apply() }

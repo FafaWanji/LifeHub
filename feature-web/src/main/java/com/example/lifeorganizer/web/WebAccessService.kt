@@ -60,6 +60,8 @@ class WebAccessService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         if (intent?.action == ACTION_STOP) {
+            // "End" in the notification: really off, no automatic restart
+            WebSettings(this).stoppedByUser = true
             stopSelf()
             return START_NOT_STICKY
         }
@@ -69,6 +71,11 @@ class WebAccessService : Service() {
             return START_NOT_STICKY
         }
         val settings = WebSettings(this)
+        // Restarted by the system (sticky) after it had been ended by hand: stay off
+        if (intent == null && settings.stoppedByUser) {
+            stopSelf()
+            return START_NOT_STICKY
+        }
         if (!loopStarted) {
             lang = runBlocking { SettingsManager(this@WebAccessService).languageCode.first() }
             createChannel()
@@ -247,13 +254,26 @@ class WebAccessService : Service() {
         /** True when the service is up – serving or waiting for its conditions. */
         val active: Boolean get() = _state.value.running || _state.value.waiting != null
 
+        /** Switched on by hand: automatic starts are allowed again. */
         fun start(context: Context) {
+            WebSettings(context).stoppedByUser = false
+            startService(context)
+        }
+
+        private fun startService(context: Context) {
             _state.value = _state.value.copy(failed = false)
             ContextCompat.startForegroundService(context, Intent(context, WebAccessService::class.java))
         }
 
+        /** Switched off by hand: stays off until switched on again (no automatic start). */
         fun stop(context: Context) {
+            WebSettings(context).stoppedByUser = true
             context.stopService(Intent(context, WebAccessService::class.java))
+        }
+
+        /** Automatic start (app open, reboot, mode change); nothing after an end by hand. */
+        internal fun autoStart(context: Context) {
+            if (!WebSettings(context).stoppedByUser) startService(context)
         }
 
         fun newCode(context: Context) {
@@ -274,8 +294,8 @@ class WebAccessService : Service() {
         /** Restart with new name/port settings (only when running). */
         fun restart(context: Context) {
             if (!active) return
-            stop(context)
-            start(context)
+            context.stopService(Intent(context, WebAccessService::class.java))
+            startService(context)
         }
     }
 }
@@ -288,20 +308,21 @@ object WebAutoStart {
         when (settings.autoStart) {
             AutoStart.OFF -> Unit
             // Only worth it in a Wi-Fi; stops again after 30 minutes without use
-            AutoStart.APP_OPEN -> if (NetworkId.onWifi(context)) WebAccessService.start(context)
-            AutoStart.WIFI, AutoStart.ALWAYS -> WebAccessService.start(context)
+            AutoStart.APP_OPEN -> if (NetworkId.onWifi(context)) WebAccessService.autoStart(context)
+            AutoStart.WIFI, AutoStart.ALWAYS -> WebAccessService.autoStart(context)
         }
     }
 
-    /** After changing the mode in the settings: the automatic modes start right away. */
+    /** After changing the mode in the settings: the automatic modes start right away (a new choice lifts an end by hand). */
     fun apply(context: Context) {
-        if (WebSettings(context).autoStart.persistent && !WebAccessService.active) WebAccessService.start(context)
+        WebSettings(context).stoppedByUser = false
+        if (WebSettings(context).autoStart.persistent && !WebAccessService.active) WebAccessService.autoStart(context)
     }
 }
 
 class WebBootReceiver : android.content.BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != Intent.ACTION_BOOT_COMPLETED && intent.action != Intent.ACTION_MY_PACKAGE_REPLACED) return
-        if (WebSettings(context).autoStart.persistent) runCatching { WebAccessService.start(context) }
+        if (WebSettings(context).autoStart.persistent) runCatching { WebAccessService.autoStart(context) }
     }
 }
