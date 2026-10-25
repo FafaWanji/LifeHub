@@ -324,15 +324,16 @@ fun SetupScreen(settings: SettingsManager, onRestore: ((android.net.Uri) -> Unit
             }
             if (style == "pastel" || style == "neon") {
                 Section(Str.accent.text()) {
-                    val options = if (style == "pastel") listOf(null, 0xFFF48FB1.toInt(), 0xFFCE93D8.toInt(), 0xFF90CAF9.toInt(), 0xFF80CBC4.toInt(), 0xFFFFCC80.toInt())
-                    else listOf(null, 0xFF00FFB2.toInt(), 0xFF00E5FF.toInt(), 0xFFD4FF00.toInt(), 0xFFD500F9.toInt(), 0xFFFF007F.toInt())
+                    // The first colour is the design's own (blue for Pastel, mint for Neon): picking it clears the choice
+                    val options = if (style == "pastel") listOf(0xFF90CAF9.toInt(), 0xFFF48FB1.toInt(), 0xFFCE93D8.toInt(), 0xFF80CBC4.toInt(), 0xFFFFCC80.toInt())
+                    else listOf(0xFF00FFB2.toInt(), 0xFF00E5FF.toInt(), 0xFFD4FF00.toInt(), 0xFFD500F9.toInt(), 0xFFFF007F.toInt())
+                    val current = accent ?: options.first()
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         options.forEach { c ->
-                            val shown = Color(c ?: options[1]!!)
                             Box(
-                                Modifier.size(36.dp).background(shown, CircleShape)
-                                    .border(if (accent == c) 3.dp else 0.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
-                                    .clickable { scope.launch { settings.saveAccentColor(c) } }
+                                Modifier.size(36.dp).background(Color(c), CircleShape)
+                                    .border(if (current == c) 3.dp else 0.dp, MaterialTheme.colorScheme.onSurface, CircleShape)
+                                    .clickable { scope.launch { settings.saveAccentColor(if (c == options.first()) null else c) } }
                             )
                         }
                     }
