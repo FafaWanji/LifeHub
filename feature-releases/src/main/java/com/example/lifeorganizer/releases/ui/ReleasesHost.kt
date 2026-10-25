@@ -126,6 +126,7 @@ fun ReleasesHost(onMenuClick: () -> Unit, vm: ReleasesViewModel = viewModel()) {
                 actions = {
                     if (refreshing) CircularProgressIndicator(Modifier.size(24.dp).padding(end = 4.dp), strokeWidth = 2.dp)
                     else IconButton(onClick = { vm.refreshAll() }, enabled = items.isNotEmpty()) { Icon(Icons.Default.Refresh, ReleaseStr.refresh.text()) }
+                    com.example.lifeorganizer.core.theme.SettingsAction()
                 }
             )
         },

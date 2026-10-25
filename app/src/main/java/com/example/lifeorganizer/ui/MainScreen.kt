@@ -1,5 +1,7 @@
 package com.example.lifeorganizer.ui
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.widthIn
 import android.net.Uri
@@ -292,9 +294,23 @@ fun MainScreen(
         scope.launch { drawerState.close() }
     }
 
+    // Settings live in the calendar screen; opened from another module, closing them returns there
+    var settingsReturnView by remember { mutableStateOf<ActiveView?>(null) }
+    val openSettings: () -> Unit = {
+        settingsReturnView = activeView.takeIf { it != ActiveView.CALENDAR }
+        activeView = ActiveView.CALENDAR
+        settingsRequest++
+    }
+    // Side-module launcher above the action cluster
+    var launcherOpen by remember { mutableStateOf(false) }
+    LaunchedEffect(activeView) { launcherOpen = false }
+    BackHandler(enabled = launcherOpen) { launcherOpen = false }
+
     val isTopLevel = activeView != ActiveView.NOTE_EDITOR &&
         !(activeView == ActiveView.WAYPOINTS && waypointRoute != WaypointRoute.List)
 
+    // Every module's top bar can open the settings (and comes back after closing them)
+    androidx.compose.runtime.CompositionLocalProvider(com.example.lifeorganizer.core.theme.LocalOpenSettings provides openSettings) {
     ModalNavigationDrawer(
         drawerState = drawerState,
         gesturesEnabled = isTopLevel,
@@ -405,6 +421,10 @@ fun MainScreen(
                                 showFabs = false,
                                 addEventRequest = addEventRequest,
                                 settingsRequest = settingsRequest,
+                                onSettingsClosed = {
+                                    settingsReturnView?.let { activeView = it }
+                                    settingsReturnView = null
+                                },
                                 focusRequest = calendarFocus,
                                 onFocusHandled = { calendarFocus = null },
                                 // Calendar and waypoints share places: names on cards, suggestions in the dialog.
@@ -497,6 +517,12 @@ fun MainScreen(
 
                 // Unified action cluster: Smart Add, contextual "+" and the calendar/notes switcher in the corner.
                 val showCluster = activeView == ActiveView.CALENDAR || activeView == ActiveView.NOTES
+                // Tapping anywhere else closes the module list
+                if (showCluster && launcherOpen) Box(
+                    Modifier.fillMaxSize()
+                        .background(MaterialTheme.colorScheme.scrim.copy(alpha = 0.25f))
+                        .clickable(interactionSource = null, indication = null) { launcherOpen = false }
+                )
                 AnimatedVisibility(
                     visible = showCluster,
                     modifier = Modifier
@@ -510,6 +536,8 @@ fun MainScreen(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
+                        val launcherItems = sideModules(enabledModules, lang, ::navigate) { showWebAccess = true }
+                        if (launcherItems.isNotEmpty()) ModuleLauncher(launcherItems, launcherOpen, { launcherOpen = it }, Str.modules.of(lang))
                         SmallFloatingActionButton(
                             onClick = { openSmartAdd() },
                             containerColor = MaterialTheme.colorScheme.tertiaryContainer,
@@ -662,6 +690,7 @@ fun MainScreen(
                 }
             }
         }
+    }
     }
 }
 

@@ -162,6 +162,8 @@ fun CalendarScreen(
     showFabs: Boolean = true,
     addEventRequest: Int = 0,
     settingsRequest: Int = 0,
+    /** Called when the settings close, e.g. to go back to the module they were opened from. */
+    onSettingsClosed: () -> Unit = {},
     focusRequest: Pair<LocalDate, Long?>? = null,
     onFocusHandled: () -> Unit = {},
     /** Resolves an address to a saved waypoint name (provided by the app shell). */
@@ -822,7 +824,7 @@ fun CalendarScreen(
         if (showSettings) {
             SettingsDialog(
                 viewModel = viewModel,
-                onClose = { showSettings = false },
+                onClose = { showSettings = false; onSettingsClosed() },
                 onExport = { showExportDialog = true }
             )
         }

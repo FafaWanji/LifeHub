@@ -73,7 +73,10 @@ fun MoneyHost(onMenuClick: () -> Unit, vm: MoneyViewModel = viewModel()) {
             TopAppBar(
                 title = { Text(MoneyStr.finance.text()) },
                 navigationIcon = { IconButton(onClick = onMenuClick) { Icon(Icons.Default.Menu, Str.menu.text()) } },
-                actions = { IconButton(onClick = { showImport = true }) { Icon(Icons.Outlined.FileUpload, MoneyStr.importCsv.text()) } }
+                actions = {
+                    IconButton(onClick = { showImport = true }) { Icon(Icons.Outlined.FileUpload, MoneyStr.importCsv.text()) }
+                    com.example.lifeorganizer.core.theme.SettingsAction()
+                }
             )
         },
         floatingActionButton = {

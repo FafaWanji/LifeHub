@@ -161,7 +161,8 @@ fun DocumentsScreen(
                     androidx.compose.material3.IconButton(onClick = onMenuClick) {
                         androidx.compose.material3.Icon(Icons.Filled.Menu, contentDescription = Str.menu.text())
                     }
-                }
+                },
+                actions = { com.example.lifeorganizer.core.theme.SettingsAction() }
             )
         },
         containerColor = MaterialTheme.colorScheme.background

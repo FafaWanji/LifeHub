@@ -156,7 +156,8 @@ fun HabitsHost(
         topBar = {
             TopAppBar(
                 title = { Text(Str.habitsTasks.text()) },
-                navigationIcon = { IconButton(onClick = onMenuClick) { Icon(Icons.Default.Menu, Str.menu.text()) } }
+                navigationIcon = { IconButton(onClick = onMenuClick) { Icon(Icons.Default.Menu, Str.menu.text()) } },
+                actions = { com.example.lifeorganizer.core.theme.SettingsAction() }
             )
         },
         floatingActionButton = {
