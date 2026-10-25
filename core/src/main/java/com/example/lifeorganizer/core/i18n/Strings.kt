@@ -11,6 +11,12 @@ val SupportedLanguages = listOf("en", "de", "tr", "es", "zh")
 
 /** One UI text in all supported languages (zh = Simplified Chinese). */
 class Txt(val en: String, val de: String, val tr: String, val es: String, val zh: String) {
+    /**
+     * New texts come in German only; every other language shows the German one until there are users
+     * from there to translate for.
+     */
+    constructor(de: String) : this(de, de, de, de, de)
+
     fun of(lang: String): String = when (lang) {
         "de" -> de
         "tr" -> tr

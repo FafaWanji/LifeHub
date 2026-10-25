@@ -12,7 +12,8 @@ class ChangelogTest {
                 SupportedLanguages.forEach { lang ->
                     assertTrue("${release.version} [$lang] empty: ${item.en}", item.of(lang).isNotBlank())
                 }
-                assertTrue("${release.version} not Chinese: ${item.en}", item.zh.any { it in '一'..'鿿' })
+                // Newer items may be German-only (Txt(de)); a real translation must be Chinese
+                if (item.zh != item.en) assertTrue("${release.version} not Chinese: ${item.en}", item.zh.any { it in '一'..'鿿' })
             }
         }
     }
