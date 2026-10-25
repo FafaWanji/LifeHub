@@ -263,7 +263,8 @@ fun HomeScreen(
                         }
                     } else {
                         LazyColumn(
-                            contentPadding = PaddingValues(bottom = 8.dp) // removed large padding since fab is in appbar
+                            // Room below the last card for the two stacked buttons (search, add), so its buttons can be scrolled free
+                            contentPadding = PaddingValues(bottom = 160.dp)
                         ) {
                             items(filteredWaypoints, key = { it.waypoint.id }) { waypointWithLabels ->
                                 WaypointCard(
