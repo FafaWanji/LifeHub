@@ -32,6 +32,12 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.7.2", listOf(
+            Txt("PC-Zugriff: „Inhalt in Unternotiz verschieben“ wie in der App, auch bei Notizen mit Unternotizen"),
+            Txt("PC-Zugriff: „Zur Unternotiz machen“ wieder entfernt")
+        )
+    ),
+    Release(
         "1.7.1", listOf(
             Txt("PC-Zugriff: Haupt- und Unternotizen klar getrennt – ein Block pro Hauptnotiz, Unternotizen an einer Linie, direkt abhakbar"),
             Txt("PC-Zugriff: Notiz zur Unternotiz machen oder wieder eigenständig; Labels werden angezeigt")
