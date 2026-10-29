@@ -33,7 +33,7 @@ data class Note(
     /** Appointment time as minutes after midnight on [dueEpochDay]. */
     @ColumnInfo(defaultValue = "1439") val dueMinute: Int = TaskDeadline.END_OF_DAY,
     /** Reminders as minutes before the appointment, e.g. "1440,120"; one at the appointment itself always comes on top. */
-    @ColumnInfo(defaultValue = "1440,120") val reminderOffsets: String = TaskDeadline.DEFAULT_OFFSETS,
+    @ColumnInfo(defaultValue = "1440,60") val reminderOffsets: String = TaskDeadline.DEFAULT_OFFSETS,
     /** Reminders up to this time (epoch millis) are handled; later ones missed while the phone was off are caught up. */
     val lastReminderAt: Long? = null
 )

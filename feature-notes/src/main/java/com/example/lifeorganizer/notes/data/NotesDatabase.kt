@@ -28,7 +28,7 @@ abstract class NotesDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE note_labels ADD COLUMN kind INTEGER NOT NULL DEFAULT 0")
                 db.execSQL("ALTER TABLE notes ADD COLUMN dueEpochDay INTEGER")
                 db.execSQL("ALTER TABLE notes ADD COLUMN dueMinute INTEGER NOT NULL DEFAULT 1439")
-                db.execSQL("ALTER TABLE notes ADD COLUMN reminderOffsets TEXT NOT NULL DEFAULT '1440,120'")
+                db.execSQL("ALTER TABLE notes ADD COLUMN reminderOffsets TEXT NOT NULL DEFAULT '1440,60'")
                 db.execSQL("ALTER TABLE notes ADD COLUMN lastReminderAt INTEGER")
                 val found = mutableSetOf<Int>()
                 db.query("SELECT id, name FROM note_labels").use { c ->

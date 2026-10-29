@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 7,
-    "identityHash": "2ceb7a3b6b1a52fdea2033e894f36c58",
+    "identityHash": "f64b4470645559cfc1da5e22cb6af85d",
     "entities": [
       {
         "tableName": "notes",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `content` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `colorLabel` INTEGER, `isPinned` INTEGER NOT NULL, `isChecklist` INTEGER NOT NULL, `pinnedToDate` INTEGER, `isDeleted` INTEGER NOT NULL, `deletedAt` INTEGER, `templateId` INTEGER, `documentId` INTEGER, `parentId` INTEGER, `isDone` INTEGER NOT NULL DEFAULT 0, `dueEpochDay` INTEGER, `dueMinute` INTEGER NOT NULL DEFAULT 1439, `reminderOffsets` TEXT NOT NULL DEFAULT '1440,120', `lastReminderAt` INTEGER)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `title` TEXT NOT NULL, `content` TEXT NOT NULL, `createdAt` INTEGER NOT NULL, `updatedAt` INTEGER NOT NULL, `colorLabel` INTEGER, `isPinned` INTEGER NOT NULL, `isChecklist` INTEGER NOT NULL, `pinnedToDate` INTEGER, `isDeleted` INTEGER NOT NULL, `deletedAt` INTEGER, `templateId` INTEGER, `documentId` INTEGER, `parentId` INTEGER, `isDone` INTEGER NOT NULL DEFAULT 0, `dueEpochDay` INTEGER, `dueMinute` INTEGER NOT NULL DEFAULT 1439, `reminderOffsets` TEXT NOT NULL DEFAULT '1440,60', `lastReminderAt` INTEGER)",
         "fields": [
           {
             "fieldPath": "id",
@@ -110,7 +110,7 @@
             "columnName": "reminderOffsets",
             "affinity": "TEXT",
             "notNull": true,
-            "defaultValue": "'1440,120'"
+            "defaultValue": "'1440,60'"
           },
           {
             "fieldPath": "lastReminderAt",
@@ -249,7 +249,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '2ceb7a3b6b1a52fdea2033e894f36c58')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f64b4470645559cfc1da5e22cb6af85d')"
     ]
   }
 }
