@@ -1,6 +1,7 @@
 package com.example.lifeorganizer.ui
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -72,7 +73,17 @@ fun AboutScreen(onBack: () -> Unit) {
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text("LifeHub ${BuildConfig.VERSION_NAME}", style = MaterialTheme.typography.titleLarge)
-            Text("github.com/FafaWanji/LifeHub · GPL-3.0", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            // The repository opens in the browser
+            val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                Text(
+                    "github.com/FafaWanji/LifeHub", style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    textDecoration = androidx.compose.ui.text.style.TextDecoration.Underline,
+                    modifier = Modifier.clickable { runCatching { uriHandler.openUri("https://github.com/FafaWanji/LifeHub") } }.padding(vertical = 6.dp)
+                )
+                Text(" · GPL-3.0", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
 
             Text(Str.privacy.text(), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 8.dp))
             PRIVACY.forEach { Text(it.text(), style = MaterialTheme.typography.bodyMedium) }
