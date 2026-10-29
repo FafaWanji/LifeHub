@@ -215,7 +215,6 @@ fun NotesMainView(
                     IconButton(onClick = onMenuClick) { Icon(Icons.Default.Menu, contentDescription = Str.menu.text()) }
                 },
                 actions = {
-                    com.example.lifeorganizer.core.theme.SettingsAction()
                     Box {
                         IconButton(onClick = { sortMenuExpanded = true }) {
                             Icon(Icons.AutoMirrored.Filled.Sort, contentDescription = Str.sort.text())
@@ -255,6 +254,8 @@ fun NotesMainView(
                             )
                         }
                     }
+                    // Settings top right, as on the other screens
+                    com.example.lifeorganizer.core.theme.SettingsAction()
                 }
             )
         }
