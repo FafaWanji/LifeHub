@@ -6,6 +6,8 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.background
@@ -84,7 +86,8 @@ fun WebAccessScreen(onBack: () -> Unit) {
         )
     }) { padding ->
         Column(
-            Modifier.padding(padding).fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
+            // Keyboard pushes the content up, so the address fields stay visible while typing
+            Modifier.padding(padding).consumeWindowInsets(padding).imePadding().fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
