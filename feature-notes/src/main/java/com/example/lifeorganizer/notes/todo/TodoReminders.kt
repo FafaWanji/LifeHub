@@ -27,14 +27,14 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 
-/** "Heute 14:00", "Morgen 23:59" or "18. Okt. 09:30". */
+/** "Heute 14:00", "Morgen" (all day) or "18. Okt. 09:30". */
 fun appointmentLabel(at: LocalDateTime, today: LocalDate, lang: String): String {
     val day = when (at.toLocalDate().toEpochDay() - today.toEpochDay()) {
         0L -> TodoStr.today.of(lang)
         1L -> TodoStr.tomorrow.of(lang)
         else -> at.toLocalDate().format(localDateFormatter(lang, if (at.year != today.year) "yyyyMMMd" else "MMMd"))
     }
-    return "$day %02d:%02d".format(at.hour, at.minute)
+    return if (at.hour * 60 + at.minute == TaskDeadline.END_OF_DAY) day else "$day %02d:%02d".format(at.hour, at.minute)
 }
 
 /** The appointment of a "To Do X" note, null when the note is no such to-do or has none set. */
