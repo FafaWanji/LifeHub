@@ -35,7 +35,8 @@ const T = {
     noTx: 'Keine Buchungen in diesem Monat', budgetOf: '{0} von {1}', error: 'Etwas ist schiefgelaufen',
     subNotes: 'Unternotizen', addSubNote: 'Unternotiz hinzufügen', subNoteOf: 'Unternotiz von {0}',
     makeSubNote: 'Zur Unternotiz machen von …', detachSubNote: 'Eigenständige Notiz machen', doneLabel: 'Erledigt',
-    subCount: '{0} Unternotizen', subCountOne: '1 Unternotiz'
+    subCount: '{0} Unternotizen', subCountOne: '1 Unternotiz',
+    moveContent: 'Inhalt in Unternotiz verschieben', moveContentTitle: 'Titel der neuen Unternotiz'
   },
   tr: {
     calendar: 'Takvim', notes: 'Notlar', money: 'Finans', logout: 'Bağlantıyı kes',
@@ -562,15 +563,30 @@ const Notes = {
       await this.load();
     };
     const mains = this.notes.filter(x => !x.parentId && x.id !== n.id);
+    // As in the app: the text of a main note goes into a new sub-note (titled with today's date), the main note is emptied
+    const moveContent = async () => {
+      const today = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const subTitle = prompt(t('moveContentTitle'), today);
+      if (subTitle === null) return;
+      await this.flush(status);
+      await api('POST', 'notes', { title: subTitle.trim() || today, content: n.content, isPinned: false, parentId: n.id });
+      n.content = '';
+      await api('PUT', 'notes/' + n.id, { content: '' });
+      await this.load();
+      this.draw();
+    };
+    const moveContentButton = !n.parentId && n.content.trim() ? el('button', { class: 'icon', onclick: moveContent }, t('moveContent')) : null;
     const structure = !n.id ? null : n.parentId ? el('div', { class: 'toolbar' },
       el('label', { class: 'check' }, el('input', { type: 'checkbox', checked: n.isDone, onchange: async e => {
         n.isDone = e.target.checked; await api('PUT', 'notes/' + n.id, { isDone: n.isDone }); this.load(); } }), t('doneLabel')),
       el('button', { class: 'icon', onclick: () => move(null) }, t('detachSubNote'))
-    ) : !this.subsOf(n.id).length && mains.length ? el('div', { class: 'toolbar' },
-      el('select', { class: 'move', onchange: e => { if (e.target.value) move(Number(e.target.value)); } },
+    ) : el('div', { class: 'toolbar' },
+      // One level: only a note without sub-notes can become one
+      !this.subsOf(n.id).length && mains.length ? el('select', { class: 'move', onchange: e => { if (e.target.value) move(Number(e.target.value)); } },
         el('option', { value: '' }, t('makeSubNote')),
-        ...mains.map(m => el('option', { value: String(m.id) }, m.title || t('untitled'))))
-    ) : null;
+        ...mains.map(m => el('option', { value: String(m.id) }, m.title || t('untitled')))) : null,
+      moveContentButton
+    );
     const labels = n.labels && n.labels.length ? el('div', { class: 'labels' }, ...n.labels.map(l => el('span', { class: 'label' }, l))) : null;
     return el('div', {}, parent, el('div', { class: 'row' }, title), labels, el('div', { class: 'toolbar' }, toggle, pin, el('div', { class: 'spacer' }), status, del), structure, text, preview, subs);
   },
