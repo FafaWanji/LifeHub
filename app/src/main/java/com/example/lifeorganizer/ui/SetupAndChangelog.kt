@@ -32,6 +32,18 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.7", listOf(
+            Txt("To-Dos jetzt in den Notizen: Label „To Do“ zum Abhaken, „To Do X“ mit Termin, Erinnerungen und Eintrag im Kalender"),
+            Txt("Vorhandene Labels „To Do“ und „To Do X“ übernehmen das automatisch; der Typ lässt sich unter Labels verwalten einstellen"),
+            Txt("Termin wählen: Tag im Kalender, Uhrzeit wie bei Terminen, Erinnerung 2 Std. oder 1 Tag vorher oder eigener Wert"),
+            Txt("Gewohnheiten sind nur noch Gewohnheiten – Aufgaben und Punkte sind weg, alte Aufgaben werden gelöscht"),
+            Txt("Homescreen-Widget zeigt offene To-Dos statt Aufgaben"),
+            Txt("PC-Zugriff: Unternotizen im Browser; „Beenden“ bleibt wirklich aus; keine „wartet“-Benachrichtigung mehr ohne WLAN"),
+            Txt("PC-Zugriff: Tastatur verdeckt die Adressfelder nicht mehr"),
+            Txt("Notizen: Zahnrad oben rechts wie überall; GitHub-Link unter „Über die App“ antippbar")
+        )
+    ),
+    Release(
         "1.6", listOf(
             Txt("Modul-Kreis: Kalender/Notizen-Schalter halten – die anderen Module erscheinen drumherum; draufziehen und loslassen öffnet eins"),
             Txt("Modul-Kreis: Module per Halten und Ziehen tauschen; in den Einstellungen alle oder nur Favoriten zeigen"),
