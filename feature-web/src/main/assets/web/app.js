@@ -32,7 +32,8 @@ const T = {
     noNotes: 'Noch keine Notizen', pickNote: 'Wähle eine Notiz oder lege eine neue an.', saving: 'Speichert…',
     income: 'Einnahmen', expenses: 'Ausgaben', left: 'Rest', expected: 'Noch erwartet: {0} Fixkosten', byCategory: 'Nach Kategorie',
     transactions: 'Buchungen', add: 'Hinzufügen', expense: 'Ausgabe', incomeOne: 'Einnahme', amount: 'Betrag', auto: 'Automatisch',
-    noTx: 'Keine Buchungen in diesem Monat', budgetOf: '{0} von {1}', error: 'Etwas ist schiefgelaufen'
+    noTx: 'Keine Buchungen in diesem Monat', budgetOf: '{0} von {1}', error: 'Etwas ist schiefgelaufen',
+    subNotes: 'Unternotizen', addSubNote: 'Unternotiz hinzufügen', subNoteOf: 'Unternotiz von {0}'
   },
   tr: {
     calendar: 'Takvim', notes: 'Notlar', money: 'Finans', logout: 'Bağlantıyı kes',
@@ -85,7 +86,8 @@ const T = {
 };
 
 let lang = 'de';
-const t = (k, ...a) => ((T[lang] || T.en)[k] || T.en[k] || k).replace(/\{(\d)\}/g, (_, i) => a[i]);
+// New texts come in German only and show for every language until translated
+const t = (k, ...a) => ((T[lang] || T.en)[k] || T.en[k] || T.de[k] || k).replace(/\{(\d)\}/g, (_, i) => a[i]);
 const $ = (sel, root = document) => root.querySelector(sel);
 
 /** Small DOM builder: el('div', {class: 'x', onclick: f}, child, 'text'). Text is always set as text, never as HTML. */
@@ -446,9 +448,23 @@ const Notes = {
     this.draw();
   },
 
+  /** Searching lists every match on its own; otherwise main notes come with their sub-notes right below. */
   shown() {
     const q = this.query.toLowerCase();
-    return this.notes.filter(n => !q || n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q));
+    if (q) return this.notes.filter(n => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q));
+    const ids = new Set(this.notes.map(n => n.id));
+    return this.notes.filter(n => !n.parentId || !ids.has(n.parentId))
+      .flatMap(n => [n, ...this.subsOf(n.id)]);
+  },
+
+  /** Sub-notes of a main note, open ones first. */
+  subsOf(id) {
+    return this.notes.filter(n => n.parentId === id).sort((a, b) => a.isDone - b.isDone);
+  },
+
+  titleOf(id) {
+    const n = this.notes.find(x => x.id === id);
+    return n ? (n.title || t('untitled')) : t('untitled');
   },
 
   draw() {
@@ -460,8 +476,12 @@ const Notes = {
   },
 
   drawList(box, shown) {
-    box.replaceChildren(...(shown.length ? shown.map(n => el('div', { class: 'noteitem' + (this.current && this.current.id === n.id ? ' active' : ''), onclick: () => this.open(n) },
-      el('div', { class: 't' }, (n.isPinned ? '★ ' : '') + (n.title || t('untitled'))),
+    const grouped = !this.query;
+    box.replaceChildren(...(shown.length ? shown.map(n => el('div', {
+      class: 'noteitem' + (n.parentId && grouped ? ' sub' : '') + (n.isDone ? ' done' : '') + (this.current && this.current.id === n.id ? ' active' : ''),
+      onclick: () => this.open(n) },
+      n.parentId && !grouped ? el('div', { class: 's' }, '↳ ' + this.titleOf(n.parentId)) : null,
+      el('div', { class: 't' }, (n.parentId && grouped ? '↳ ' : '') + (n.isPinned ? '★ ' : '') + (n.title || t('untitled'))),
       el('div', { class: 's' }, n.content.split('\n').find(l => l.trim()) || ''))) : [el('p', { class: 'muted' }, t('noNotes'))]));
   },
 
@@ -504,7 +524,17 @@ const Notes = {
       this.current = null;
       this.load();
     } }, t('delete')) : null;
-    return el('div', {}, el('div', { class: 'row' }, title), el('div', { class: 'toolbar' }, toggle, pin, el('div', { class: 'spacer' }), status, del), text, preview);
+    // Sub-note: its main note one click away. Main note: its sub-notes (tick off, open, add one)
+    const parent = n.parentId ? el('button', { class: 'icon', onclick: () => { const p = this.notes.find(x => x.id === n.parentId); if (p) this.open(p); } },
+      '↳ ' + t('subNoteOf', this.titleOf(n.parentId))) : null;
+    const subs = n.id && !n.parentId ? el('div', { class: 'subnotes' },
+      el('h3', {}, t('subNotes')),
+      ...this.subsOf(n.id).map(s => el('div', { class: 'subnote' + (s.isDone ? ' done' : '') },
+        el('input', { type: 'checkbox', checked: s.isDone, onchange: async e => { await api('PUT', 'notes/' + s.id, { isDone: e.target.checked }); this.load(); } }),
+        el('span', { onclick: () => this.open(s) }, s.title || (s.content.split(/\r?\n/).find(l => l.trim()) || t('untitled'))))),
+      el('button', { class: 'icon', onclick: () => this.open({ id: null, title: '', content: '', isPinned: false, parentId: n.id }) }, '+ ' + t('addSubNote'))
+    ) : null;
+    return el('div', {}, parent, el('div', { class: 'row' }, title), el('div', { class: 'toolbar' }, toggle, pin, el('div', { class: 'spacer' }), status, del), text, preview, subs);
   },
 
   changed(status) {
@@ -520,7 +550,7 @@ const Notes = {
     const n = this.current;
     if (!n.id && !n.title.trim() && !n.content.trim()) return;
     this.dirty = false;
-    const payload = { title: n.title, content: n.content, isPinned: n.isPinned };
+    const payload = { title: n.title, content: n.content, isPinned: n.isPinned, parentId: n.parentId || null };
     try {
       if (n.id) await api('PUT', 'notes/' + n.id, payload);
       else n.id = (await api('POST', 'notes', payload)).id;

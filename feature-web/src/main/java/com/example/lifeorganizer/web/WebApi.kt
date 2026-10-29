@@ -120,15 +120,20 @@ class WebApi(context: Context) {
                         JSONObject().put("id", n.note.id).put("title", n.note.title).put("content", n.note.content)
                             .put("isPinned", n.note.isPinned).put("updatedAt", n.note.updatedAt)
                             .put("labels", JSONArray(n.labels.map { it.name }))
+                            .put("parentId", n.note.parentId ?: JSONObject.NULL).put("isDone", n.note.isDone)
                     }
             ))
             method == "POST" && id == null -> {
                 val j = JSONObject(body)
                 val content = j.optString("content").take(200_000)
+                // A sub-note only under a main note (one level, as in the app)
+                val parentId = if (j.isNull("parentId")) null else j.optLong("parentId").takeIf { it > 0 }
+                    ?.takeIf { p -> noteDao.getNoteWithLabels(p)?.note?.let { !it.isDeleted && it.parentId == null } == true }
                 val newId = noteDao.insertNote(
                     Note(
                         title = j.optString("title").take(500), content = content, createdAt = now, updatedAt = now,
-                        isPinned = j.optBoolean("isPinned"), isChecklist = content.contains("- [ ]") || content.contains("- [x]")
+                        isPinned = j.optBoolean("isPinned"), isChecklist = content.contains("- [ ]") || content.contains("- [x]"),
+                        parentId = parentId
                     )
                 )
                 ApiResponse.ok(JSONObject().put("id", newId))
@@ -141,6 +146,7 @@ class WebApi(context: Context) {
                         title = j.optString("title", existing.title).take(500),
                         content = j.optString("content", existing.content).take(200_000),
                         isPinned = j.optBoolean("isPinned", existing.isPinned),
+                        isDone = j.optBoolean("isDone", existing.isDone),
                         updatedAt = now
                     )
                 )
