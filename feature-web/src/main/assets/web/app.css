@@ -81,7 +81,6 @@ main { max-width: 1200px; margin: 0 auto; padding: 20px; }
 .noteitem.sub .t { font-weight: 500; font-size: 14px; }
 .noteitem .s.parent { color: var(--accent); }
 .noteitem.done .t, .subnote.done span { text-decoration: line-through; color: var(--muted); }
-.editor select.move { width: auto; }
 .editor label.check { display: flex; gap: 6px; align-items: center; }
 .editor label.check input { width: auto; }
 .labels { display: flex; gap: 6px; flex-wrap: wrap; margin: -4px 0 10px; }

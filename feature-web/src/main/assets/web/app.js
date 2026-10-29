@@ -34,7 +34,7 @@ const T = {
     transactions: 'Buchungen', add: 'Hinzufügen', expense: 'Ausgabe', incomeOne: 'Einnahme', amount: 'Betrag', auto: 'Automatisch',
     noTx: 'Keine Buchungen in diesem Monat', budgetOf: '{0} von {1}', error: 'Etwas ist schiefgelaufen',
     subNotes: 'Unternotizen', addSubNote: 'Unternotiz hinzufügen', subNoteOf: 'Unternotiz von {0}',
-    makeSubNote: 'Zur Unternotiz machen von …', detachSubNote: 'Eigenständige Notiz machen', doneLabel: 'Erledigt',
+    detachSubNote: 'Eigenständige Notiz machen', doneLabel: 'Erledigt',
     subCount: '{0} Unternotizen', subCountOne: '1 Unternotiz',
     moveContent: 'Inhalt in Unternotiz verschieben', moveContentTitle: 'Titel der neuen Unternotiz'
   },
@@ -555,14 +555,13 @@ const Notes = {
         el('span', { onclick: () => this.open(s) }, s.title || (s.content.split(/\r?\n/).find(l => l.trim()) || t('untitled'))))),
       el('button', { class: 'icon', onclick: () => this.open({ id: null, title: '', content: '', isPinned: false, parentId: n.id }) }, '+ ' + t('addSubNote'))
     ) : null;
-    // Structure as in the app: a note without sub-notes can become one; a sub-note can be ticked off or stand alone again
+    // A sub-note can be ticked off or stand alone again
     const move = async parentId => {
       await this.flush(status);
       await api('PUT', 'notes/' + n.id, { parentId: parentId });
       n.parentId = parentId;
       await this.load();
     };
-    const mains = this.notes.filter(x => !x.parentId && x.id !== n.id);
     // As in the app: the text of a main note goes into a new sub-note (titled with today's date), the main note is emptied
     const moveContent = async () => {
       const today = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -580,13 +579,7 @@ const Notes = {
       el('label', { class: 'check' }, el('input', { type: 'checkbox', checked: n.isDone, onchange: async e => {
         n.isDone = e.target.checked; await api('PUT', 'notes/' + n.id, { isDone: n.isDone }); this.load(); } }), t('doneLabel')),
       el('button', { class: 'icon', onclick: () => move(null) }, t('detachSubNote'))
-    ) : el('div', { class: 'toolbar' },
-      // One level: only a note without sub-notes can become one
-      !this.subsOf(n.id).length && mains.length ? el('select', { class: 'move', onchange: e => { if (e.target.value) move(Number(e.target.value)); } },
-        el('option', { value: '' }, t('makeSubNote')),
-        ...mains.map(m => el('option', { value: String(m.id) }, m.title || t('untitled')))) : null,
-      moveContentButton
-    );
+    ) : moveContentButton ? el('div', { class: 'toolbar' }, moveContentButton) : null;
     const labels = n.labels && n.labels.length ? el('div', { class: 'labels' }, ...n.labels.map(l => el('span', { class: 'label' }, l))) : null;
     return el('div', {}, parent, el('div', { class: 'row' }, title), labels, el('div', { class: 'toolbar' }, toggle, pin, el('div', { class: 'spacer' }), status, del), structure, text, preview, subs);
   },
