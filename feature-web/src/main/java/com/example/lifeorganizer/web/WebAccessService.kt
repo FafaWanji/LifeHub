@@ -29,7 +29,7 @@ import kotlinx.coroutines.runBlocking
 import java.net.Inet4Address
 import java.net.NetworkInterface
 
-/** Why a running service keeps the server off for now (automatic modes only). */
+/** Why PC access is paused for now (automatic modes only); the service is off meanwhile, so no notification shows. */
 enum class WaitReason { WIFI, KNOWN_WIFI, BATTERY }
 
 data class WebAccessState(
@@ -38,14 +38,15 @@ data class WebAccessState(
     val nameAddress: String? = null,
     val code: String = "",
     val failed: Boolean = false,
-    /** Service on, server paused – e.g. no (remembered) Wi-Fi or battery low. */
+    /** Paused – e.g. no (remembered) Wi-Fi or battery low; starts again by itself once that changes. */
     val waiting: WaitReason? = null
 )
 
 /**
  * Keeps the local web server alive while PC access is on; shows address and code in a notification.
  * Started by hand or when the app opens it stops after 30 minutes without use. In the automatic modes
- * (Wi-Fi / always) it stays and only pauses the server while the conditions are not met.
+ * (Wi-Fi / always) it stops while the conditions are not met – no notification then – and a network
+ * watch ([WebWifiWatch]) starts it again once they are.
  */
 class WebAccessService : Service() {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -77,6 +78,7 @@ class WebAccessService : Service() {
             return START_NOT_STICKY
         }
         if (!loopStarted) {
+            serviceUp = true
             lang = runBlocking { SettingsManager(this@WebAccessService).languageCode.first() }
             createChannel()
             startInForeground(buildNotification(WebStr.notifTitle.of(lang), "…"))
@@ -108,9 +110,11 @@ class WebAccessService : Service() {
                 stopSelf(); return false
             }
         } else if (wait != null) {
-            if (s != null) stopServer()
-            if (_state.value.waiting != wait || _state.value.running) publishWaiting(wait)
-            return true
+            // Paused: the service goes (and its notification with it); the network watch brings it back
+            pausedFor = wait
+            WebWifiWatch.arm(this)
+            stopSelf()
+            return false
         } else if (s == null) {
             if (!startServer(settings)) return false
         }
@@ -119,23 +123,9 @@ class WebAccessService : Service() {
         return true
     }
 
-    private fun waitReason(settings: WebSettings): WaitReason? = when {
-        settings.lowBatteryOff > 0 && batteryLow(settings.lowBatteryOff) -> WaitReason.BATTERY
-        settings.autoStart == AutoStart.WIFI && !NetworkId.onWifi(this) -> WaitReason.WIFI
-        settings.autoStart == AutoStart.WIFI && settings.onlyKnownWifi &&
-            !NetworkId.matches(NetworkId.currentIds(this), settings.knownNetworks) -> WaitReason.KNOWN_WIFI
-        else -> null
-    }
+    private var pausedFor: WaitReason? = null
 
-    /** Below [percent] and not charging. */
-    private fun batteryLow(percent: Int): Boolean {
-        val status = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)) ?: return false
-        val plugged = status.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0
-        val level = status.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
-        val scale = status.getIntExtra(BatteryManager.EXTRA_SCALE, 100)
-        if (plugged || level < 0 || scale <= 0) return false
-        return level * 100 / scale < percent
-    }
+    private fun waitReason(settings: WebSettings): WaitReason? = waitReason(this, settings)
 
     private fun startServer(settings: WebSettings): Boolean {
         hostName = settings.name
@@ -181,21 +171,11 @@ class WebAccessService : Service() {
         )
     }
 
-    private fun publishWaiting(reason: WaitReason) {
-        _state.value = WebAccessState(running = false, waiting = reason)
-        val text = when (reason) {
-            WaitReason.WIFI -> WebStr.waitWifi
-            WaitReason.KNOWN_WIFI -> WebStr.waitKnownWifi
-            WaitReason.BATTERY -> WebStr.waitBattery
-        }.of(lang)
-        getSystemService(NotificationManager::class.java)
-            .notify(NOTIFICATION_ID, buildNotification(WebStr.notifWaiting.of(lang), text))
-    }
-
     override fun onDestroy() {
         scope.cancel()
         stopServer()
-        _state.value = WebAccessState()
+        serviceUp = false
+        _state.value = WebAccessState(waiting = pausedFor)
         super.onDestroy()
     }
 
@@ -251,8 +231,30 @@ class WebAccessService : Service() {
             _lastSeen.value = _lastSeen.value + (browserId to System.currentTimeMillis())
         }
 
-        /** True when the service is up – serving or waiting for its conditions. */
-        val active: Boolean get() = _state.value.running || _state.value.waiting != null
+        @Volatile
+        private var serviceUp = false
+
+        /** True while the service is up (serving or starting). */
+        val active: Boolean get() = serviceUp || _state.value.running
+
+        /** Why an automatic mode keeps PC access paused right now, null when it can run. */
+        internal fun waitReason(context: Context, settings: WebSettings = WebSettings(context)): WaitReason? = when {
+            settings.lowBatteryOff > 0 && batteryLow(context, settings.lowBatteryOff) -> WaitReason.BATTERY
+            settings.autoStart == AutoStart.WIFI && !NetworkId.onWifi(context) -> WaitReason.WIFI
+            settings.autoStart == AutoStart.WIFI && settings.onlyKnownWifi &&
+                !NetworkId.matches(NetworkId.currentIds(context), settings.knownNetworks) -> WaitReason.KNOWN_WIFI
+            else -> null
+        }
+
+        /** Below [percent] and not charging. */
+        private fun batteryLow(context: Context, percent: Int): Boolean {
+            val status = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)) ?: return false
+            val plugged = status.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) != 0
+            val level = status.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)
+            val scale = status.getIntExtra(BatteryManager.EXTRA_SCALE, 100)
+            if (plugged || level < 0 || scale <= 0) return false
+            return level * 100 / scale < percent
+        }
 
         /** Switched on by hand: automatic starts are allowed again. */
         fun start(context: Context) {
@@ -268,12 +270,27 @@ class WebAccessService : Service() {
         /** Switched off by hand: stays off until switched on again (no automatic start). */
         fun stop(context: Context) {
             WebSettings(context).stoppedByUser = true
+            WebWifiWatch.disarm(context)
             context.stopService(Intent(context, WebAccessService::class.java))
+            _state.value = WebAccessState()
         }
 
-        /** Automatic start (app open, reboot, mode change); nothing after an end by hand. */
+        /**
+         * Automatic start (app open, reboot, mode change, network change); nothing after an end by hand. In the
+         * automatic modes it only starts when it can serve – otherwise it stays paused without a notification.
+         */
         internal fun autoStart(context: Context) {
-            if (!WebSettings(context).stoppedByUser) startService(context)
+            val settings = WebSettings(context)
+            if (settings.stoppedByUser) return
+            if (settings.autoStart.persistent) {
+                val wait = waitReason(context, settings)
+                if (wait != null) {
+                    WebWifiWatch.arm(context)
+                    if (!active) _state.value = WebAccessState(waiting = wait)
+                    return
+                }
+            }
+            startService(context)
         }
 
         fun newCode(context: Context) {
@@ -316,7 +333,11 @@ object WebAutoStart {
     /** After changing the mode in the settings: the automatic modes start right away (a new choice lifts an end by hand). */
     fun apply(context: Context) {
         WebSettings(context).stoppedByUser = false
-        if (WebSettings(context).autoStart.persistent && !WebAccessService.active) WebAccessService.autoStart(context)
+        if (WebSettings(context).autoStart.persistent) {
+            if (!WebAccessService.active) WebAccessService.autoStart(context)
+        } else {
+            WebWifiWatch.disarm(context)
+        }
     }
 }
 

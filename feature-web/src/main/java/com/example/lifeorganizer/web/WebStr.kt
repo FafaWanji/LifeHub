@@ -91,7 +91,6 @@ object WebStr {
     val lowBattery = Txt("Switch off when the battery is below", "Ausschalten bei Akku unter", "Pil şu seviyenin altındaysa kapat", "Desactivar con la batería por debajo de", "电量低于此值时关闭")
     val lowBatteryHint = Txt("Not while charging.", "Nicht beim Laden.", "Şarj olurken değil.", "No mientras se carga.", "充电时除外。")
     val connectedNow = Txt("connected", "verbunden", "bağlı", "conectado", "已连接")
-    val notifWaiting = Txt("PC access is waiting", "PC-Zugriff wartet", "PC erişimi bekliyor", "Acceso desde PC en espera", "电脑访问等待中")
     val waitWifi = Txt("Starts again in a Wi-Fi", "Startet wieder im WLAN", "Wi-Fi'da yeniden başlar", "Se reanuda en una Wi-Fi", "连接 Wi-Fi 后重新开启")
     val waitKnownWifi = Txt("Starts again in a remembered Wi-Fi", "Startet wieder in einem gemerkten WLAN", "Kayıtlı bir Wi-Fi'da yeniden başlar", "Se reanuda en una Wi-Fi guardada", "连接已记住的 Wi-Fi 后重新开启")
     val waitBattery = Txt("Paused: battery low", "Pausiert: Akku niedrig", "Duraklatıldı: pil düşük", "En pausa: batería baja", "已暂停：电量低")

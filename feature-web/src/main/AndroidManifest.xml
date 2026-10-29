@@ -19,6 +19,10 @@
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
                 android:value="Local web server so the user can use LifeHub in a browser on the same Wi-Fi" />
         </service>
+        <!-- Network watch while PC access is paused (no Wi-Fi): starts it again -->
+        <receiver
+            android:name="com.example.lifeorganizer.web.WebWifiReceiver"
+            android:exported="false" />
         <receiver
             android:name="com.example.lifeorganizer.web.WebBootReceiver"
             android:exported="false">
