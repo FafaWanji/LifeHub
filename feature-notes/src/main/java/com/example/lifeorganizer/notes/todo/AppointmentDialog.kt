@@ -5,7 +5,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material3.Icon
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -15,7 +21,6 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -56,7 +61,8 @@ fun AppointmentDialog(
 ) {
     val lang = LocalAppLanguage.current
     val today = LocalDate.now()
-    var due by remember { mutableStateOf(day) }
+    // A new appointment starts today, so it can be saved right away
+    var due by remember { mutableStateOf(day ?: today.toEpochDay()) }
     var dueMinute by remember { mutableIntStateOf(minute) }
     var chosen by remember { mutableStateOf(TaskDeadline.parseOffsets(offsets).toSet()) }
     var pickDate by remember { mutableStateOf(false) }
@@ -66,22 +72,47 @@ fun AppointmentDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(TodoStr.appointment.text()) },
+        title = {
+            // What is chosen, at a glance: "Do., 29. Okt. 2026 · 18:00"
+            Column {
+                Text(TodoStr.appointment.text(), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    LocalDate.ofEpochDay(due).format(dateFormat) + " · " +
+                        if (dueMinute == TaskDeadline.END_OF_DAY) TodoStr.endOfDay.text() else formatTime(dueMinute),
+                    style = MaterialTheme.typography.titleLarge
+                )
+            }
+        },
         text = {
             Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(TodoStr.today to 0L, TodoStr.tomorrow to 1L, TodoStr.nextWeek to 7L).forEach { (label, plus) ->
-                        val d = today.plusDays(plus).toEpochDay()
-                        FilterChip(selected = due == d, onClick = { due = d }, label = { Text(label.text()) })
-                    }
+                Text(TodoStr.day.text(), style = MaterialTheme.typography.labelLarge)
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val quick = listOf(TodoStr.today to 0L, TodoStr.tomorrow to 1L, TodoStr.dayAfterTomorrow to 2L, TodoStr.nextWeek to 7L)
+                        .map { (label, plus) -> label.text() to today.plusDays(plus).toEpochDay() }
+                    quick.forEach { (label, d) -> FilterChip(selected = due == d, onClick = { due = d }, label = { Text(label) }) }
+                    FilterChip(
+                        selected = quick.none { it.second == due },
+                        onClick = { pickDate = true },
+                        label = { Text(TodoStr.otherDay.text()) },
+                        leadingIcon = { Icon(Icons.Default.CalendarMonth, null, Modifier.size(18.dp)) }
+                    )
                 }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                    OutlinedButton(onClick = { pickDate = true }, modifier = Modifier.weight(1f)) {
-                        Text(due?.let { LocalDate.ofEpochDay(it).format(dateFormat) } ?: TodoStr.setAppointment.text(), maxLines = 1)
-                    }
-                    OutlinedButton(onClick = { pickTime = true }) { Text(formatTime(dueMinute)) }
+                Text(TodoStr.time.text(), style = MaterialTheme.typography.labelLarge)
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    val quick = listOf(8 * 60, 12 * 60, 18 * 60, 20 * 60)
+                    quick.forEach { m -> FilterChip(selected = dueMinute == m, onClick = { dueMinute = m }, label = { Text(formatTime(m)) }) }
+                    FilterChip(
+                        selected = dueMinute == TaskDeadline.END_OF_DAY, onClick = { dueMinute = TaskDeadline.END_OF_DAY },
+                        label = { Text(TodoStr.endOfDay.text()) }
+                    )
+                    FilterChip(
+                        selected = dueMinute !in quick && dueMinute != TaskDeadline.END_OF_DAY,
+                        onClick = { pickTime = true },
+                        label = { Text(TodoStr.otherTime.text()) },
+                        leadingIcon = { Icon(Icons.Default.Schedule, null, Modifier.size(18.dp)) }
+                    )
                 }
-                Text(TodoStr.remindBefore.text())
+                Text(TodoStr.remindBefore.text(), style = MaterialTheme.typography.labelLarge)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     // Presets plus any own values the note already has
                     (TaskDeadline.PRESET_OFFSETS + chosen).distinct().sorted().forEach { m ->
@@ -103,7 +134,7 @@ fun AppointmentDialog(
             }
         },
         confirmButton = {
-            TextButton(enabled = due != null, onClick = { due?.let { onSave(it, dueMinute, TaskDeadline.formatOffsets(chosen)) } }) {
+            TextButton(onClick = { onSave(due, dueMinute, TaskDeadline.formatOffsets(chosen)) }) {
                 Text(TodoStr.save.text())
             }
         },
@@ -111,7 +142,7 @@ fun AppointmentDialog(
     )
 
     if (pickDate) {
-        val state = rememberDatePickerState(initialSelectedDateMillis = (due ?: today.toEpochDay()) * DAY_MS)
+        val state = rememberDatePickerState(initialSelectedDateMillis = due * DAY_MS)
         DatePickerDialog(
             onDismissRequest = { pickDate = false },
             confirmButton = {
