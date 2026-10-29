@@ -9,6 +9,7 @@ import com.example.lifeorganizer.notes.data.NoteLabel
 import com.example.lifeorganizer.notes.data.NoteLabelCrossRef
 import com.example.lifeorganizer.notes.data.NoteTemplate
 import com.example.lifeorganizer.notes.data.NoteWithLabels
+import com.example.lifeorganizer.notes.todo.TodoReminders
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -36,13 +37,23 @@ data class NoteDraft(
     val labelIds: Set<Long>,
     val documentId: Long? = null,
     /** Main note when this is a sub-note. */
-    val parentId: Long? = null
+    val parentId: Long? = null,
+    /** Ticked off (sub-notes and to-dos). */
+    val isDone: Boolean = false,
+    /** Appointment of a "To Do X" note. */
+    val dueEpochDay: Long? = null,
+    val dueMinute: Int = com.example.lifeorganizer.notes.todo.TaskDeadline.END_OF_DAY,
+    val reminderOffsets: String = com.example.lifeorganizer.notes.todo.TaskDeadline.DEFAULT_OFFSETS
 )
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class NotesViewModel(application: Application) : AndroidViewModel(application) {
 
     private val noteDao = com.example.lifeorganizer.notes.data.NotesDatabase.getDatabase(application).noteDao()
+    private val app = application
+
+    /** Re-arms the reminder of a "To Do X" note (or drops it) after it changed. */
+    private suspend fun reschedule(noteId: Long) = TodoReminders.schedule(app, noteId)
     private val saveMutex = Mutex()
     // Editor sessions that already created a note, so repeated saves update instead of inserting twice.
     private val sessionIds = mutableMapOf<String, Long>()
@@ -108,6 +119,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     fun saveNote(draft: NoteDraft, sessionKey: String, onSaved: (Long) -> Unit = {}) {
         viewModelScope.launch {
             val id = saveMutex.withLock { upsert(draft, sessionKey) }
+            reschedule(id)
             onSaved(id)
         }
     }
@@ -131,7 +143,13 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             templateId = draft.templateId,
             documentId = draft.documentId,
             parentId = draft.parentId,
-            isDone = existing?.isDone ?: false
+            isDone = draft.isDone,
+            dueEpochDay = draft.dueEpochDay,
+            dueMinute = draft.dueMinute,
+            reminderOffsets = draft.reminderOffsets,
+            // Reminder times before a changed appointment were planned differently, so they are not caught up
+            lastReminderAt = if (existing != null && existing.dueEpochDay == draft.dueEpochDay && existing.dueMinute == draft.dueMinute &&
+                existing.reminderOffsets == draft.reminderOffsets) existing.lastReminderAt else now
         )
         val id = if (existing != null) {
             noteDao.updateNote(note)
@@ -181,7 +199,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     fun softDeleteNotes(noteIds: Collection<Long>) {
         if (noteIds.isEmpty()) return
         viewModelScope.launch {
-            noteIds.forEach { noteDao.softDeleteNote(it) }
+            noteIds.forEach { noteDao.softDeleteNote(it); reschedule(it) }
             trashedAt = System.currentTimeMillis()
             recentlyTrashed.value = noteIds.toList()
         }
@@ -190,7 +208,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     fun undoTrash() {
         val ids = recentlyTrashed.value
         recentlyTrashed.value = emptyList()
-        viewModelScope.launch { ids.forEach { noteDao.restoreNote(it) } }
+        viewModelScope.launch { ids.forEach { noteDao.restoreNote(it); reschedule(it) } }
     }
 
     fun setPinned(notes: Collection<Note>, pinned: Boolean) {
@@ -204,7 +222,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun restoreNote(noteId: Long) {
-        viewModelScope.launch { noteDao.restoreNote(noteId) }
+        viewModelScope.launch { noteDao.restoreNote(noteId); reschedule(noteId) }
     }
 
     fun permanentlyDeleteNote(noteId: Long) {
@@ -213,6 +231,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             noteDao.detachChildrenOf(noteId)
             noteDao.deleteCrossRefsForNote(noteId)
             noteDao.permanentlyDeleteNote(noteId)
+            TodoReminders.cancel(app, noteId)
         }
     }
 
@@ -249,9 +268,9 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
         )
     }
 
-    /** Ticks a sub-note off as done or opens it again. */
+    /** Ticks a sub-note or to-do off as done or opens it again. */
     fun setSubNoteDone(noteId: Long, done: Boolean) {
-        viewModelScope.launch { noteDao.setDone(noteId, done) }
+        viewModelScope.launch { noteDao.setDone(noteId, done); reschedule(noteId) }
     }
 
     fun titleOf(noteId: Long): String? = allActiveNotes.value.firstOrNull { it.note.id == noteId }?.note?.title
@@ -265,7 +284,12 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun updateLabel(label: NoteLabel) {
-        viewModelScope.launch { noteDao.updateLabel(label) }
+        viewModelScope.launch {
+            val kindChanged = noteDao.getLabel(label.id)?.kind != label.kind
+            noteDao.updateLabel(label)
+            // A label that became (or stopped being) "To Do X" changes which notes have reminders
+            if (kindChanged) TodoReminders.scheduleAll(app)
+        }
     }
 
     fun deleteLabel(label: NoteLabel) {
@@ -273,6 +297,7 @@ class NotesViewModel(application: Application) : AndroidViewModel(application) {
             noteDao.deleteCrossRefsForLabel(label.id)
             noteDao.deleteLabel(label)
             if (selectedLabelFilter.value == label.id) selectedLabelFilter.value = null
+            if (label.kind != com.example.lifeorganizer.notes.data.TodoKind.NONE) TodoReminders.scheduleAll(app)
         }
     }
 

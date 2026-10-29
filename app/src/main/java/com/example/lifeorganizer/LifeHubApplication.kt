@@ -21,6 +21,11 @@ class LifeHubApplication : WaypointsApplication() {
         super.onCreate()
         // Ticking things off in the app or a notification updates the home-screen widget
         com.example.lifeorganizer.habits.HabitsIntegration.onChanged = { com.example.lifeorganizer.widgets.HabitsWidget.refresh(it) }
+        // To-dos show in the habits widget and the note widget
+        com.example.lifeorganizer.notes.todo.TodoReminders.onChanged = {
+            com.example.lifeorganizer.widgets.HabitsWidget.refresh(it)
+            com.example.lifeorganizer.widgets.NoteWidget.refresh(it)
+        }
         // Settings read outside of Compose (formatting, backup) follow the settings screen
         MicroSettings.onBackupChanged = { com.example.lifeorganizer.backup.AutoBackup.schedule(it) }
         applyFormats()
@@ -44,9 +49,9 @@ class LifeHubApplication : WaypointsApplication() {
         applyFormats()
         when (key) {
             MicroSettings.BACKUP_WIFI_ONLY.name -> com.example.lifeorganizer.backup.AutoBackup.schedule(this)
-            // Task reminders are planned with these, so re-plan them
+            // To-do reminders are planned with these, so re-plan them
             MicroSettings.QUIET_HOURS.name, MicroSettings.QUIET_START.name, MicroSettings.QUIET_END.name, MicroSettings.DEADLINE_REPEAT.name ->
-                scope.launch { com.example.lifeorganizer.habits.reminder.HabitReminders.scheduleAll(this@LifeHubApplication) }
+                scope.launch { com.example.lifeorganizer.notes.todo.TodoReminders.scheduleAll(this@LifeHubApplication) }
             MicroSettings.EVENT_REMINDER.name ->
                 scope.launch { runCatching { com.example.lifeorganizer.calendar.alarm.DefaultReminders.sync(this@LifeHubApplication) } }
             MicroSettings.WIDGET_DONE_HABITS.name, MicroSettings.DATE_ORDER.name ->

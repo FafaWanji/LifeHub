@@ -23,24 +23,18 @@ object MicroSettings {
     class StringKey(name: String, default: String) : Key<String>(name, default)
     class SetKey(name: String, default: Set<String>) : Key<Set<String>>(name, default)
 
-    // Habits & tasks
-    /** Reminders of a new task, minutes before the deadline. */
+    // To-dos (notes with "To Do X") and habits
+    /** Reminders of a new appointment, minutes before it. */
     val TASK_DEFAULT_OFFSETS = StringKey("task_default_offsets", "1440,60")
-    /** Deadline time of a new task when none is given, minutes after midnight. */
+    /** Time of a new appointment, minutes after midnight. */
     val TASK_DEFAULT_MINUTE = IntKey("task_default_minute", 23 * 60 + 59)
-    val SHOW_POINTS = BoolKey("show_points", true)
-    /** Done tasks listed in the tasks tab, 0 = all. */
-    val DONE_TASKS_SHOWN = IntKey("done_tasks_shown", 30)
     val QUIET_HOURS = BoolKey("quiet_hours", false)
     val QUIET_START = IntKey("quiet_start", 22 * 60)
     val QUIET_END = IntKey("quiet_end", 7 * 60)
-    /** What "Next … days" covers in the tasks tab. */
-    val SOON_DAYS = IntKey("soon_days", 7)
     val WIDGET_DONE_HABITS = BoolKey("widget_done_habits", true)
-    val CONFIRM_DELETE_TASK = BoolKey("confirm_delete_task", false)
 
     // Notifications
-    /** One more push this many minutes after a missed deadline, 0 = off. */
+    /** One more push this many minutes after a missed to-do appointment, 0 = off. */
     val DEADLINE_REPEAT = IntKey("deadline_repeat", 0)
     /** "Snooze" in reminders of all modules. */
     val SNOOZE_MINUTES = IntKey("snooze_minutes", 10)
@@ -143,8 +137,8 @@ object MicroSettings {
 
     /** Every key, for the backup. */
     val all: List<Key<*>> = listOf(
-        TASK_DEFAULT_OFFSETS, TASK_DEFAULT_MINUTE, SHOW_POINTS, DONE_TASKS_SHOWN,
-        QUIET_HOURS, QUIET_START, QUIET_END, SOON_DAYS, WIDGET_DONE_HABITS, CONFIRM_DELETE_TASK,
+        TASK_DEFAULT_OFFSETS, TASK_DEFAULT_MINUTE,
+        QUIET_HOURS, QUIET_START, QUIET_END, WIDGET_DONE_HABITS,
         DEADLINE_REPEAT, SNOOZE_MINUTES,
         WEEK_START, EVENT_LENGTH, EVENT_REMINDER, WEEK_NUMBERS, WIDGET_BIRTHDAYS,
         NOTE_CHECKLIST, NOTE_DONE_BOTTOM, GLOW_MODE, GLOW_PLACE, GLOW_COLOR, NOTE_FONT, TRASH_DAYS,

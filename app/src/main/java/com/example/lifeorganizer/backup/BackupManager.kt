@@ -101,7 +101,7 @@ class BackupManager(context: Context) {
                         .put("categoryId", t.categoryId).put("recurrenceRule", t.recurrenceRule)
                 })))
             .put("notes", JSONObject()
-                .put("labels", JSONArray(noteDao.getLabelsSync().map { l -> JSONObject().put("name", l.name).put("color", l.color).put("template", l.template) }))
+                .put("labels", JSONArray(noteDao.getLabelsSync().map { l -> JSONObject().put("name", l.name).put("color", l.color).put("template", l.template).put("kind", l.kind) }))
                 .put("notes", JSONArray(notes.map { n ->
                     val note = n.note
                     JSONObject().put("id", note.id).put("title", note.title).put("content", note.content)
@@ -113,6 +113,7 @@ class BackupManager(context: Context) {
                         .put("documentTitle", documentTitles[note.documentId])
                         .put("parentId", note.parentId)
                         .put("isDone", note.isDone)
+                        .put("due", note.dueEpochDay).put("dueMinute", note.dueMinute).put("reminderOffsets", note.reminderOffsets)
                 }))
                 .put("templates", JSONArray(noteDao.getTemplatesSync().map { t ->
                     JSONObject().put("name", t.name).put("content", t.content).put("isChecklist", t.isChecklist)
@@ -162,7 +163,6 @@ class BackupManager(context: Context) {
             .put("enableSmartAlarms", settings.enableSmartAlarms.first())
             .put("useSystemAlarm", settings.useSystemAlarmForReminders.first())
             .put("disabledModules", JSONArray(settings.disabledModuleKeys.first().toList()))
-            .put("confirmOnTimeClaim", settings.confirmOnTimeClaim.first())
             // Sub-settings of the modules; only values changed from their default
             .put("micro", JSONObject(com.example.lifeorganizer.core.settings.MicroSettings.export(appContext)))
             .put("hideRecurring", filter.getBoolean("hide_recurring", false))
@@ -182,7 +182,6 @@ class BackupManager(context: Context) {
         if (j.has("useHomeAsOrigin")) settings.saveUseHomeAsOrigin(j.optBoolean("useHomeAsOrigin"))
         if (j.has("enableSmartAlarms")) settings.saveEnableSmartAlarms(j.optBoolean("enableSmartAlarms"))
         if (j.has("useSystemAlarm")) settings.saveUseSystemAlarmForReminders(j.optBoolean("useSystemAlarm"))
-        if (j.has("confirmOnTimeClaim")) settings.saveConfirmOnTimeClaim(j.optBoolean("confirmOnTimeClaim"))
         j.optJSONObject("micro")?.let { m ->
             val values = m.keys().asSequence().associateWith { k ->
                 when (val v = m.opt(k)) {
@@ -269,9 +268,9 @@ class BackupManager(context: Context) {
         source: ImportSource
     ): Pair<ImportSummary, Map<Pair<String, Long>, Long>> {
         val labelIds = noteDao.getLabelsSync().associate { it.name.lowercase() to it.id }.toMutableMap()
-        suspend fun labelId(name: String, color: Int, template: String = ""): Long =
-            labelIds[name.lowercase()] ?: noteDao.insertLabel(NoteLabel(name = name, color = color, template = template)).also { labelIds[name.lowercase()] = it }
-        labels.forEach { labelId(it.name, it.color, it.template) }
+        suspend fun labelId(name: String, color: Int, template: String = "", kind: Int = 0): Long =
+            labelIds[name.lowercase()] ?: noteDao.insertLabel(NoteLabel(name = name, color = color, template = template, kind = kind)).also { labelIds[name.lowercase()] = it }
+        labels.forEach { labelId(it.name, it.color, it.template, it.kind) }
 
         val current = noteDao.getAllNotesWithLabelsSync()
         val existing = current.associateBy({ it.note.title to it.note.createdAt }, { it.note.id })
@@ -298,7 +297,12 @@ class BackupManager(context: Context) {
                     isChecklist = n.content.contains(Regex("(?m)^\\s*[-*+]\\s+\\[[ xX]]")),
                     isDeleted = n.isDeleted,
                     deletedAt = if (n.isDeleted) System.currentTimeMillis() else null,
-                    isDone = n.isDone
+                    isDone = n.isDone,
+                    dueEpochDay = n.dueEpochDay,
+                    dueMinute = n.dueMinute,
+                    reminderOffsets = n.reminderOffsets,
+                    // Reminders that passed before the import are not caught up
+                    lastReminderAt = System.currentTimeMillis()
                 )
             )
             n.labelNames.forEach { name -> noteDao.insertCrossRef(NoteLabelCrossRef(id, labelId(name, 0xFFCE93D8.toInt()))) }
@@ -345,7 +349,7 @@ class BackupManager(context: Context) {
 
     private suspend fun importBackup(root: JSONObject): ImportSummary {
         val notesJson = root.optJSONObject("notes")
-        val noteLabels = notesJson?.optJSONArray("labels").objects().map { ImportedLabel(it.optString("name"), it.optInt("color"), it.optString("template")) }
+        val noteLabels = notesJson?.optJSONArray("labels").objects().map { ImportedLabel(it.optString("name"), it.optInt("color"), it.optString("template"), it.optInt("kind")) }
         val backupNotes = notesJson?.optJSONArray("notes").objects()
         val (noteSummary, noteIds) = insertNotes(
             noteLabels,
@@ -359,7 +363,10 @@ class BackupManager(context: Context) {
                     createdAt = n.optLong("createdAt"),
                     updatedAt = n.optLong("updatedAt"),
                     isDeleted = n.optBoolean("isDeleted"),
-                    isDone = n.optBoolean("isDone")
+                    isDone = n.optBoolean("isDone"),
+                    dueEpochDay = n.optLongOrNull("due"),
+                    dueMinute = n.optInt("dueMinute", com.example.lifeorganizer.notes.todo.TaskDeadline.END_OF_DAY),
+                    reminderOffsets = n.optString("reminderOffsets", com.example.lifeorganizer.notes.todo.TaskDeadline.DEFAULT_OFFSETS)
                 )
             },
             ImportSource.LIFEORGANIZER_BACKUP
@@ -493,6 +500,7 @@ class BackupManager(context: Context) {
             com.example.lifeorganizer.habits.data.HabitBackup.import(habitDao, it)
             com.example.lifeorganizer.habits.reminder.HabitReminders.scheduleAll(appContext)
         }
+        com.example.lifeorganizer.notes.todo.TodoReminders.scheduleAll(appContext)
         root.optJSONObject("settings")?.let { importSettings(it) }
 
         if (pendingDocuments.isNotEmpty()) {

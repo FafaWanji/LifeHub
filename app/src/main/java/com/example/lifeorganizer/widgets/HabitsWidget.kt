@@ -45,11 +45,13 @@ import com.example.lifeorganizer.R
 import com.example.lifeorganizer.core.settings.AppModule
 import com.example.lifeorganizer.core.settings.SettingsManager
 import com.example.lifeorganizer.core.settings.enabledModules
-import com.example.lifeorganizer.habits.TaskActions
 import com.example.lifeorganizer.habits.data.HabitCheck
 import com.example.lifeorganizer.habits.data.HabitDatabase
 import com.example.lifeorganizer.habits.domain.HabitSchedule
-import com.example.lifeorganizer.habits.domain.TaskDeadline
+import com.example.lifeorganizer.notes.data.TodoKind
+import com.example.lifeorganizer.notes.todo.TaskDeadline
+import com.example.lifeorganizer.notes.todo.TodoReminders
+import com.example.lifeorganizer.notes.todo.appointment
 import com.example.lifeorganizer.habits.reminder.HabitReminders
 import com.example.lifeorganizer.habits.ui.HabitsStr
 import java.time.LocalDate
@@ -58,20 +60,21 @@ import java.time.LocalDateTime
 /** What the widget lists; tapping the chip in its header cycles through these. */
 enum class WidgetFilter { ALL, TASKS, HABITS }
 
-/** One line of the widget: a habit due today or an open task. */
+/** One line of the widget: a habit due today or an open to-do note. */
 private data class WidgetRow(
     val kind: String, val id: Long, val title: String, val done: Boolean,
     val trailing: String?, val overdue: Boolean
 )
 
 /**
- * The next habits and tasks at a glance. Rows can be ticked off right on the home screen; the chip in the
- * header switches between all, tasks only and habits only (remembered per widget).
+ * The next habits and to-dos (notes with a to-do label) at a glance. Rows can be ticked off right on the home
+ * screen; the chip in the header switches between all, to-dos only and habits only (remembered per widget).
  */
 class HabitsWidget : GlanceAppWidget() {
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val dao = HabitDatabase.getDatabase(context).habitDao()
+        val noteDao = com.example.lifeorganizer.notes.data.NotesDatabase.getDatabase(context).noteDao()
         val settings = SettingsManager(context)
         // Read once per update; the app refreshes the widget when this setting changes
         val showDoneHabits = com.example.lifeorganizer.core.settings.MicroSettings.get(context, com.example.lifeorganizer.core.settings.MicroSettings.WIDGET_DONE_HABITS)
@@ -80,7 +83,7 @@ class HabitsWidget : GlanceAppWidget() {
             val today = remember { LocalDate.now() }
             val habits by remember { dao.habits() }.collectAsState(emptyList())
             val checks by remember { dao.checksSince(today.toEpochDay()) }.collectAsState(emptyList())
-            val tasks by remember { dao.tasks() }.collectAsState(emptyList())
+            val notes by remember { noteDao.getAllNotes() }.collectAsState(emptyList())
             val lang by remember { settings.languageCode }.collectAsState("en")
             val modules by remember { settings.enabledModules }.collectAsState(AppModule.entries.toSet())
             val filter = currentState(FILTER)?.let { runCatching { WidgetFilter.valueOf(it) }.getOrNull() } ?: WidgetFilter.ALL
@@ -91,16 +94,19 @@ class HabitsWidget : GlanceAppWidget() {
                 .map { h ->
                     WidgetRow("habit", h.id, h.title, h.id in doneToday, h.reminderMinutes?.let { "%02d:%02d".format(it / 60, it % 60) }, false)
                 }
-            // Overdue by the deadline time, not only by the day
+            // Open to-dos, those with an appointment first by its time; overdue from the minute after it
             val now = LocalDateTime.now()
-            val taskRows = tasks.filter { it.doneAt == null }.map { t ->
-                val deadline = TaskDeadline.deadline(t.dueEpochDay, t.dueMinute)
-                WidgetRow("task", t.id, t.title, false, deadline?.let { dueLabel(it, today, lang) }, TaskDeadline.isMissed(deadline, now))
-            }
+            val taskRows = notes.filter { it.todoKind != TodoKind.NONE && !it.note.isDone }
+                .sortedWith(compareBy({ it.appointment() == null }, { it.appointment() }))
+                .map { n ->
+                    val at = n.appointment()
+                    val title = n.note.title.ifBlank { n.note.content.lineSequence().firstOrNull().orEmpty() }
+                    WidgetRow("todo", n.note.id, title, false, at?.let { dueLabel(it, today, lang) }, TaskDeadline.isMissed(at, now))
+                }
             val rows = when (filter) {
                 WidgetFilter.HABITS -> habitRows
                 WidgetFilter.TASKS -> taskRows
-                // Open things first: habits still to do, then tasks by deadline, then habits already done today
+                // Open things first: habits still to do, then to-dos, then habits already done today
                 WidgetFilter.ALL -> habitRows.filter { !it.done } + taskRows + habitRows.filter { it.done }
             }.take(MAX_ROWS)
 
@@ -127,7 +133,7 @@ class HabitsWidget : GlanceAppWidget() {
                     Text(
                         when (filter) {
                             WidgetFilter.ALL -> HabitsStr.all
-                            WidgetFilter.TASKS -> HabitsStr.tasks
+                            WidgetFilter.TASKS -> HabitsStr.todos
                             WidgetFilter.HABITS -> HabitsStr.habits
                         }.of(lang) + " ▾",
                         style = TextStyle(color = onSurface, fontSize = 12.sp),
@@ -210,7 +216,7 @@ class HabitsWidget : GlanceAppWidget() {
     }
 }
 
-/** Ticks a habit off for today (or back on) or marks a task done (points as in the app), then re-plans its reminder. */
+/** Ticks a habit off for today (or back on) or a to-do note off, then re-plans its reminder. */
 class ToggleWidgetRow : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
         val id = parameters[HabitsWidget.ID] ?: return
@@ -223,7 +229,10 @@ class ToggleWidgetRow : ActionCallback {
                 if (dao.checksSync().any { it.habitId == id && it.epochDay == today }) dao.deleteCheck(check) else dao.insertCheck(check)
                 HabitReminders.scheduleHabit(context, habit)
             }
-            "task" -> TaskActions.setDone(context, id, done = true)
+            "todo" -> {
+                com.example.lifeorganizer.notes.data.NotesDatabase.getDatabase(context).noteDao().setDone(id, true)
+                TodoReminders.schedule(context, id)
+            }
         }
         HabitsWidget.refresh(context)
     }

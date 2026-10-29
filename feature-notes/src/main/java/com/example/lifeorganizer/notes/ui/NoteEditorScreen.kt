@@ -123,6 +123,16 @@ fun NoteEditorScreen(
     var pinnedToDate by rememberSaveable { mutableStateOf(pinnedDate) }
     var labelIds by rememberSaveable { mutableStateOf(setOf<Long>()) }
     var parent by rememberSaveable { mutableStateOf(parentId) }
+    // To-do: ticked off, and the appointment of a "To Do X" note (new ones start with the defaults from the settings)
+    var isDone by rememberSaveable { mutableStateOf(false) }
+    var dueDay by rememberSaveable { mutableStateOf<Long?>(null) }
+    var dueMinute by rememberSaveable {
+        mutableIntStateOf(com.example.lifeorganizer.core.settings.MicroSettings.get(context, com.example.lifeorganizer.core.settings.MicroSettings.TASK_DEFAULT_MINUTE))
+    }
+    var reminderOffsets by rememberSaveable {
+        mutableStateOf(com.example.lifeorganizer.core.settings.MicroSettings.get(context, com.example.lifeorganizer.core.settings.MicroSettings.TASK_DEFAULT_OFFSETS))
+    }
+    var editAppointment by remember { mutableStateOf(false) }
     var pickParent by remember { mutableStateOf(false) }
     var mode by rememberSaveable { mutableStateOf(if (noteId == null) EditorMode.EDIT else EditorMode.PREVIEW) }
     var deleted by remember { mutableStateOf(false) }
@@ -165,6 +175,10 @@ fun NoteEditorScreen(
                 labelIds = n.labels.map { it.id }.toSet()
                 documentId = n.note.documentId
                 parent = n.note.parentId
+                isDone = n.note.isDone
+                dueDay = n.note.dueEpochDay
+                dueMinute = n.note.dueMinute
+                reminderOffsets = n.note.reminderOffsets
                 if (content.isBlank()) mode = EditorMode.EDIT
             }
         } else if (templateId != null) {
@@ -175,15 +189,22 @@ fun NoteEditorScreen(
         } else if (labelId != null) {
             viewModel.loadLabel(labelId)?.let { label ->
                 labelIds = setOf(label.id)
+                if (label.kind == com.example.lifeorganizer.notes.data.TodoKind.DATED) editAppointment = true
                 val filled = expandPlaceholders(label.template, lang)
                 if (filled.isNotBlank()) body = TextFieldValue(filled, TextRange(filled.length))
             }
         }
         loaded = true
-        lastSaved = draft(currentId, title, body.text, colorLabel, isPinned, pinnedToDate, templateId, labelIds, documentId, parent)
+        lastSaved = NoteDraft(
+            currentId, title, body.text, colorLabel, isPinned, pinnedToDate, templateId, labelIds, documentId, parent,
+            isDone, dueDay, dueMinute, reminderOffsets
+        )
     }
 
-    fun currentDraft() = draft(currentId, title, body.text, colorLabel, isPinned, pinnedToDate, templateId, labelIds, documentId, parent)
+    fun currentDraft() = NoteDraft(
+        currentId, title, body.text, colorLabel, isPinned, pinnedToDate, templateId, labelIds, documentId, parent,
+        isDone, dueDay, dueMinute, reminderOffsets
+    )
 
     // A new note thrown away from the leave question: nothing is saved any more, not even on dispose
     var discarded by remember { mutableStateOf(false) }
@@ -367,6 +388,13 @@ fun NoteEditorScreen(
 
             // Meta chips: calendar day, labels, color
             val noteLabels = allLabels.filter { it.id in labelIds }
+            val todoKind = noteLabels.maxOfOrNull { it.kind } ?: com.example.lifeorganizer.notes.data.TodoKind.NONE
+            if (todoKind != com.example.lifeorganizer.notes.data.TodoKind.NONE) TodoRow(
+                done = isDone, onDone = { isDone = it },
+                dated = todoKind == com.example.lifeorganizer.notes.data.TodoKind.DATED,
+                appointment = com.example.lifeorganizer.notes.todo.TaskDeadline.deadline(dueDay, dueMinute),
+                onAppointment = { editAppointment = true }
+            )
             val attached = documentId?.let { id -> documents.firstOrNull { it.first == id } }
             AnimatedVisibility(visible = pinnedToDate != null || noteLabels.isNotEmpty() || attached != null) {
                 FlowRow(
@@ -536,6 +564,13 @@ fun NoteEditorScreen(
         )
     }
 
+    if (editAppointment) com.example.lifeorganizer.notes.todo.AppointmentDialog(
+        day = dueDay, minute = dueMinute, offsets = reminderOffsets,
+        onSave = { d, m, o -> dueDay = d; dueMinute = m; reminderOffsets = o; editAppointment = false },
+        onRemove = if (dueDay != null) ({ dueDay = null; editAppointment = false }) else null,
+        onDismiss = { editAppointment = false }
+    )
+
     if (showLabelSheet) {
         LabelAndColorSheet(
             allLabels = allLabels,
@@ -544,6 +579,10 @@ fun NoteEditorScreen(
             onToggleLabel = { id ->
                 val adding = id !in labelIds
                 labelIds = if (adding) labelIds + id else labelIds - id
+                // "To Do X" without an appointment yet: ask for it right away
+                if (adding && dueDay == null && allLabels.firstOrNull { it.id == id }?.kind == com.example.lifeorganizer.notes.data.TodoKind.DATED) {
+                    showLabelSheet = false; editAppointment = true
+                }
                 // An empty note picks up the label's template right away.
                 val template = expandPlaceholders(allLabels.firstOrNull { it.id == id }?.template.orEmpty(), lang)
                 if (adding && body.text.isBlank() && template.isNotBlank()) {
@@ -666,10 +705,37 @@ fun NoteEditorScreen(
     }
 }
 
-private fun draft(
-    id: Long?, title: String, content: String, color: Int?, pinned: Boolean,
-    pinnedToDate: Long?, templateId: Long?, labels: Set<Long>, documentId: Long?, parentId: Long?
-) = NoteDraft(id, title, content, color, pinned, pinnedToDate, templateId, labels, documentId, parentId)
+/** Done box of a to-do note and, for "To Do X", its appointment (tap to set or change it). */
+@Composable
+private fun TodoRow(done: Boolean, onDone: (Boolean) -> Unit, dated: Boolean, appointment: java.time.LocalDateTime?, onAppointment: () -> Unit) {
+    val lang = LocalAppLanguage.current
+    val now = java.time.LocalDateTime.now()
+    val missed = !done && com.example.lifeorganizer.notes.todo.TaskDeadline.isMissed(appointment, now)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().padding(start = 4.dp, end = 16.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.clickable { onDone(!done) }.padding(end = 8.dp)
+        ) {
+            Checkbox(checked = done, onCheckedChange = onDone)
+            Text(com.example.lifeorganizer.notes.todo.TodoStr.done.text(), style = MaterialTheme.typography.labelLarge)
+        }
+        if (dated) InputChip(
+            selected = appointment != null,
+            onClick = onAppointment,
+            label = {
+                Text(
+                    appointment?.let { com.example.lifeorganizer.notes.todo.appointmentLabel(it, now.toLocalDate(), lang) }
+                        ?: com.example.lifeorganizer.notes.todo.TodoStr.setAppointment.text(),
+                    color = if (missed) MaterialTheme.colorScheme.error else Color.Unspecified
+                )
+            },
+            leadingIcon = { Icon(Icons.Default.NotificationAdd, null, Modifier.size(18.dp)) }
+        )
+    }
+}
 
 private fun utcPickerToLocalMidnight(utcMillis: Long): Long =
     Instant.ofEpochMilli(utcMillis).atZone(ZoneOffset.UTC).toLocalDate()

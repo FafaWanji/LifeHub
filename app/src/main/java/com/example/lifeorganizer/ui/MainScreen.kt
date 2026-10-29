@@ -68,6 +68,7 @@ import com.example.lifeorganizer.core.settings.rememberEnabledModules
 import com.example.lifeorganizer.documents.ui.screens.DocumentViewModel
 import com.example.lifeorganizer.notes.ui.NoteEditorScreen
 import com.example.lifeorganizer.notes.ui.NotesScreen
+import com.example.lifeorganizer.notes.todo.appointment
 import com.example.lifeorganizer.notes.ui.NotesViewModel
 import com.example.lifeorganizer.notes.ui.markdownToPlainText
 import kotlinx.coroutines.launch
@@ -187,15 +188,9 @@ fun MainScreen(
     val appContext = androidx.compose.ui.platform.LocalContext.current.applicationContext
     LaunchedEffect(activeNotes) { com.example.lifeorganizer.widgets.NoteWidget.refresh(appContext) }
     val noteLabels by notesViewModel.labels.collectAsState()
-    // Task deadlines for the calendar (only while the habits module is on); tapping one opens the task
-    val habitTasks by remember { com.example.lifeorganizer.habits.data.HabitDatabase.getDatabase(appContext).habitDao().tasks() }
-        .collectAsState(initial = emptyList())
-    var taskToOpen by remember { mutableStateOf<Long?>(null) }
     // Releases of the release radar for the calendar
     val releaseRows by remember { com.example.lifeorganizer.releases.data.ReleaseDatabase.get(appContext).dao().releases() }
         .collectAsState(initial = emptyList())
-    // A deadline tapped in the calendar opens its task right there
-    var calendarTask by remember { mutableStateOf<Long?>(null) }
 
     // Switched-off modules are hidden everywhere; their data is untouched.
     val enabledModules = rememberEnabledModules()
@@ -391,16 +386,17 @@ fun MainScreen(
                                     )
                                 },
                                 onNoteClick = { noteId -> openNoteEditor(noteId) },
-                                deadlines = if (AppModule.HABITS !in enabledModules) emptyList() else habitTasks.mapNotNull { t ->
-                                    val at = com.example.lifeorganizer.habits.domain.TaskDeadline.deadline(t.dueEpochDay, t.dueMinute) ?: return@mapNotNull null
+                                // Appointments of "To Do X" notes; tapping one opens the note
+                                deadlines = activeNotes.mapNotNull { n ->
+                                    val at = n.appointment() ?: return@mapNotNull null
                                     com.example.lifeorganizer.calendar.ui.CalendarDeadline(
-                                        id = t.id, title = t.title,
-                                        at = com.example.lifeorganizer.habits.domain.TaskDeadline.toMillis(at),
-                                        done = t.doneAt != null,
-                                        missed = t.doneAt == null && com.example.lifeorganizer.habits.domain.TaskDeadline.isMissed(at, java.time.LocalDateTime.now())
+                                        id = n.note.id, title = n.note.title.ifBlank { markdownToPlainText(n.note.content).lineSequence().firstOrNull().orEmpty() },
+                                        at = com.example.lifeorganizer.notes.todo.TaskDeadline.toMillis(at),
+                                        done = n.note.isDone,
+                                        missed = !n.note.isDone && com.example.lifeorganizer.notes.todo.TaskDeadline.isMissed(at, java.time.LocalDateTime.now())
                                     )
                                 },
-                                onDeadlineClick = { id -> calendarTask = id },
+                                onDeadlineClick = { id -> openNoteEditor(id) },
                                 releases = if (AppModule.RELEASES !in enabledModules) emptyList() else releaseRows.map { r ->
                                     com.example.lifeorganizer.calendar.ui.CalendarRelease(
                                         key = "${r.itemId}_${r.key}", title = r.title,
@@ -517,9 +513,7 @@ fun MainScreen(
                                 onDocumentOpened = { documentToOpen = null }
                             )
                             ActiveView.MONEY -> com.example.lifeorganizer.money.ui.MoneyHost(onMenuClick = openMenu)
-                            ActiveView.HABITS -> com.example.lifeorganizer.habits.ui.HabitsHost(
-                                onMenuClick = openMenu, openTaskId = taskToOpen, onTaskOpened = { taskToOpen = null }
-                            )
+                            ActiveView.HABITS -> com.example.lifeorganizer.habits.ui.HabitsHost(onMenuClick = openMenu)
                             ActiveView.RELEASES -> com.example.lifeorganizer.releases.ui.ReleasesHost(onMenuClick = openMenu)
                         }
                     }
@@ -631,7 +625,6 @@ fun MainScreen(
                 )
 
                 if (showChangelog) ChangelogDialog(onDismiss = { showChangelog = false })
-                calendarTask?.let { id -> com.example.lifeorganizer.habits.ui.TaskEditorOverlay(taskId = id, onClose = { calendarTask = null }) }
                 if (showAbout) AboutScreen(onBack = { showAbout = false })
                 if (showWebAccess) Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
                     com.example.lifeorganizer.web.WebAccessScreen(onBack = { showWebAccess = false })

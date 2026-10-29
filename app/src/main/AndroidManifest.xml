@@ -129,7 +129,18 @@
             </intent-filter>
         </receiver>
 
-        <!-- Habit & task reminders; re-armed after a reboot, an app update or when exact alarms are allowed -->
+        <!-- Reminders of "To Do X" notes; re-armed after a reboot, an app update or when exact alarms are allowed -->
+        <receiver
+            android:name="com.example.lifeorganizer.notes.todo.TodoReminderReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Habit reminders; re-armed after a reboot, an app update or when exact alarms are allowed -->
         <receiver
             android:name="com.example.lifeorganizer.habits.reminder.HabitReminderReceiver"
             android:exported="false">

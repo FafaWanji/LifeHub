@@ -70,6 +70,9 @@ interface NoteDao {
     @Query("UPDATE notes SET isDone = :done WHERE id = :noteId")
     suspend fun setDone(noteId: Long, done: Boolean)
 
+    @Query("UPDATE notes SET lastReminderAt = :at WHERE id = :noteId")
+    suspend fun setLastReminder(noteId: Long, at: Long)
+
     @Query("UPDATE notes SET parentId = :parentId WHERE id = :noteId")
     suspend fun setParent(noteId: Long, parentId: Long?)
 

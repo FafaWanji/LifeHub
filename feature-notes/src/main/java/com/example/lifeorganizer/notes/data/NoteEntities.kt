@@ -7,6 +7,7 @@ import androidx.room.Index
 import androidx.room.Junction
 import androidx.room.PrimaryKey
 import androidx.room.Relation
+import com.example.lifeorganizer.notes.todo.TaskDeadline
 
 @Entity(tableName = "notes", indices = [Index("parentId")])
 data class Note(
@@ -25,9 +26,26 @@ data class Note(
     val documentId: Long? = null, // attached Dokki document
     /** Main note this one is a sub-note of; one level only (a main note is never a sub-note itself). */
     val parentId: Long? = null,
-    /** Sub-notes can be ticked off as done (shown with a check on the main note). */
-    @androidx.room.ColumnInfo(defaultValue = "0") val isDone: Boolean = false
+    /** Sub-notes and to-do notes can be ticked off as done. */
+    @androidx.room.ColumnInfo(defaultValue = "0") val isDone: Boolean = false,
+    /** Appointment day of a "To Do X" note, null = none set. */
+    val dueEpochDay: Long? = null,
+    /** Appointment time as minutes after midnight on [dueEpochDay]. */
+    @ColumnInfo(defaultValue = "1439") val dueMinute: Int = TaskDeadline.END_OF_DAY,
+    /** Reminders as minutes before the appointment, e.g. "1440,60"; one at the appointment itself always comes on top. */
+    @ColumnInfo(defaultValue = "1440,60") val reminderOffsets: String = TaskDeadline.DEFAULT_OFFSETS,
+    /** Reminders up to this time (epoch millis) are handled; later ones missed while the phone was off are caught up. */
+    val lastReminderAt: Long? = null
 )
+
+/** What a label does besides grouping: nothing, a to-do (can be ticked off) or a to-do with an appointment. */
+object TodoKind {
+    const val NONE = 0
+    /** "To Do": general, no appointment – a normal note that can be ticked off. */
+    const val TODO = 1
+    /** "To Do X": with an appointment (day + time), reminders and a place in the calendar. */
+    const val DATED = 2
+}
 
 @Entity(tableName = "note_labels")
 data class NoteLabel(
@@ -35,7 +53,9 @@ data class NoteLabel(
     val name: String,
     val color: Int,
     /** Starting content for new notes created with this label (e.g. a "- [ ]" shopping list). */
-    @ColumnInfo(defaultValue = "") val template: String = ""
+    @ColumnInfo(defaultValue = "") val template: String = "",
+    /** See [TodoKind]. */
+    @ColumnInfo(defaultValue = "0") val kind: Int = TodoKind.NONE
 )
 
 @Entity(tableName = "note_label_cross_ref", primaryKeys = ["noteId", "labelId"])
@@ -56,7 +76,10 @@ data class NoteWithLabels(
         )
     )
     val labels: List<NoteLabel>
-)
+) {
+    /** The strongest to-do kind among the labels ([TodoKind]). */
+    val todoKind: Int get() = labels.maxOfOrNull { it.kind } ?: TodoKind.NONE
+}
 
 @Entity(tableName = "note_templates")
 data class NoteTemplate(

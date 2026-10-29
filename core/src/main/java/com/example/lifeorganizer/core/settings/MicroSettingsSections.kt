@@ -35,11 +35,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,7 +49,6 @@ import com.example.lifeorganizer.core.i18n.SetStr
 import com.example.lifeorganizer.core.i18n.Str
 import com.example.lifeorganizer.core.i18n.durationLabel
 import com.example.lifeorganizer.core.i18n.localDateFormatter
-import kotlinx.coroutines.launch
 import java.time.LocalDate
 
 /**
@@ -82,30 +79,21 @@ fun MicroSettingsSections(lang: String) {
 
 @Composable
 private fun HabitsSection(lang: String) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val settings = remember { SettingsManager(context.applicationContext) }
-    val confirmOnTime by settings.confirmOnTimeClaim.collectAsState(initial = true)
-    ListItem(
-        headlineContent = { Text(Str.confirmOnTimeClaim.of(lang)) },
-        supportingContent = { Text(Str.confirmOnTimeClaimHint.of(lang)) },
-        trailingContent = { Switch(checked = confirmOnTime, onCheckedChange = { on -> scope.launch { settings.saveConfirmOnTimeClaim(on) } }) },
-        colors = transparent()
-    )
+    SwitchSetting(SetStr.widgetDoneHabits.of(lang), MicroSettings.WIDGET_DONE_HABITS)
+}
+
+/** Appointments of "To Do X" notes: default time and reminders, quiet hours. */
+@Composable
+private fun TodoSettings(lang: String) {
+    Label(SetStr.todos.of(lang), SetStr.todosHint.of(lang))
     TimeSetting(SetStr.defaultDeadlineTime.of(lang), MicroSettings.TASK_DEFAULT_MINUTE, lang, SetStr.defaultDeadlineTimeHint.of(lang))
     OffsetsSetting(SetStr.defaultReminders.of(lang), lang)
-    val showPoints = rememberMicro(MicroSettings.SHOW_POINTS)
-    SwitchSetting(SetStr.showPoints.of(lang), MicroSettings.SHOW_POINTS)
-    NumberSetting(SetStr.doneShown.of(lang), MicroSettings.DONE_TASKS_SHOWN, listOf(10 to "10", 30 to "30", 100 to "100", 0 to SetStr.all.of(lang)), lang, NumberUnit.COUNT, 1..999)
     val quiet = rememberMicro(MicroSettings.QUIET_HOURS)
     SwitchSetting(SetStr.quietHours.of(lang), MicroSettings.QUIET_HOURS, SetStr.quietHoursHint.of(lang))
     if (quiet) {
         TimeSetting(SetStr.from.of(lang), MicroSettings.QUIET_START, lang)
         TimeSetting(SetStr.to.of(lang), MicroSettings.QUIET_END, lang)
     }
-    NumberSetting(SetStr.soonDays.of(lang), MicroSettings.SOON_DAYS, listOf(3, 7, 14).map { it to SetStr.days.of(lang).format(it) }, lang, NumberUnit.DAYS, 1..365)
-    SwitchSetting(SetStr.widgetDoneHabits.of(lang), MicroSettings.WIDGET_DONE_HABITS)
-    SwitchSetting(SetStr.confirmDeleteTask.of(lang), MicroSettings.CONFIRM_DELETE_TASK)
 }
 
 @Composable
@@ -115,10 +103,8 @@ private fun NotificationsSection(lang: String, habitsOn: Boolean) {
     buildList {
         add(NotificationChannels.CALENDAR to SetStr.channelCalendar)
         add(NotificationChannels.BIRTHDAYS to SetStr.channelBirthdays)
-        if (habitsOn) {
-            add(NotificationChannels.HABITS to Str.channelHabits)
-            add(NotificationChannels.TASKS to Str.channelTasks)
-        }
+        if (habitsOn) add(NotificationChannels.HABITS to Str.channelHabits)
+        add(NotificationChannels.TASKS to Str.channelTasks)
     }.forEach { (channel, label) ->
         ListItem(
             headlineContent = { Text(label.of(lang)) },
@@ -134,7 +120,7 @@ private fun NotificationsSection(lang: String, habitsOn: Boolean) {
         )
     }
     NumberSetting(SetStr.snoozeLength.of(lang), MicroSettings.SNOOZE_MINUTES, listOf(5, 10, 15, 30, 60).map { it to durationLabel(it, lang) }, lang, NumberUnit.MINUTES, 1..1440)
-    if (habitsOn) NumberSetting(
+    NumberSetting(
         SetStr.deadlineRepeat.of(lang), MicroSettings.DEADLINE_REPEAT,
         listOf(0 to SetStr.off.of(lang)) + listOf(15, 30, 60).map { it to durationLabel(it, lang) }, lang, NumberUnit.MINUTES, 1..10080
     )
@@ -171,6 +157,7 @@ private fun NotesSection(lang: String) {
         SetStr.trashDays.of(lang), MicroSettings.TRASH_DAYS,
         listOf(0 to SetStr.never.of(lang)) + listOf(7, 30, 90).map { it to SetStr.days.of(lang).format(it) }, lang, NumberUnit.DAYS, 1..3650
     )
+    TodoSettings(lang)
 }
 
 @Composable

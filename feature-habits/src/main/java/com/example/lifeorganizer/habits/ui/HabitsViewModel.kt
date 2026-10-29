@@ -3,23 +3,16 @@ package com.example.lifeorganizer.habits.ui
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.lifeorganizer.core.settings.SettingsManager
 import com.example.lifeorganizer.habits.HabitsIntegration
-import com.example.lifeorganizer.habits.TaskActions
-import com.example.lifeorganizer.habits.TaskSettings
 import com.example.lifeorganizer.habits.data.Habit
 import com.example.lifeorganizer.habits.data.HabitCheck
 import com.example.lifeorganizer.habits.data.HabitDatabase
-import com.example.lifeorganizer.habits.data.TaskItem
 import com.example.lifeorganizer.habits.domain.HabitSchedule
-import com.example.lifeorganizer.habits.domain.TaskDeadline
 import com.example.lifeorganizer.habits.domain.HabitQuickParse
-import com.example.lifeorganizer.habits.domain.TaskQuickParse
 import com.example.lifeorganizer.habits.reminder.HabitReminders
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
@@ -42,16 +35,6 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
             HabitRow(h, day.toEpochDay() in done, HabitSchedule.isDue(h.weekdays, day), HabitSchedule.streak(h.weekdays, done, day))
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    val tasks: StateFlow<List<TaskItem>> = dao.tasks().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
-
-    /** All points ever earned with tasks, including deleted ones. */
-    val totalPoints: StateFlow<Int> = dao.totalPoints().stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), 0)
-
-    /** Points actually booked per task; tasks done before points existed have none. */
-    val pointsByTask: StateFlow<Map<Long, Int>> = dao.points()
-        .map { list -> list.mapNotNull { p -> p.taskId?.let { it to p.points } }.toMap() }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
 
     fun toggleHabit(row: HabitRow) = viewModelScope.launch {
         val check = HabitCheck(row.habit.id, today.toEpochDay())
@@ -77,75 +60,12 @@ class HabitsViewModel(application: Application) : AndroidViewModel(application) 
         HabitsIntegration.changed(app)
     }
 
-    fun saveTask(task: TaskItem) = viewModelScope.launch {
-        // Reminder times before this save were planned differently, so they are not caught up after a reboot
-        val edited = task.copy(lastReminderAt = System.currentTimeMillis())
-        val saved = if (edited.id == 0L) edited.copy(id = dao.insertTask(edited)) else { dao.updateTask(edited); edited }
-        HabitReminders.scheduleTask(app, saved)
-        HabitsIntegration.changed(app)
-    }
-
-    /**
-     * The smart quick-add line: "Sport täglich 7 Uhr" or "Gym Mo Mi Fr" becomes a habit (reminder at the
-     * time given), anything else a task. With [habitOnly] (habits tab) it is always a habit, daily by default.
-     * Returns the habit's title, or null when it became a task.
-     */
-    fun quickAdd(text: String, habitOnly: Boolean = false): String? {
-        val habit = HabitQuickParse.parse(text, repeatNeeded = !habitOnly)
-        if (habit == null) { quickAddTask(text); return null }
+    /** The quick-add line: "Sport täglich 7 Uhr" or "Gym Mo Mi Fr" (reminder at the time given); daily by default. */
+    fun quickAdd(text: String) {
+        val habit = HabitQuickParse.parse(text, repeatNeeded = false) ?: return
         saveHabit(Habit(title = habit.title, weekdays = habit.weekdays, reminderMinutes = habit.reminderMinutes))
-        return habit.title
-    }
-
-    /** The task becomes a daily habit (reminder at its deadline time, unless that is end of day); the task goes. */
-    fun taskToHabit(task: TaskItem, title: String) = viewModelScope.launch {
-        saveHabit(Habit(title = title, reminderMinutes = task.dueMinute.takeIf { task.dueEpochDay != null && it != TaskDeadline.END_OF_DAY }))
-        HabitReminders.cancelTask(app, task.id)
-        dao.deleteTask(task)
-        HabitsIntegration.changed(app)
-    }
-
-    /** "Exercise 5 tomorrow 14:00" → a task with that deadline and the default reminders. */
-    fun quickAddTask(text: String) {
-        val settings = TaskSettings.read(app)
-        val parsed = TaskQuickParse.parse(text, defaultMinute = settings.defaultMinute) ?: return
-        saveTask(
-            TaskItem(
-                title = parsed.title, dueEpochDay = parsed.dueEpochDay, dueMinute = parsed.dueMinute,
-                reminderOffsets = TaskDeadline.formatOffsets(TaskDeadline.parseOffsets(settings.defaultOffsets))
-            )
-        )
-    }
-
-    /** Ticks off (points if in time) or back on (points taken back); see [TaskActions]. */
-    fun toggleTask(task: TaskItem) = viewModelScope.launch { TaskActions.setDone(app, task.id, done = task.doneAt == null) }
-
-    private val settings = SettingsManager(application)
-
-    /** Ask before "I did it on time"; the very first time twice. Switched back on in the settings. */
-    val confirmOnTimeClaim: StateFlow<Boolean> = settings.confirmOnTimeClaim.stateIn(viewModelScope, SharingStarted.Eagerly, true)
-    val onTimeClaimUsed: StateFlow<Boolean> = settings.onTimeClaimUsed.stateIn(viewModelScope, SharingStarted.Eagerly, false)
-
-    /** "I did it on time but forgot to tick it off"; [dontAskAgain] comes from the box in the dialog. */
-    fun claimOnTime(task: TaskItem, dontAskAgain: Boolean = false) = viewModelScope.launch {
-        TaskActions.claimOnTime(app, task.id)
-        settings.saveOnTimeClaimUsed()
-        if (dontAskAgain) settings.saveConfirmOnTimeClaim(false)
     }
 
     /** After notifications or exact alarms were allowed in the system settings. */
     fun rescheduleAll() = viewModelScope.launch { HabitReminders.scheduleAll(app) }
-
-    fun deleteTask(task: TaskItem) = viewModelScope.launch {
-        HabitReminders.cancelTask(app, task.id)
-        dao.deleteTask(task)
-        HabitsIntegration.changed(app)
-    }
-
-    /** Undo after a delete: the task comes back with its id, so its reminder too. */
-    fun restoreTask(task: TaskItem) = viewModelScope.launch {
-        dao.insertTask(task)
-        HabitReminders.scheduleTask(app, task)
-        HabitsIntegration.changed(app)
-    }
 }

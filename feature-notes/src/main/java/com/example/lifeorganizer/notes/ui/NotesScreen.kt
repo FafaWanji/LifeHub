@@ -321,7 +321,8 @@ fun NotesMainView(
                                 subNotes = if (grouped) childrenOf[n.note.id].orEmpty() else emptyList(),
                                 onSubNoteClick = { id -> onCardClick(id) },
                                 onSubNoteDone = { id, done -> viewModel.setSubNoteDone(id, done) },
-                                parentTitle = parentTitleOf(n)
+                                parentTitle = parentTitleOf(n),
+                                onDone = { done -> viewModel.setSubNoteDone(n.note.id, done) }
                             )
                         }
                         if (otherNotes.isNotEmpty()) {
@@ -338,7 +339,8 @@ fun NotesMainView(
                             subNotes = if (grouped) childrenOf[n.note.id].orEmpty() else emptyList(),
                             onSubNoteClick = { id -> onCardClick(id) },
                                 onSubNoteDone = { id, done -> viewModel.setSubNoteDone(id, done) },
-                            parentTitle = parentTitleOf(n)
+                            parentTitle = parentTitleOf(n),
+                            onDone = { done -> viewModel.setSubNoteDone(n.note.id, done) }
                         )
                     }
                 }
@@ -544,7 +546,15 @@ fun LabelsManagerView(viewModel: NotesViewModel, onBack: () -> Unit) {
                 val expanded = expandedId == label.id
                 ListItem(
                     modifier = Modifier.clickable { expandedId = if (expanded) null else label.id },
-                    headlineContent = { Text(label.name) },
+                    headlineContent = {
+                        Text(
+                            label.name + when (label.kind) {
+                                com.example.lifeorganizer.notes.data.TodoKind.TODO -> "  ☐"
+                                com.example.lifeorganizer.notes.data.TodoKind.DATED -> "  ☐ ⏰"
+                                else -> ""
+                            }
+                        )
+                    },
                     supportingContent = {
                         if (!expanded) {
                             Text(
@@ -566,6 +576,7 @@ fun LabelsManagerView(viewModel: NotesViewModel, onBack: () -> Unit) {
                     },
                     colors = ListItemDefaults.colors(containerColor = Color.Transparent)
                 )
+                if (expanded) LabelKindRow(label.kind) { viewModel.updateLabel(label.copy(kind = it)) }
                 if (expanded) LabelTemplateEditor(label) { viewModel.updateLabel(label.copy(template = it)) }
             }
         }
@@ -583,6 +594,25 @@ fun LabelsManagerView(viewModel: NotesViewModel, onBack: () -> Unit) {
             },
             confirmButton = { TextButton(onClick = { recolor = null }) { Text(Str.done.text()) } }
         )
+    }
+}
+
+/** What the label does: nothing, "To Do" (can be ticked off) or "To Do X" (with an appointment). */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun LabelKindRow(kind: Int, onChange: (Int) -> Unit) {
+    val todo = com.example.lifeorganizer.notes.todo.TodoStr
+    Column(Modifier.padding(start = 16.dp, end = 16.dp, bottom = 4.dp)) {
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(
+                com.example.lifeorganizer.notes.data.TodoKind.NONE to todo.kindNone,
+                com.example.lifeorganizer.notes.data.TodoKind.TODO to todo.kindTodo,
+                com.example.lifeorganizer.notes.data.TodoKind.DATED to todo.kindDated
+            ).forEach { (k, label) ->
+                FilterChip(selected = kind == k, onClick = { onChange(k) }, label = { Text(label.text()) })
+            }
+        }
+        Text(todo.kindHint.text(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }
 

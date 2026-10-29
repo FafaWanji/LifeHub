@@ -1,5 +1,8 @@
 package com.example.lifeorganizer.notes.ui
 
+import com.example.lifeorganizer.notes.todo.TaskDeadline
+import com.example.lifeorganizer.notes.todo.appointment
+import com.example.lifeorganizer.notes.todo.appointmentLabel
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.foundation.BorderStroke
@@ -71,7 +74,9 @@ fun NoteCard(
     /** Ticks a sub-note off (or opens it again); without it the rows show no checkbox. */
     onSubNoteDone: ((Long, Boolean) -> Unit)? = null,
     /** Shown above the title when the card is a sub-note listed on its own (search, label filter). */
-    parentTitle: String? = null
+    parentTitle: String? = null,
+    /** Ticks a to-do note off (or opens it again); only used for notes with a to-do label. */
+    onDone: ((Boolean) -> Unit)? = null
 ) {
     val note = noteWithLabels.note
     val lang = LocalAppLanguage.current
@@ -104,10 +109,30 @@ fun NoteCard(
                 )
                 Spacer(Modifier.height(4.dp))
             }
+            // To-do: done box, and the appointment of a "To Do X" note (red once missed)
+            val todo = noteWithLabels.todoKind != com.example.lifeorganizer.notes.data.TodoKind.NONE
+            val appointment = noteWithLabels.appointment()
+            if (todo) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    androidx.compose.material3.Checkbox(
+                        checked = note.isDone, onCheckedChange = onDone, enabled = onDone != null, modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(Modifier.width(4.dp))
+                    appointment?.let { at ->
+                        val now = java.time.LocalDateTime.now()
+                        Text(
+                            appointmentLabel(at, now.toLocalDate(), lang), style = MaterialTheme.typography.labelMedium, maxLines = 1,
+                            color = if (!note.isDone && TaskDeadline.isMissed(at, now)) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
+            }
             if (note.title.isNotBlank() || note.isPinned) {
                 Row(verticalAlignment = Alignment.Top) {
                     Text(
                         text = note.title,
+                        textDecoration = if (todo && note.isDone) androidx.compose.ui.text.style.TextDecoration.LineThrough else null,
                         style = MaterialTheme.typography.titleMedium,
                         maxLines = 2,
                         overflow = TextOverflow.Ellipsis,

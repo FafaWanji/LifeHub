@@ -102,8 +102,11 @@ class MainActivity : androidx.fragment.app.FragmentActivity() {
         com.example.lifeorganizer.backup.AutoBackup.schedule(applicationContext)
         com.example.lifeorganizer.money.work.RecurringWorker.schedule(applicationContext)
         com.example.lifeorganizer.releases.work.ReleaseSync.schedule(applicationContext)
-        // Re-arms habit/task reminders, e.g. after the app was force-stopped
-        lifecycleScope.launch { com.example.lifeorganizer.habits.reminder.HabitReminders.scheduleAll(applicationContext) }
+        // Re-arms habit and to-do reminders, e.g. after the app was force-stopped
+        lifecycleScope.launch {
+            com.example.lifeorganizer.habits.reminder.HabitReminders.scheduleAll(applicationContext)
+            com.example.lifeorganizer.notes.todo.TodoReminders.scheduleAll(applicationContext)
+        }
         com.example.lifeorganizer.money.MoneyIntegration.calendar = com.example.lifeorganizer.money.FixedCostCalendarSync(applicationContext)
         lifecycleScope.launch { com.example.lifeorganizer.money.data.MoneyRepository.get(applicationContext).bookDueRecurring() }
 

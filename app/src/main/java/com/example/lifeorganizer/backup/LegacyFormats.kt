@@ -8,7 +8,7 @@ enum class ImportSource {
     LIFEORGANIZER_BACKUP, ICS_CALENDAR, UNKNOWN
 }
 
-data class ImportedLabel(val name: String, val color: Int, val template: String = "")
+data class ImportedLabel(val name: String, val color: Int, val template: String = "", val kind: Int = 0)
 
 data class ImportedNote(
     val title: String,
@@ -19,7 +19,11 @@ data class ImportedNote(
     val createdAt: Long,
     val updatedAt: Long,
     val isDeleted: Boolean = false,
-    val isDone: Boolean = false
+    val isDone: Boolean = false,
+    /** Appointment of a "To Do X" note. */
+    val dueEpochDay: Long? = null,
+    val dueMinute: Int = com.example.lifeorganizer.notes.todo.TaskDeadline.END_OF_DAY,
+    val reminderOffsets: String = com.example.lifeorganizer.notes.todo.TaskDeadline.DEFAULT_OFFSETS
 )
 
 data class ImportedWaypoint(

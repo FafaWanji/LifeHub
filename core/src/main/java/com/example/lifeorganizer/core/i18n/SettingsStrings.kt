@@ -67,18 +67,12 @@ object SetStr {
     val save = Txt("Save", "Speichern", "Kaydet", "Guardar", "保存")
     val cancel = Txt("Cancel", "Abbrechen", "İptal", "Cancelar", "取消")
 
-    // Habits & tasks
-    val defaultDeadlineTime = Txt("Deadline time of new tasks", "Uhrzeit der Deadline bei neuen Aufgaben", "Yeni görevlerde son tarih saati", "Hora límite de las tareas nuevas", "新任务的截止时间")
-    val defaultDeadlineTimeHint = Txt(
-        "Used when you only pick a day, also in quick add.",
-        "Gilt, wenn du nur einen Tag wählst – auch beim schnellen Hinzufügen.",
-        "Sadece gün seçtiğinde kullanılır, hızlı eklemede de.",
-        "Se usa cuando solo eliges un día, también al añadir rápido.",
-        "只选日期时使用，快速添加也适用。"
-    )
-    val defaultReminders = Txt("Reminders of new tasks", "Erinnerungen bei neuen Aufgaben", "Yeni görevlerin hatırlatıcıları", "Recordatorios de las tareas nuevas", "新任务的提醒")
-    val showPoints = Txt("Show points", "Punkte anzeigen", "Puanları göster", "Mostrar puntos", "显示积分")
-    val doneShown = Txt("Done tasks in the list", "Erledigte Aufgaben in der Liste", "Listedeki tamamlanan görevler", "Tareas hechas en la lista", "列表中的已完成任务")
+    // To-dos (notes with the label "To Do" / "To Do X")
+    val todos = Txt("To-Dos")
+    val todosHint = Txt("Für Notizen mit dem Label „To Do X“ (mit Termin).")
+    val defaultDeadlineTime = Txt("Uhrzeit bei neuen Terminen")
+    val defaultDeadlineTimeHint = Txt("Gilt, bis du eine andere Uhrzeit wählst.")
+    val defaultReminders = Txt("Erinnerungen bei neuen Terminen")
     val quietHours = Txt("Quiet hours", "Ruhezeit", "Sessiz saatler", "Horas de silencio", "免打扰时段")
     val quietHoursHint = Txt(
         "No task reminders in this time – the one at the deadline itself still comes.",
@@ -87,9 +81,7 @@ object SetStr {
         "Sin recordatorios de tareas en este tiempo; el de la hora límite llega igualmente.",
         "此时段内不发任务提醒 – 截止时刻的提醒仍会发送。"
     )
-    val soonDays = Txt("“Next days” in the tasks tab", "„Nächste Tage“ im Aufgaben-Tab", "Görevler sekmesinde “Sonraki günler”", "«Próximos días» en la pestaña de tareas", "任务页中的“未来几天”")
     val widgetDoneHabits = Txt("Widget shows habits done today", "Widget zeigt heute erledigte Gewohnheiten", "Widget bugün yapılan alışkanlıkları gösterir", "El widget muestra hábitos hechos hoy", "小部件显示今天已完成的习惯")
-    val confirmDeleteTask = Txt("Ask before deleting a task", "Vor dem Löschen einer Aufgabe nachfragen", "Görevi silmeden önce sor", "Preguntar antes de borrar una tarea", "删除任务前先确认")
 
     // Notifications
     val notifications = Txt("Notifications", "Benachrichtigungen", "Bildirimler", "Notificaciones", "通知")
@@ -104,7 +96,7 @@ object SetStr {
     val channelCalendar = Txt("Calendar reminders", "Kalender-Erinnerungen", "Takvim hatırlatıcıları", "Recordatorios del calendario", "日历提醒")
     val channelBirthdays = Txt("Birthdays", "Geburtstage", "Doğum günleri", "Cumpleaños", "生日")
     val snoozeLength = Txt("Snooze for", "Schlummern für", "Erteleme süresi", "Posponer durante", "稍后提醒时长")
-    val deadlineRepeat = Txt("Remind again after a missed deadline", "Nach verpasster Deadline noch mal erinnern", "Kaçırılan son tarihten sonra tekrar hatırlat", "Volver a recordar tras perder la fecha límite", "错过截止后再次提醒")
+    val deadlineRepeat = Txt("Nach verpasstem To-Do-Termin noch mal erinnern")
 
     // Calendar
     val weekStart = Txt("Week starts on", "Woche beginnt am", "Hafta başlangıcı", "La semana empieza el", "每周开始于")

@@ -60,7 +60,7 @@ object TaskQuickParse {
     }
 
     /** [defaultMinute] is the deadline time when only a day (or nothing) is given; 23:59 unless set otherwise. */
-    fun parse(text: String, now: LocalDateTime = LocalDateTime.now(), defaultMinute: Int = TaskDeadline.END_OF_DAY): QuickTask? {
+    fun parse(text: String, now: LocalDateTime = LocalDateTime.now(), defaultMinute: Int = 23 * 60 + 59): QuickTask? {
         val input = text.trim().replace(Regex("\\s+"), " ")
         if (input.isEmpty()) return null
         // A leading space lets every pattern demand whitespace before the date or time

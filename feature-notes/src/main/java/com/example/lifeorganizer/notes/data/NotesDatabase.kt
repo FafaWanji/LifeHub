@@ -9,7 +9,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [Note::class, NoteLabel::class, NoteLabelCrossRef::class, NoteTemplate::class],
-    version = 6,
+    version = 7,
     exportSchema = true
 )
 abstract class NotesDatabase : RoomDatabase() {
@@ -18,6 +18,41 @@ abstract class NotesDatabase : RoomDatabase() {
     companion object {
         @Volatile
         private var INSTANCE: NotesDatabase? = null
+
+        /**
+         * v7: to-do labels ("To Do", "To Do X" with an appointment) and the appointment of a note. Existing labels
+         * named like that get their kind; missing ones are created.
+         */
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE note_labels ADD COLUMN kind INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE notes ADD COLUMN dueEpochDay INTEGER")
+                db.execSQL("ALTER TABLE notes ADD COLUMN dueMinute INTEGER NOT NULL DEFAULT 1439")
+                db.execSQL("ALTER TABLE notes ADD COLUMN reminderOffsets TEXT NOT NULL DEFAULT '1440,60'")
+                db.execSQL("ALTER TABLE notes ADD COLUMN lastReminderAt INTEGER")
+                val found = mutableSetOf<Int>()
+                db.query("SELECT id, name FROM note_labels").use { c ->
+                    while (c.moveToNext()) {
+                        val kind = todoKindOfName(c.getString(1)) ?: continue
+                        db.execSQL("UPDATE note_labels SET kind = ? WHERE id = ?", arrayOf<Any>(kind, c.getLong(0)))
+                        found += kind
+                    }
+                }
+                if (TodoKind.TODO !in found) db.execSQL(
+                    "INSERT INTO note_labels (name, color, template, kind) VALUES ('To Do', ?, '', ?)", arrayOf<Any>(0xFF90CAF9.toInt(), TodoKind.TODO)
+                )
+                if (TodoKind.DATED !in found) db.execSQL(
+                    "INSERT INTO note_labels (name, color, template, kind) VALUES ('To Do X', ?, '', ?)", arrayOf<Any>(0xFFF48FB1.toInt(), TodoKind.DATED)
+                )
+            }
+        }
+
+        /** "To Do", "todo", "to-do" → [TodoKind.TODO]; the same with an "X" behind → [TodoKind.DATED]. */
+        fun todoKindOfName(name: String): Int? = when (name.lowercase().filter { it.isLetter() }) {
+            "todo" -> TodoKind.TODO
+            "todox" -> TodoKind.DATED
+            else -> null
+        }
 
         /** v5: sub-notes under a main note. */
         /** v6: sub-notes can be ticked off as done. */
@@ -61,7 +96,7 @@ abstract class NotesDatabase : RoomDatabase() {
                     context.applicationContext,
                     NotesDatabase::class.java,
                     "notes_database"
-                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6).build()
+                ).addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7).build()
                 INSTANCE = instance
                 instance
             }

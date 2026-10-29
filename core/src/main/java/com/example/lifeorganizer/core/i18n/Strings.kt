@@ -39,7 +39,7 @@ object Str {
     val documents = Txt("Documents", "Dokumente", "Belgeler", "Documentos", "文档")
     val finance = Txt("Finance", "Finanzen", "Finans", "Finanzas", "财务")
     val releaseRadar = Txt("Release radar", "Release-Radar", "Yayın radarı", "Radar de estrenos", "上映雷达")
-    val habitsTasks = Txt("Habits & tasks", "Gewohnheiten & Aufgaben", "Alışkanlıklar ve görevler", "Hábitos y tareas", "习惯与任务")
+    val habitsTasks = Txt("Habits", "Gewohnheiten", "Alışkanlıklar", "Hábitos", "习惯")
     val settings = Txt("Settings", "Einstellungen", "Ayarlar", "Ajustes", "设置")
     val modules = Txt("Modules", "Module", "Modüller", "Módulos", "模块")
     // Sub-notes (one level under a main note)
@@ -82,23 +82,9 @@ object Str {
         "默认：%s（当天同一地点没有更早的日程时）"
     )
     val channelHabits = Txt("Habits", "Gewohnheiten", "Alışkanlıklar", "Hábitos", "习惯")
-    val channelTasks = Txt("Tasks", "Aufgaben", "Görevler", "Tareas", "任务")
+    val channelTasks = Txt("To-Dos")
     /** Week number next to a date, e.g. "W43" / "KW 43". */
     val weekShort = Txt("W%d", "KW %d", "%d. hafta", "Sem. %d", "第%d周")
-    val confirmOnTimeClaim = Txt(
-        "Ask before “I did it on time”",
-        "Nachfragen bei „Rechtzeitig erledigt“",
-        "“Zamanında yaptım” öncesi sor",
-        "Preguntar antes de «Lo hice a tiempo»",
-        "“我按时完成了”前先确认"
-    )
-    val confirmOnTimeClaimHint = Txt(
-        "A late task can still get its points if you only forgot to tick it off – after an “Are you sure?”.",
-        "Eine verspätete Aufgabe bekommt ihre Punkte doch, wenn du nur das Abhaken vergessen hast – nach einem „Bist du sicher?“.",
-        "Sadece işaretlemeyi unuttuysan geciken bir görev yine de puanını alır – bir “Emin misin?” sorusundan sonra.",
-        "Una tarea tardía puede recibir sus puntos si solo olvidaste marcarla, tras un «¿Seguro?».",
-        "如果只是忘了勾选，逾期任务仍可获得积分 – 需先确认“你确定吗？”。"
-    )
     val modulesHint = Txt(
         "Switched-off modules are hidden. Their data stays saved and is back when you switch them on again.",
         "Ausgeschaltete Module werden ausgeblendet. Ihre Daten bleiben gespeichert und sind beim Einschalten wieder da.",

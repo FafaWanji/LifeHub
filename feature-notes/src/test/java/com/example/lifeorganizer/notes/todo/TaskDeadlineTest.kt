@@ -1,4 +1,4 @@
-package com.example.lifeorganizer.habits.domain
+package com.example.lifeorganizer.notes.todo
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -7,7 +7,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
-import java.time.ZoneOffset
 
 class TaskDeadlineTest {
     private val day = LocalDate.of(2026, 10, 22)
@@ -61,16 +60,6 @@ class TaskDeadlineTest {
     }
 
     @Test
-    fun onePointByTheDeadlineZeroWhenLate() {
-        assertEquals(1, TaskDeadline.points(deadline, deadline.minusDays(3)))
-        assertEquals(1, TaskDeadline.points(deadline, deadline))
-        // The deadline minute itself still counts
-        assertEquals(1, TaskDeadline.points(deadline, deadline.plusSeconds(59)))
-        assertEquals(0, TaskDeadline.points(deadline, deadline.plusMinutes(1)))
-        assertEquals(0, TaskDeadline.points(null, deadline))
-    }
-
-    @Test
     fun missedFromTheMinuteAfter() {
         assertFalse(TaskDeadline.isMissed(deadline, deadline.plusSeconds(59)))
         assertTrue(TaskDeadline.isMissed(deadline, deadline.plusMinutes(1)))
@@ -97,30 +86,5 @@ class TaskDeadlineTest {
         assertEquals(listOf(1440, 60, 0, -30), all.map { it.offsetMinutes })
         assertEquals(deadline.plusMinutes(30), TaskDeadline.nextReminder(deadline, defaults, deadline, repeatAfter = 30)?.at)
         assertNull(TaskDeadline.nextReminder(deadline, defaults, deadline.plusMinutes(30), repeatAfter = 30))
-    }
-
-    @Test
-    fun onTimeClaimOnlyForLateTasks() {
-        // Open: only once the deadline has passed
-        assertFalse(TaskDeadline.canClaimOnTime(deadline, null, deadline.minusHours(1)))
-        assertTrue(TaskDeadline.canClaimOnTime(deadline, null, deadline.plusHours(1)))
-        // Done: only when ticked off late, whenever you look
-        assertTrue(TaskDeadline.canClaimOnTime(deadline, deadline.plusMinutes(5), deadline.plusDays(3)))
-        assertFalse(TaskDeadline.canClaimOnTime(deadline, deadline.minusMinutes(5), deadline.plusDays(3)))
-        // Old tasks without a deadline earn nothing either way
-        assertFalse(TaskDeadline.canClaimOnTime(null, null, deadline))
-    }
-
-    @Test
-    fun oldReminderTimeBecomesAnOffset() {
-        val zone = ZoneOffset.UTC
-        // Old default: 09:00 on the deadline day, deadline now 23:59 → 14 h 59 min before
-        val nine = day.atTime(9, 0).toInstant(zone).toEpochMilli()
-        assertEquals(14 * 60 + 59, TaskDeadline.legacyOffset(day.toEpochDay(), TaskDeadline.END_OF_DAY, nine, zone))
-        val dayBefore = day.minusDays(1).atTime(23, 59).toInstant(zone).toEpochMilli()
-        assertEquals(1440, TaskDeadline.legacyOffset(day.toEpochDay(), TaskDeadline.END_OF_DAY, dayBefore, zone))
-        // After the deadline: dropped, the push at the deadline covers it
-        val after = day.plusDays(1).atTime(8, 0).toInstant(zone).toEpochMilli()
-        assertNull(TaskDeadline.legacyOffset(day.toEpochDay(), TaskDeadline.END_OF_DAY, after, zone))
     }
 }
