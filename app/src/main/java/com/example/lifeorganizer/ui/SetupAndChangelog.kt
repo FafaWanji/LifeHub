@@ -32,6 +32,12 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.7.1", listOf(
+            Txt("PC-Zugriff: Haupt- und Unternotizen klar getrennt – ein Block pro Hauptnotiz, Unternotizen an einer Linie, direkt abhakbar"),
+            Txt("PC-Zugriff: Notiz zur Unternotiz machen oder wieder eigenständig; Labels werden angezeigt")
+        )
+    ),
+    Release(
         "1.7", listOf(
             Txt("To-Dos jetzt in den Notizen: Label „To Do“ zum Abhaken, „To Do X“ mit Termin, Erinnerungen und Eintrag im Kalender"),
             Txt("Vorhandene Labels „To Do“ und „To Do X“ übernehmen das automatisch; der Typ lässt sich unter Labels verwalten einstellen"),
