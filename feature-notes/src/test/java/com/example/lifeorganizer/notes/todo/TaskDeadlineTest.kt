@@ -11,7 +11,7 @@ import java.time.LocalDateTime
 class TaskDeadlineTest {
     private val day = LocalDate.of(2026, 10, 22)
     private val deadline = day.atTime(14, 0)
-    private val defaults = TaskDeadline.parseOffsets(TaskDeadline.DEFAULT_OFFSETS)
+    private val defaults = TaskDeadline.parseOffsets("1440,60")
 
     @Test
     fun offsetsAreParsedAndCleanedUp() {

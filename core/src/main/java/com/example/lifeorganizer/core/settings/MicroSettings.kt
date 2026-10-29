@@ -25,7 +25,7 @@ object MicroSettings {
 
     // To-dos (notes with "To Do X") and habits
     /** Reminders of a new appointment, minutes before it. */
-    val TASK_DEFAULT_OFFSETS = StringKey("task_default_offsets", "1440,60")
+    val TASK_DEFAULT_OFFSETS = StringKey("task_default_offsets", "1440,120")
     /** Time of a new appointment, minutes after midnight. */
     val TASK_DEFAULT_MINUTE = IntKey("task_default_minute", 23 * 60 + 59)
     val QUIET_HOURS = BoolKey("quiet_hours", false)

@@ -12,10 +12,10 @@ import java.time.ZoneId
 object TaskDeadline {
     /** 23:59, used when only a day is given. */
     const val END_OF_DAY = 23 * 60 + 59
-    /** 1 day and 1 hour before the deadline. */
-    const val DEFAULT_OFFSETS = "1440,60"
-    /** Offered as chips in the task dialog: 15 min, 1 h, 3 h, 1 day, 2 days, 1 week. */
-    val PRESET_OFFSETS = listOf(15, 60, 3 * 60, 24 * 60, 2 * 24 * 60, 7 * 24 * 60)
+    /** 1 day and 2 hours before the appointment. */
+    const val DEFAULT_OFFSETS = "1440,120"
+    /** Offered as chips in the appointment dialog: 2 h and 1 day (own values on top). */
+    val PRESET_OFFSETS = listOf(2 * 60, 24 * 60)
 
     /** One push: [offsetMinutes] before the deadline, 0 = at the deadline itself, negative = after a missed one. */
     data class Reminder(val at: LocalDateTime, val offsetMinutes: Int)

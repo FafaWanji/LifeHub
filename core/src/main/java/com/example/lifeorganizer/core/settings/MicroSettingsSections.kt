@@ -493,7 +493,7 @@ private fun OffsetsSetting(label: String, lang: String) {
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        (listOf(15, 60, 180, 1440, 2880, 10080) + chosen).distinct().sorted().forEach { minutes ->
+        (listOf(120, 1440) + chosen).distinct().sorted().forEach { minutes ->
             FilterChip(
                 selected = minutes in chosen,
                 onClick = {
