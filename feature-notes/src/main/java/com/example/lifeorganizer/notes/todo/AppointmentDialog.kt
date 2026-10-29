@@ -1,9 +1,11 @@
 package com.example.lifeorganizer.notes.todo
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -15,11 +17,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -34,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.example.lifeorganizer.core.i18n.LocalAppLanguage
@@ -54,7 +57,7 @@ private const val DEFAULT_TIME = 12 * 60
  * time from the clock) and the reminders before it (one at the appointment itself always comes on top).
  * [onRemove] is offered when the note already has one.
  */
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppointmentDialog(
     day: Long?, minute: Int, offsets: String,
@@ -72,52 +75,50 @@ fun AppointmentDialog(
     var pickTime by remember { mutableStateOf(false) }
     var ownOffset by remember { mutableStateOf(false) }
 
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                enabled = dateState.selectedDateMillis != null,
-                onClick = {
-                    val picked = dateState.selectedDateMillis ?: return@TextButton
-                    val m = if (allDay) TaskDeadline.END_OF_DAY else timeState.hour * 60 + timeState.minute
-                    onSave(picked / DAY_MS, m, TaskDeadline.formatOffsets(chosen))
-                }
-            ) { Text(TodoStr.save.text()) }
-        },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(TodoStr.cancel.text()) } }
-    ) {
-        Column(Modifier.verticalScroll(rememberScrollState())) {
-            DatePicker(
-                state = dateState, showModeToggle = false,
-                title = { Text(TodoStr.appointment.text(), Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp)) }
-            )
-            Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                // Time like in calendar events: all day, or a time from the clock
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(checked = allDay, onCheckedChange = { allDay = it })
-                    Text(TodoStr.allDay.text())
-                }
-                if (!allDay) OutlinedButton(onClick = { pickTime = true }, modifier = Modifier.fillMaxWidth()) {
-                    Text("${TodoStr.time.text()}: ${formatTime(timeState.hour * 60 + timeState.minute)}")
-                }
-                Text(TodoStr.remindBefore.text(), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 8.dp))
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    // Presets plus any own values the note already has
-                    (TaskDeadline.PRESET_OFFSETS + chosen).distinct().sorted().forEach { m ->
-                        FilterChip(
-                            selected = m in chosen,
-                            onClick = { chosen = if (m in chosen) chosen - m else chosen + m },
-                            label = { Text(durationLabel(m, lang)) }
-                        )
+    val save = {
+        dateState.selectedDateMillis?.let { picked ->
+            val m = if (allDay) TaskDeadline.END_OF_DAY else timeState.hour * 60 + timeState.minute
+            onSave(picked / DAY_MS, m, TaskDeadline.formatOffsets(chosen))
+        }
+    }
+    // Own dialog instead of DatePickerDialog (capped in height): calendar, time and reminders fit without scrolling
+    Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(
+            shape = MaterialTheme.shapes.extraLarge, color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            modifier = Modifier.padding(horizontal = 12.dp)
+        ) {
+            Column(Modifier.verticalScroll(rememberScrollState()).padding(bottom = 8.dp)) {
+                DatePicker(state = dateState, showModeToggle = false, title = null, headline = null)
+                Column(Modifier.padding(horizontal = 16.dp)) {
+                    // Time like in calendar events: all day, or a time from the clock
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.clickable { allDay = !allDay }) {
+                            Checkbox(checked = allDay, onCheckedChange = { allDay = it })
+                            Text(TodoStr.allDay.text())
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        if (!allDay) OutlinedButton(onClick = { pickTime = true }, modifier = Modifier.weight(1f)) {
+                            Text("${TodoStr.time.text()}: ${formatTime(timeState.hour * 60 + timeState.minute)}")
+                        }
                     }
-                    AssistChip(onClick = { ownOffset = true }, label = { Text("+ " + TodoStr.ownReminder.text()) })
-                }
-                Text(
-                    TodoStr.alwaysAtAppointment.text(), style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                if (onRemove != null) TextButton(onClick = onRemove, modifier = Modifier.fillMaxWidth()) {
-                    Text(TodoStr.remove.text(), color = MaterialTheme.colorScheme.error)
+                    Text(TodoStr.remindBefore.text(), style = MaterialTheme.typography.labelLarge, modifier = Modifier.padding(top = 4.dp))
+                    // One row to swipe through: presets plus any own values the note already has
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        (TaskDeadline.PRESET_OFFSETS + chosen).distinct().sorted().forEach { m ->
+                            FilterChip(
+                                selected = m in chosen,
+                                onClick = { chosen = if (m in chosen) chosen - m else chosen + m },
+                                label = { Text(durationLabel(m, lang)) }
+                            )
+                        }
+                        AssistChip(onClick = { ownOffset = true }, label = { Text("+ " + TodoStr.ownReminder.text()) })
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                        if (onRemove != null) TextButton(onClick = onRemove) { Text(TodoStr.remove.text(), color = MaterialTheme.colorScheme.error) }
+                        Spacer(Modifier.weight(1f))
+                        TextButton(onClick = onDismiss) { Text(TodoStr.cancel.text()) }
+                        TextButton(enabled = dateState.selectedDateMillis != null, onClick = { save() }) { Text(TodoStr.save.text()) }
+                    }
                 }
             }
         }
