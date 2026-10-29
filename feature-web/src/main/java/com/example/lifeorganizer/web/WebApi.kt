@@ -141,12 +141,23 @@ class WebApi(context: Context) {
             method == "PUT" && id != null -> {
                 val existing = noteDao.getNoteWithLabels(id)?.note?.takeIf { !it.isDeleted } ?: return ApiResponse.error(404, "not_found")
                 val j = JSONObject(body)
+                // Moving under a main note (or back out with null), one level as in the app: a note with sub-notes
+                // cannot become one, and only a main note can take it
+                val parentId = if (!j.has("parentId")) existing.parentId else if (j.isNull("parentId")) null else {
+                    val p = j.optLong("parentId")
+                    val target = noteDao.getNoteWithLabels(p)?.note
+                    if (p == id || target == null || target.isDeleted || target.parentId != null || noteDao.childCount(id) > 0) {
+                        return ApiResponse.error(400, "bad_parent")
+                    }
+                    p
+                }
                 noteDao.updateNote(
                     existing.copy(
                         title = j.optString("title", existing.title).take(500),
                         content = j.optString("content", existing.content).take(200_000),
                         isPinned = j.optBoolean("isPinned", existing.isPinned),
                         isDone = j.optBoolean("isDone", existing.isDone),
+                        parentId = parentId,
                         updatedAt = now
                     )
                 )

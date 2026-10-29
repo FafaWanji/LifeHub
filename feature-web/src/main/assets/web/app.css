@@ -68,8 +68,24 @@ main { max-width: 1200px; margin: 0 auto; padding: 20px; }
 .noteitem.active { border-color: var(--accent); background: var(--surface2); }
 .noteitem .t { font-weight: 600; }
 .noteitem .s { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.noteitem.sub { margin-left: 18px; padding: 6px 10px; }
+/* One block per main note; its sub-notes hang below it on a guide line */
+.notegroup { display: flex; flex-direction: column; border-radius: 10px; }
+.notegroup + .notegroup { border-top: 1px solid var(--line); padding-top: 6px; }
+.notegroup.has-subs { background: color-mix(in srgb, var(--surface2) 45%, transparent); padding-bottom: 6px; }
+.noteitem.main .count { display: inline-block; margin-top: 4px; font-size: 11px; color: var(--accent); }
+.subs { margin-left: 16px; padding-left: 10px; border-left: 2px solid var(--accent); display: flex; flex-direction: column; gap: 2px; }
+.subrow { display: flex; align-items: center; gap: 6px; }
+.subrow input { width: auto; flex: none; }
+.subrow .noteitem { flex: 1; min-width: 0; }
+.noteitem.sub { padding: 5px 8px; }
+.noteitem.sub .t { font-weight: 500; font-size: 14px; }
+.noteitem .s.parent { color: var(--accent); }
 .noteitem.done .t, .subnote.done span { text-decoration: line-through; color: var(--muted); }
+.editor select.move { width: auto; }
+.editor label.check { display: flex; gap: 6px; align-items: center; }
+.editor label.check input { width: auto; }
+.labels { display: flex; gap: 6px; flex-wrap: wrap; margin: -4px 0 10px; }
+.labels .label { font-size: 12px; padding: 2px 8px; border-radius: 999px; background: var(--surface2); color: var(--muted); }
 .subnotes { margin-top: 12px; border-top: 1px solid var(--surface2); padding-top: 8px; }
 .subnotes h3 { margin: 4px 0 6px; font-size: 15px; }
 .subnote { display: flex; gap: 8px; align-items: center; padding: 3px 0; }

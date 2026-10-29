@@ -33,7 +33,9 @@ const T = {
     income: 'Einnahmen', expenses: 'Ausgaben', left: 'Rest', expected: 'Noch erwartet: {0} Fixkosten', byCategory: 'Nach Kategorie',
     transactions: 'Buchungen', add: 'Hinzufügen', expense: 'Ausgabe', incomeOne: 'Einnahme', amount: 'Betrag', auto: 'Automatisch',
     noTx: 'Keine Buchungen in diesem Monat', budgetOf: '{0} von {1}', error: 'Etwas ist schiefgelaufen',
-    subNotes: 'Unternotizen', addSubNote: 'Unternotiz hinzufügen', subNoteOf: 'Unternotiz von {0}'
+    subNotes: 'Unternotizen', addSubNote: 'Unternotiz hinzufügen', subNoteOf: 'Unternotiz von {0}',
+    makeSubNote: 'Zur Unternotiz machen von …', detachSubNote: 'Eigenständige Notiz machen', doneLabel: 'Erledigt',
+    subCount: '{0} Unternotizen', subCountOne: '1 Unternotiz'
   },
   tr: {
     calendar: 'Takvim', notes: 'Notlar', money: 'Finans', logout: 'Bağlantıyı kes',
@@ -476,13 +478,31 @@ const Notes = {
   },
 
   drawList(box, shown) {
-    const grouped = !this.query;
-    box.replaceChildren(...(shown.length ? shown.map(n => el('div', {
-      class: 'noteitem' + (n.parentId && grouped ? ' sub' : '') + (n.isDone ? ' done' : '') + (this.current && this.current.id === n.id ? ' active' : ''),
-      onclick: () => this.open(n) },
-      n.parentId && !grouped ? el('div', { class: 's' }, '↳ ' + this.titleOf(n.parentId)) : null,
-      el('div', { class: 't' }, (n.parentId && grouped ? '↳ ' : '') + (n.isPinned ? '★ ' : '') + (n.title || t('untitled'))),
-      el('div', { class: 's' }, n.content.split('\n').find(l => l.trim()) || ''))) : [el('p', { class: 'muted' }, t('noNotes'))]));
+    if (!shown.length) { box.replaceChildren(el('p', { class: 'muted' }, t('noNotes'))); return; }
+    const firstLine = n => n.content.split(/\r?\n/).find(l => l.trim()) || '';
+    const item = (n, cls, extra) => el('div', {
+      class: cls + (n.isDone ? ' done' : '') + (this.current && this.current.id === n.id ? ' active' : ''), onclick: () => this.open(n) },
+      el('div', { class: 't' }, (n.isPinned ? '★ ' : '') + (n.title || t('untitled'))), el('div', { class: 's' }, firstLine(n)), ...extra);
+    // Searching: every match on its own, with its main note above
+    if (this.query) {
+      box.replaceChildren(...shown.map(n => {
+        const e = item(n, 'noteitem', []);
+        if (n.parentId) e.prepend(el('div', { class: 's parent' }, '↳ ' + this.titleOf(n.parentId)));
+        return e;
+      }));
+      return;
+    }
+    // Otherwise one block per main note, its sub-notes indented on a line below it
+    box.replaceChildren(...shown.filter(n => !n.parentId || !this.notes.some(x => x.id === n.parentId)).map(n => {
+      const subs = this.subsOf(n.id);
+      const count = subs.length ? [el('span', { class: 'count' }, subs.length === 1 ? t('subCountOne') : t('subCount', subs.length))] : [];
+      return el('div', { class: 'notegroup' + (subs.length ? ' has-subs' : '') },
+        item(n, 'noteitem main', count),
+        subs.length ? el('div', { class: 'subs' }, ...subs.map(s => el('div', { class: 'subrow' },
+          el('input', { type: 'checkbox', checked: s.isDone, title: t('doneLabel'), onclick: e => e.stopPropagation(),
+            onchange: async e => { await api('PUT', 'notes/' + s.id, { isDone: e.target.checked }); this.load(); } }),
+          item(s, 'noteitem sub', [])))) : null);
+    }));
   },
 
   open(n) {
@@ -534,7 +554,25 @@ const Notes = {
         el('span', { onclick: () => this.open(s) }, s.title || (s.content.split(/\r?\n/).find(l => l.trim()) || t('untitled'))))),
       el('button', { class: 'icon', onclick: () => this.open({ id: null, title: '', content: '', isPinned: false, parentId: n.id }) }, '+ ' + t('addSubNote'))
     ) : null;
-    return el('div', {}, parent, el('div', { class: 'row' }, title), el('div', { class: 'toolbar' }, toggle, pin, el('div', { class: 'spacer' }), status, del), text, preview, subs);
+    // Structure as in the app: a note without sub-notes can become one; a sub-note can be ticked off or stand alone again
+    const move = async parentId => {
+      await this.flush(status);
+      await api('PUT', 'notes/' + n.id, { parentId: parentId });
+      n.parentId = parentId;
+      await this.load();
+    };
+    const mains = this.notes.filter(x => !x.parentId && x.id !== n.id);
+    const structure = !n.id ? null : n.parentId ? el('div', { class: 'toolbar' },
+      el('label', { class: 'check' }, el('input', { type: 'checkbox', checked: n.isDone, onchange: async e => {
+        n.isDone = e.target.checked; await api('PUT', 'notes/' + n.id, { isDone: n.isDone }); this.load(); } }), t('doneLabel')),
+      el('button', { class: 'icon', onclick: () => move(null) }, t('detachSubNote'))
+    ) : !this.subsOf(n.id).length && mains.length ? el('div', { class: 'toolbar' },
+      el('select', { class: 'move', onchange: e => { if (e.target.value) move(Number(e.target.value)); } },
+        el('option', { value: '' }, t('makeSubNote')),
+        ...mains.map(m => el('option', { value: String(m.id) }, m.title || t('untitled'))))
+    ) : null;
+    const labels = n.labels && n.labels.length ? el('div', { class: 'labels' }, ...n.labels.map(l => el('span', { class: 'label' }, l))) : null;
+    return el('div', {}, parent, el('div', { class: 'row' }, title), labels, el('div', { class: 'toolbar' }, toggle, pin, el('div', { class: 'spacer' }), status, del), structure, text, preview, subs);
   },
 
   changed(status) {
