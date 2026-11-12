@@ -124,7 +124,7 @@ fun WebAccessScreen(onBack: () -> Unit) {
                         HorizontalDivider(Modifier.padding(vertical = 8.dp))
                         Text(WebStr.code.text(), style = MaterialTheme.typography.labelLarge)
                         Text(state.code.chunked(3).joinToString(" "), fontSize = 40.sp, fontFamily = FontFamily.Monospace, fontWeight = FontWeight.Bold)
-                        Text(WebStr.codeHint.text(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Text((if (state.code.isEmpty()) WebStr.codeLocked else WebStr.codeHint).text(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         TextButton(onClick = { WebAccessService.newCode(context) }) { Text(WebStr.newCode.text()) }
                     }
                 }

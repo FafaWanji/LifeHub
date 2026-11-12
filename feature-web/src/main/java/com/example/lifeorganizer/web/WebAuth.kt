@@ -29,7 +29,7 @@ interface TokenStore {
 
 /**
  * Pairing: the phone shows a 6-digit code, the browser sends it once and gets a long random token.
- * After 5 wrong codes a new code is drawn, so guessing does not work.
+ * After 5 wrong codes pairing is locked ([code] is empty) until [newCode], so guessing does not work.
  */
 class WebAuth(
     private val store: TokenStore,
@@ -53,8 +53,10 @@ class WebAuth(
     /** Returns the token for a correct code, else null. */
     @Synchronized
     fun pair(candidate: String, name: String): String? {
-        if (candidate.trim() != code) {
-            if (++failures >= 5) newCode()
+        if (code.isEmpty() || candidate.trim() != code) {
+            // A fresh code after 5 misses would not stop guessing (each try still hits 1 in a million),
+            // so pairing stays off until the user asks for a new code on the phone.
+            if (++failures >= 5) code = ""
             return null
         }
         val bytes = ByteArray(32).also(random::nextBytes)

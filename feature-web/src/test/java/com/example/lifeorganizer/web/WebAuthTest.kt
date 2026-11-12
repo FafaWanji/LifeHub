@@ -2,7 +2,6 @@ package com.example.lifeorganizer.web
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -36,11 +35,12 @@ class WebAuthTest {
         assertFalse(auth.verify("nonsense"))
     }
 
-    @Test fun fiveWrongCodesReplaceTheCode() {
+    @Test fun fiveWrongCodesLockPairingUntilANewCode() {
         val first = auth.code
         repeat(5) { auth.pair("wrong", "x") }
-        assertNotEquals(first, auth.code)
         assertNull(auth.pair(first, "x"))
+        assertNull(auth.pair("", "x"))
+        assertNotNull(auth.pair(auth.newCode(), "x"))
     }
 
     @Test fun codeIsSixDigits() = assertTrue(Regex("\\d{6}").matches(auth.code))

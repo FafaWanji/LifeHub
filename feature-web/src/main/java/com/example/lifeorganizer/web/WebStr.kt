@@ -19,6 +19,7 @@ object WebStr {
         "Bu kodu tarayıcıya bir kez gir. Her kullanımdan sonra değişir.",
         "Introduce este código una vez en el navegador. Cambia tras cada uso.", "在浏览器中输入一次此代码。每次使用后都会更换。"
     )
+    val codeLocked = Txt("Zu viele falsche Versuche. Tippe auf „Neuer Code“.")
     val newCode = Txt("New code", "Neuer Code", "Yeni kod", "Nuevo código", "新代码")
     val noWifi = Txt("No Wi-Fi connection found.", "Keine WLAN-Verbindung gefunden.", "Wi-Fi bağlantısı bulunamadı.", "No se encontró conexión Wi-Fi.", "未找到 Wi-Fi 连接。")
     val startFailed = Txt("Could not start (port 8080 busy?).", "Start fehlgeschlagen (Port 8080 belegt?).", "Başlatılamadı (8080 portu meşgul mü?).", "No se pudo iniciar (¿puerto 8080 ocupado?).", "无法启动（端口 8080 被占用？）。")
