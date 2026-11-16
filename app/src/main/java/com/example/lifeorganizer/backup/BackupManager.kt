@@ -65,6 +65,7 @@ class BackupManager(context: Context) {
     private val documentDao = DocumentsDatabase.getDatabase(appContext).documentDao()
     private val moneyDao = com.example.lifeorganizer.money.data.MoneyDatabase.getDatabase(appContext).moneyDao()
     private val habitDao = com.example.lifeorganizer.habits.data.HabitDatabase.getDatabase(appContext).habitDao()
+    private val releaseDao = com.example.lifeorganizer.releases.data.ReleaseDatabase.get(appContext).dao()
 
     // ================================================================== export
 
@@ -130,6 +131,7 @@ class BackupManager(context: Context) {
                 })))
             .put("money", com.example.lifeorganizer.money.data.MoneyBackup.export(moneyDao))
             .put("habits", com.example.lifeorganizer.habits.data.HabitBackup.export(habitDao))
+            .put("releases", com.example.lifeorganizer.releases.data.ReleaseBackup.export(releaseDao))
             .put("settings", exportSettings(categories.associate { it.id to it.name }))
             .put("documents", JSONObject()
                 .put("documents", JSONArray(documents.map { d ->
@@ -501,6 +503,8 @@ class BackupManager(context: Context) {
             com.example.lifeorganizer.habits.reminder.HabitReminders.scheduleAll(appContext)
         }
         com.example.lifeorganizer.notes.todo.TodoReminders.scheduleAll(appContext)
+        // Dates of imported titles are fetched by the next radar update
+        root.optJSONObject("releases")?.let { com.example.lifeorganizer.releases.data.ReleaseBackup.import(releaseDao, it) }
         root.optJSONObject("settings")?.let { importSettings(it) }
 
         if (pendingDocuments.isNotEmpty()) {
