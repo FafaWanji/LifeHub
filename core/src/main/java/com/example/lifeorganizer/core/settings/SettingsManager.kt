@@ -1,6 +1,9 @@
 package com.example.lifeorganizer.core.settings
 
 import android.content.Context
+import androidx.datastore.core.DataMigration
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -8,9 +11,37 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 
 private val Context.dataStore by preferencesDataStore(name = "lifeorganizer_settings")
+
+private val SECRET_API_KEY = stringPreferencesKey("gemini_api_key")
+
+/**
+ * The API key lives apart from the settings so Android backup can leave it out (res/xml/backup_rules.xml).
+ * A key from older versions is moved over on first read and only then removed from the settings.
+ */
+private val Context.secretStore by preferencesDataStore(
+    name = "lifeorganizer_secrets",
+    produceMigrations = { context -> listOf(moveApiKeyFrom(context.dataStore)) }
+)
+
+/** Copies the key out of [settings]; DataStore calls [DataMigration.cleanUp] (removing it there) only once the copy is saved. */
+internal fun moveApiKeyFrom(settings: DataStore<Preferences>) = object : DataMigration<Preferences> {
+    override suspend fun shouldMigrate(currentData: Preferences) = settings.data.first()[SECRET_API_KEY] != null
+
+    override suspend fun migrate(currentData: Preferences): Preferences {
+        val old = settings.data.first()[SECRET_API_KEY] ?: return currentData
+        // A key set in the new store wins over an old one (e.g. from a restored backup)
+        if (currentData[SECRET_API_KEY] != null) return currentData
+        return currentData.toMutablePreferences().apply { this[SECRET_API_KEY] = old }.toPreferences()
+    }
+
+    override suspend fun cleanUp() {
+        settings.edit { it.remove(SECRET_API_KEY) }
+    }
+}
 
 class SettingsManager(private val context: Context) {
     companion object {
@@ -20,7 +51,6 @@ class SettingsManager(private val context: Context) {
         private val USE_HOME_AS_ORIGIN = booleanPreferencesKey("use_home_as_origin")
         private val USE_BROWSER_FOR_MAPS = booleanPreferencesKey("use_browser_for_maps")
         private val NOTIFICATION_SOUND_URI = stringPreferencesKey("notification_sound_uri")
-        private val GEMINI_API_KEY = stringPreferencesKey("gemini_api_key")
         private val ENABLE_SMART_ALARMS = booleanPreferencesKey("enable_smart_alarms")
         private val USE_SYSTEM_ALARM = booleanPreferencesKey("use_system_alarm")
 
@@ -64,7 +94,7 @@ class SettingsManager(private val context: Context) {
     val useHomeAsOrigin: Flow<Boolean> = context.dataStore.data.map { it[USE_HOME_AS_ORIGIN] ?: false }
     val useBrowserForMaps: Flow<Boolean> = context.dataStore.data.map { it[USE_BROWSER_FOR_MAPS] ?: true }
     val notificationSoundUri: Flow<String?> = context.dataStore.data.map { it[NOTIFICATION_SOUND_URI] }
-    val geminiApiKey: Flow<String?> = context.dataStore.data.map { it[GEMINI_API_KEY] }
+    val geminiApiKey: Flow<String?> = context.secretStore.data.map { it[SECRET_API_KEY] }
     val enableSmartAlarms: Flow<Boolean> = context.dataStore.data.map { it[ENABLE_SMART_ALARMS] ?: false }
     val useSystemAlarmForReminders: Flow<Boolean> = context.dataStore.data.map { it[USE_SYSTEM_ALARM] ?: false }
 
@@ -80,7 +110,7 @@ class SettingsManager(private val context: Context) {
     suspend fun saveUseHomeAsOrigin(useHome: Boolean) = context.dataStore.edit { it[USE_HOME_AS_ORIGIN] = useHome }
     suspend fun saveUseBrowserForMaps(useBrowser: Boolean) = context.dataStore.edit { it[USE_BROWSER_FOR_MAPS] = useBrowser }
     suspend fun saveNotificationSoundUri(uri: String?) = context.dataStore.edit { if (uri == null) it.remove(NOTIFICATION_SOUND_URI) else it[NOTIFICATION_SOUND_URI] = uri }
-    suspend fun saveGeminiApiKey(key: String?) = context.dataStore.edit { if (key == null) it.remove(GEMINI_API_KEY) else it[GEMINI_API_KEY] = key }
+    suspend fun saveGeminiApiKey(key: String?) = context.secretStore.edit { if (key == null) it.remove(SECRET_API_KEY) else it[SECRET_API_KEY] = key }
     suspend fun saveEnableSmartAlarms(enable: Boolean) = context.dataStore.edit { it[ENABLE_SMART_ALARMS] = enable }
     suspend fun saveUseSystemAlarmForReminders(enable: Boolean) = context.dataStore.edit { it[USE_SYSTEM_ALARM] = enable }
     // Block bodies: modules without DataStore on their classpath call these (edit returns Preferences)
