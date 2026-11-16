@@ -33,8 +33,4 @@
     <string name="delete">Sil</string>
     <string name="language">Dil</string>
     <string name="system_default">Sistem Varsayılanı</string>
-    <string name="german">Deutsch</string>
-    <string name="english">English</string>
-    <string name="turkish">Türkçe</string>
-    <string name="spanish">Español</string>
 </resources>

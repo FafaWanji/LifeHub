@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">LifeHub</string>
     <string name="shortcut_new_event_short">新建日程</string>
     <string name="shortcut_new_event_long">创建新日程</string>
     <string name="shortcut_new_note_short">新建笔记</string>

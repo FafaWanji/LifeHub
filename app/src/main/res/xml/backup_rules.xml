@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android Auto Backup up to Android 11. Everything is backed up except the PC-access pairings:
+     browsers paired with the old phone must not get access to a restored one. -->
+<full-backup-content>
+    <exclude domain="sharedpref" path="web_access.xml" />
+</full-backup-content>

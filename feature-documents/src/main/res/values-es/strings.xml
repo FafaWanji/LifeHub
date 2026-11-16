@@ -33,8 +33,4 @@
     <string name="delete">Eliminar</string>
     <string name="language">Idioma</string>
     <string name="system_default">Predeterminado del sistema</string>
-    <string name="german">Deutsch</string>
-    <string name="english">English</string>
-    <string name="turkish">Türkçe</string>
-    <string name="spanish">Español</string>
 </resources>
