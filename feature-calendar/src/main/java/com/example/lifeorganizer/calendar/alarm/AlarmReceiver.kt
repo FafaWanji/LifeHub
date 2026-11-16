@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.Instant
-import java.time.Year
+import java.time.LocalDate
 import java.time.ZoneId
 
 class AlarmReceiver : BroadcastReceiver() {
@@ -89,8 +89,8 @@ class AlarmReceiver : BroadcastReceiver() {
 
                 val notificationHelper = NotificationHelper(context)
                 val birthdayMessage = if (isBirthday && birthYear > 0) {
-                    val currentYear = Year.now().value
-                    val age = currentYear - birthYear
+                    // The text says "tomorrow": on 31 Dec the birthday falls in the next year
+                    val age = LocalDate.now().plusDays(1).year - birthYear
                     "🎂 $title turns $age tomorrow!"
                 } else if (isBirthday) {
                     "🎂 $title's birthday is tomorrow!"

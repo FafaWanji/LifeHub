@@ -1,5 +1,6 @@
 package com.example.lifeorganizer.calendar.alarm
 
+import android.app.AlarmManager
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -11,9 +12,14 @@ import kotlinx.coroutines.launch
 
 class BootCompletedReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action == Intent.ACTION_BOOT_COMPLETED) {
-            DebugLogger.log("Boot completed — rescheduling alarms")
-            CoroutineScope(Dispatchers.IO).launch {
+        // After a reboot alarms are gone; after the exact-alarm permission is granted the inexact ones are re-armed exactly
+        if (intent.action != Intent.ACTION_BOOT_COMPLETED &&
+            intent.action != AlarmManager.ACTION_SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED) return
+        DebugLogger.log("${intent.action} — rescheduling alarms")
+        // Keeps the process alive until every alarm is armed again
+        val pending = goAsync()
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
                 val db = AppDatabase.getDatabase(context)
                 val events = db.eventDao().getEventsWithRemindersSync()
                 val alarmScheduler = AlarmScheduler(context)
@@ -33,6 +39,8 @@ class BootCompletedReceiver : BroadcastReceiver() {
                 }
                 RecurringAlarmSync.sync(context)
                 DefaultReminders.sync(context)
+            } finally {
+                pending.finish()
             }
         }
     }
