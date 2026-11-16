@@ -37,13 +37,16 @@ class NotesMigrationTest {
         }
 
         val room = Room.databaseBuilder(context, NotesDatabase::class.java, name)
-            .addMigrations(NotesDatabase.MIGRATION_1_2, NotesDatabase.MIGRATION_2_3, NotesDatabase.MIGRATION_3_4, NotesDatabase.MIGRATION_4_5, NotesDatabase.MIGRATION_5_6)
+            .addMigrations(NotesDatabase.MIGRATION_1_2, NotesDatabase.MIGRATION_2_3, NotesDatabase.MIGRATION_3_4, NotesDatabase.MIGRATION_4_5, NotesDatabase.MIGRATION_5_6, NotesDatabase.MIGRATION_6_7)
             .build()
         try {
             val notes = runBlocking { room.noteDao().getAllNotesWithLabelsSync() }
             assertEquals(1, notes.size)
             assertEquals("Privat", notes[0].labels.single().name)
-            assertEquals("", runBlocking { room.noteDao().getLabelsSync() }.single().template)
+            val labels = runBlocking { room.noteDao().getLabelsSync() }
+            assertEquals("", labels.single { it.name == "Privat" }.template)
+            // v7 adds the two to-do labels
+            assertEquals(setOf("Privat", "To Do", "To Do X"), labels.map { it.name }.toSet())
         } finally {
             room.close()
         }
