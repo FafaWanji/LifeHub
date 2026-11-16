@@ -73,9 +73,11 @@ class WebServer(context: Context, val port: Int = DEFAULT_PORT) {
                 val method = call.request.httpMethod.value
                 val hasBody = method == "POST" || method == "PUT"
                 // Check the size before reading: anyone on the Wi-Fi can call this, even without pairing.
-                // Browsers always send Content-Length for these requests, so a missing one is refused too.
+                // Browsers always send Content-Length for these requests, so a missing one is refused too,
+                // and so is Transfer-Encoding: a chunked body would be read past the stated length.
                 val length = call.request.headers["Content-Length"]?.toLongOrNull()
-                if (hasBody && (length == null || length > MAX_BODY_BYTES)) {
+                val chunked = call.request.headers["Transfer-Encoding"] != null
+                if (hasBody && (chunked || length == null || length > MAX_BODY_BYTES)) {
                     val r = ApiResponse.error(413, "too_large")
                     call.respondText(r.body, ContentType.Application.Json, HttpStatusCode.fromValue(r.status))
                     return
