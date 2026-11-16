@@ -71,7 +71,16 @@ class WebServer(context: Context, val port: Int = DEFAULT_PORT) {
             path == "/favicon.svg" || path == "/favicon.ico" -> asset(call, "favicon.svg", ContentType.Image.SVG)
             path.startsWith("/api/") -> {
                 val method = call.request.httpMethod.value
-                val body = if (method == "POST" || method == "PUT") call.receiveText().take(MAX_BODY) else ""
+                val hasBody = method == "POST" || method == "PUT"
+                // Check the size before reading: anyone on the Wi-Fi can call this, even without pairing.
+                // Browsers always send Content-Length for these requests, so a missing one is refused too.
+                val length = call.request.headers["Content-Length"]?.toLongOrNull()
+                if (hasBody && (length == null || length > MAX_BODY_BYTES)) {
+                    val r = ApiResponse.error(413, "too_large")
+                    call.respondText(r.body, ContentType.Application.Json, HttpStatusCode.fromValue(r.status))
+                    return
+                }
+                val body = if (hasBody) call.receiveText() else ""
                 val response = when {
                     path == "/api/info" -> api.info()
                     path == "/api/pair" && method == "POST" -> pair(body)
@@ -105,6 +114,7 @@ class WebServer(context: Context, val port: Int = DEFAULT_PORT) {
 
     companion object {
         const val DEFAULT_PORT = 8080
-        private const val MAX_BODY = 500_000
+        // About 500,000 characters even when every one needs 4 bytes in UTF-8
+        private const val MAX_BODY_BYTES = 2_000_000L
     }
 }
