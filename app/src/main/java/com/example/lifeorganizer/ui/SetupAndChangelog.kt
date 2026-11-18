@@ -32,6 +32,16 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.7.3", listOf(
+            Txt("Kalender: Erinnerungen werden nach einem Neustart zuverlässig neu gestellt, auch wenn exakte Alarme später erlaubt werden"),
+            Txt("Geburtstage: Das Alter stimmt jetzt auch bei Geburtstagen am 1. Januar"),
+            Txt("Backup: Das Release-Radar ist jetzt mit drin"),
+            Txt("Sicherheit: API-Key und PC-Kopplungen landen nicht mehr im Google-Backup"),
+            Txt("PC-Zugriff: Kopplung gesperrt nach 5 falschen Codes, bis am Handy ein neuer Code angefordert wird; zu große Anfragen werden abgelehnt"),
+            Txt("Nicht benötigte Speicher-Berechtigungen entfernt")
+        )
+    ),
+    Release(
         "1.7.2", listOf(
             Txt("PC-Zugriff: „Inhalt in Unternotiz verschieben“ wie in der App, auch bei Notizen mit Unternotizen"),
             Txt("PC-Zugriff: „Zur Unternotiz machen“ wieder entfernt")
