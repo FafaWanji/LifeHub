@@ -70,11 +70,11 @@ private fun txt(de: String) = com.example.lifeorganizer.core.i18n.Txt(de)
 
 /** The choices in the settings; the id is what is stored ([com.example.lifeorganizer.core.settings.MicroSettings.PASTEL_BACKGROUND]). */
 val PastelBackgrounds = listOf(
-    PastelBackground("blue", txt("Blau"), tones(0xFF17181D, 0xFF21232A, 0xFF2C2F38, 0xFFF1F2F6), tones(0xFFFAFAFC, 0xFFF2F3F7, 0xFFE6E8EE, 0xFF1B1D24)),
     PastelBackground("graphite", txt("Graphit"), tones(0xFF141415, 0xFF1C1C1E, 0xFF262628, 0xFFEDEDED), tones(0xFFFAFAFA, 0xFFF4F4F5, 0xFFEAEAEC, 0xFF171717)),
+    PastelBackground("blue", txt("Blau"), tones(0xFF17181D, 0xFF21232A, 0xFF2C2F38, 0xFFF1F2F6), tones(0xFFFAFAFC, 0xFFF2F3F7, 0xFFE6E8EE, 0xFF1B1D24)),
     PastelBackground("warm", txt("Warm"), tones(0xFF1A1714, 0xFF25211C, 0xFF302A24, 0xFFF2EEE8), tones(0xFFFBFAF7, 0xFFF4F1EB, 0xFFE9E4DA, 0xFF1F1B16)),
     PastelBackground("green", txt("Grün"), tones(0xFF141A17, 0xFF1D2520, 0xFF27312B, 0xFFEEF3EF), tones(0xFFF9FBFA, 0xFFF1F5F2, 0xFFE3EBE5, 0xFF18201B)),
-    PastelBackground("violet", txt("Lila"), tones(0xFF19161F, 0xFF231F2C, 0xFF2E293A, 0xFFF2F0F6), tones(0xFFFBFAFD, 0xFFF3F2F8, 0xFFE8E6F0, 0xFF1D1B24)),
+    PastelBackground("violet", txt("Lila"), tones(0xFF1C1624, 0xFF282032, 0xFF352A42, 0xFFF3EFF8), tones(0xFFFBF9FE, 0xFFF4F0FA, 0xFFE9E2F4, 0xFF1E1A26)),
     PastelBackground("rose", txt("Rosa"), tones(0xFF1C1619, 0xFF272024, 0xFF332A2F, 0xFFF5EFF1), tones(0xFFFCFAFB, 0xFFF6F1F3, 0xFFECE4E8, 0xFF221B1E))
 )
 
@@ -87,7 +87,7 @@ fun PastelTheme(
     val accent = accentColor?.let { Color(it) } ?: MistBlue
     // Surfaces picked in the settings; an unknown id (e.g. from a newer backup) falls back to blue
     val chosen = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.PASTEL_BACKGROUND)
-    val t = (PastelBackgrounds.firstOrNull { it.id == chosen } ?: PastelBackgrounds.first()).tones(darkTheme)
+    val t = (PastelBackgrounds.firstOrNull { it.id == chosen } ?: PastelBackgrounds.first { it.id == "blue" }).tones(darkTheme)
     // The chrome stays neutral (graphite selections and chips); the accent marks actions, amber marks deadlines
     val colorScheme = if (darkTheme) {
         accentScheme(
