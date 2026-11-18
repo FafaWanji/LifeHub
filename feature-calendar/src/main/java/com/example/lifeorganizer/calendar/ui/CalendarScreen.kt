@@ -100,7 +100,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.horizontalScroll
 import java.time.LocalTime
 import java.time.Month
-import com.example.lifeorganizer.calendar.util.IcsExporter
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -194,7 +193,6 @@ fun CalendarScreen(
     var editingEvent by remember { mutableStateOf<EventWithReminders?>(null) }
     var showAddDialog by remember { mutableStateOf(false) }
     var showSettings by remember { mutableStateOf(false) }
-    var showExportDialog by remember { mutableStateOf(false) }
     var showJumpDialog by remember { mutableStateOf(false) }
     var showSearch by remember { mutableStateOf(false) }
     var showDeleteConfirm by remember { mutableStateOf<EventWithReminders?>(null) }
@@ -840,29 +838,7 @@ fun CalendarScreen(
         if (showSettings) {
             SettingsDialog(
                 viewModel = viewModel,
-                onClose = { showSettings = false; onSettingsClosed() },
-                onExport = { showExportDialog = true }
-            )
-        }
-
-        if (showExportDialog) {
-            ExportOptionsDialog(
-                categories = categories,
-                onDismiss = { showExportDialog = false },
-                onExport = { exportAll, exportBirthdays, selectedCategoryIds ->
-                    // Masters only: exporting expanded occurrences duplicated every series on import.
-                    val eventsToExport = if (exportAll) {
-                        masterEvents
-                    } else {
-                        masterEvents.filter { event ->
-                            (exportBirthdays && event.event.isBirthday) ||
-                            (event.event.categoryId != null && selectedCategoryIds.contains(event.event.categoryId))
-                        }
-                    }
-                    val uri = IcsExporter.exportEvents(context, eventsToExport)
-                    uri?.let { IcsExporter.shareIcs(context, it) }
-                    showExportDialog = false
-                }
+                onClose = { showSettings = false; onSettingsClosed() }
             )
         }
 
@@ -1452,8 +1428,7 @@ fun Day(
 @Composable
 fun SettingsDialog(
     viewModel: MainViewModel,
-    onClose: () -> Unit,
-    onExport: () -> Unit
+    onClose: () -> Unit
 ) {
     val homeAddress by viewModel.homeAddress.collectAsState()
     val travelMode by viewModel.travelMode.collectAsState()
@@ -1902,12 +1877,6 @@ fun SettingsDialog(
                             )
                             DeviceCalendarRow(viewModel)
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
-                            ListItem(
-                                headlineContent = { Text(Translations.get(TransKey.EXPORT, lang)) },
-                                modifier = Modifier.clickable { onExport() },
-                                trailingContent = { Icon(androidx.compose.material.icons.Icons.Default.Share, contentDescription = null) },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                            )
                             
                             ListItem(
                                 headlineContent = { Text(Translations.get(TransKey.IMPORT, lang)) },
