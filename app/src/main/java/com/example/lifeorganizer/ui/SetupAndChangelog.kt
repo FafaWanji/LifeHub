@@ -32,6 +32,12 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.8.1", listOf(
+            Txt("Neues Design auch für Release-Radar, Waypoints, Dokumente, Smart Add und die Widgets"),
+            Txt("Kalender-Import in den Einstellungen entfernt – .ics-Dateien importierst du unter Menü → Backup & Import")
+        )
+    ),
+    Release(
         "1.8", listOf(
             Txt("Neues Design: ruhigere Schrift und Formen, Menü und Kalender aufgeräumt, Finanzen zeigen den Rest groß oben"),
             Txt("Hintergrund für das Pastell-Design wählbar: Graphit, Blau, Warm, Grün, Lila oder Rosa"),
