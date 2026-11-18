@@ -136,6 +136,24 @@ const ICONS = {
   dark: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>'
 };
 
+/** The phone's look: background tint (data-bg, the stylesheet has the tones) and accent colour (none: the page's ink blue). */
+function applyLook(o) {
+  const root = document.documentElement;
+  if (o.background && root.dataset.bg !== o.background) root.dataset.bg = o.background;
+  if (o.accent === undefined || applyLook.accent === o.accent) return;
+  applyLook.accent = o.accent;
+  if (!o.accent) { ['--acc-l', '--acc-d', '--acc-d-on'].forEach(p => root.style.removeProperty(p)); return; }
+  const rgb = [1, 3, 5].map(i => parseInt(o.accent.substr(i, 2), 16));
+  const lum = c => { const [r, g, b] = c.map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); }); return 0.2126 * r + 0.7152 * g + 0.0722 * b; };
+  // Light mode: darken until white text on it reads (4.5:1), as the app does for light accents like Lemon
+  let light = rgb, step = 0;
+  while (1.05 / (lum(light) + 0.05) < 4.5 && step < 20) { step++; light = rgb.map(v => Math.round(v * (1 - 0.05 * step))); }
+  const hex = c => '#' + c.map(v => v.toString(16).padStart(2, '0')).join('');
+  root.style.setProperty('--acc-l', hex(light));
+  root.style.setProperty('--acc-d', o.accent);
+  root.style.setProperty('--acc-d-on', lum(rgb) > 0.3 ? '#0f1320' : '#ffffff');
+}
+
 // Light or dark: the system's choice unless one is picked in the sidebar. Only this browser remembers it.
 const THEMES = ['system', 'light', 'dark'];
 function storedTheme() { try { return localStorage.getItem('lh_theme') || 'system'; } catch (e) { return 'system'; } }
@@ -370,7 +388,9 @@ async function poll() {
   // A tab in the background does not ask: the phone can sleep, and PC access ends itself after 30 idle minutes
   if (document.hidden) return;
   try {
-    const v = (await api('GET', 'changes')).version;
+    const changed = await api('GET', 'changes');
+    applyLook(changed);
+    const v = changed.version;
     if (version !== null && v !== version && !document.querySelector('.backdrop') && !busy()) render();
     version = v;
   } catch (e) { /* toast already shown */ }
@@ -862,8 +882,7 @@ const Money = {
     const info = await (await fetch('/api/info')).json();
     if (T[info.lang]) lang = info.lang;
     financeOn = info.finance !== false;
-    // Same background tint as the app; the stylesheet has the tones for each
-    if (info.background) document.documentElement.dataset.bg = info.background;
+    applyLook(info);
   } catch (e) { /* default language */ }
   document.documentElement.lang = lang;
   document.title = 'LifeHub';

@@ -86,6 +86,7 @@
 
         <receiver
             android:name=".widgets.SmartAddWidgetReceiver"
+            android:label="@string/widget_name_smart_add"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -97,6 +98,7 @@
 
         <receiver
             android:name=".widgets.NoteWidgetReceiver"
+            android:label="@string/widget_name_note"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -108,6 +110,7 @@
 
         <receiver
             android:name=".widgets.HabitsWidgetReceiver"
+            android:label="@string/widget_name_habits"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -156,6 +159,7 @@
         <!-- Agenda Widget (Migrated from feature-calendar) -->
         <receiver
             android:name="com.example.lifeorganizer.calendar.widget.CalendarWidgetReceiver"
+            android:label="@string/widget_name_calendar"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

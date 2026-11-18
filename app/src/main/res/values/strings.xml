@@ -14,4 +14,9 @@
     <string name="note_widget_untitled">Untitled</string>
     <string name="note_widget_description">Your pinned note with tickable checklist</string>
     <string name="habits_widget_description">Your next habits and tasks to tick off</string>
+    <!-- Widget names in the launcher's widget picker -->
+    <string name="widget_name_smart_add">Schnell hinzufügen</string>
+    <string name="widget_name_note">Angeheftete Notiz</string>
+    <string name="widget_name_habits">Gewohnheiten &amp; To-dos</string>
+    <string name="widget_name_calendar">Nächste Termine</string>
 </resources>

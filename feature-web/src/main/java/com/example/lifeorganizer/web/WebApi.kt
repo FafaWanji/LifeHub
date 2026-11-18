@@ -41,20 +41,31 @@ class WebApi(context: Context) {
     private suspend fun financeOn() = AppModule.FINANCE in settings.enabledModules.first()
 
     suspend fun info(): ApiResponse = ApiResponse.ok(
-        JSONObject().put("app", "LifeHub").put("lang", lang()).put("finance", financeOn()).put("background", background())
+        look(JSONObject().put("app", "LifeHub").put("lang", lang()).put("finance", financeOn()))
     )
 
-    /** The app's background tint, so the browser page looks like the phone; only Pastel has a choice, the others are grey. */
-    private suspend fun background(): String =
-        if (settings.designStyle.first() == "pastel")
-            com.example.lifeorganizer.core.settings.MicroSettings.get(app, com.example.lifeorganizer.core.settings.MicroSettings.PASTEL_BACKGROUND)
-        else "graphite"
+    /**
+     * The app's look, so the browser page matches the phone: the background tint (only Pastel has a choice, the
+     * others are grey) and the accent of Pastel and Neon ("#rrggbb"; none for the other designs, the page keeps its ink blue).
+     * Sent with every poll of /api/changes too, so a change on the phone shows without reloading.
+     */
+    private suspend fun look(o: JSONObject): JSONObject {
+        val style = settings.designStyle.first()
+        val micro = com.example.lifeorganizer.core.settings.MicroSettings
+        val accent = when (style) {
+            "pastel" -> settings.accentColor.first() ?: com.example.lifeorganizer.core.theme.AccentPalette.pastel.first()
+            "neon" -> settings.accentColor.first() ?: com.example.lifeorganizer.core.theme.AccentPalette.neon.first()
+            else -> null
+        }
+        return o.put("background", if (style == "pastel") micro.get(app, micro.PASTEL_BACKGROUND) else "graphite")
+            .put("accent", accent?.let { "#%06x".format(it and 0xFFFFFF) } ?: JSONObject.NULL)
+    }
 
     suspend fun handle(method: String, path: String, query: Map<String, String>, body: String): ApiResponse = runCatching {
         val parts = path.removePrefix("/api/").trim('/').split('/')
         val id = parts.getOrNull(2)?.toLongOrNull()
         when {
-            parts == listOf("changes") -> ApiResponse.ok(JSONObject().put("version", changes.version.get()))
+            parts == listOf("changes") -> ApiResponse.ok(look(JSONObject().put("version", changes.version.get())))
             parts[0] == "calendar" -> calendar(method, parts, id, query, body)
             parts[0] == "notes" -> notes(method, parts.getOrNull(1)?.toLongOrNull(), body)
             // Switched off in the app: hidden here too, the data itself stays

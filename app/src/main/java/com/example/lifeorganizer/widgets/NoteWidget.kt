@@ -48,9 +48,9 @@ class NoteWidget : GlanceAppWidget() {
 
     @Composable
     private fun Content(context: Context, note: Note?) {
-        val surface = ColorProvider(R.color.widget_surface)
+        val surface = com.example.lifeorganizer.calendar.widget.rememberWidgetColors().surface
         val accent = ColorProvider(R.color.widget_accent)
-        val muted = ColorProvider(R.color.widget_muted)
+        val muted = com.example.lifeorganizer.calendar.widget.rememberWidgetColors().muted
         Column(
             modifier = GlanceModifier.fillMaxSize().background(surface).cornerRadius(20.dp).padding(16.dp)
         ) {
@@ -65,7 +65,7 @@ class NoteWidget : GlanceAppWidget() {
             Text(
                 note.title.ifBlank { context.getString(R.string.note_widget_untitled) },
                 maxLines = 1,
-                style = TextStyle(color = ColorProvider(R.color.widget_on_surface), fontSize = 16.sp, fontWeight = FontWeight.Medium),
+                style = TextStyle(color = com.example.lifeorganizer.calendar.widget.rememberWidgetColors().onSurface, fontSize = 16.sp, fontWeight = FontWeight.Medium),
                 modifier = GlanceModifier.fillMaxWidth().padding(bottom = 8.dp)
                     .clickable(actionStartActivity(openApp(context, note.id)))
             )
@@ -78,7 +78,7 @@ class NoteWidget : GlanceAppWidget() {
                         Text(
                             (if (done) "☑ " else "☐ ") + box.groupValues[2],
                             style = TextStyle(
-                                color = if (done) muted else ColorProvider(R.color.widget_on_surface),
+                                color = if (done) muted else com.example.lifeorganizer.calendar.widget.rememberWidgetColors().onSurface,
                                 fontSize = 14.sp,
                                 textDecoration = if (done) TextDecoration.LineThrough else TextDecoration.None
                             ),
@@ -90,7 +90,7 @@ class NoteWidget : GlanceAppWidget() {
                         Text(
                             line.trimStart('#', ' ', '-', '*'),
                             maxLines = 2,
-                            style = TextStyle(color = ColorProvider(R.color.widget_on_surface), fontSize = 14.sp),
+                            style = TextStyle(color = com.example.lifeorganizer.calendar.widget.rememberWidgetColors().onSurface, fontSize = 14.sp),
                             modifier = GlanceModifier.fillMaxWidth().padding(vertical = 2.dp)
                                 .clickable(actionStartActivity(openApp(context, note.id)))
                         )

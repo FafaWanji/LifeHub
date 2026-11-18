@@ -2,6 +2,7 @@ package com.example.lifeorganizer.core.settings
 
 import android.content.Context
 import android.content.SharedPreferences
+import kotlinx.coroutines.channels.awaitClose
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -124,6 +125,15 @@ object MicroSettings {
             is StringKey -> p.getString(key.name, key.default) ?: key.default
             is SetKey -> p.getStringSet(key.name, key.default)?.toSet() ?: key.default
         } as T
+    }
+
+    /** The value now and after every change, for places without a Compose UI context (e.g. a widget that stays open). */
+    fun <T> flow(context: Context, key: Key<T>): kotlinx.coroutines.flow.Flow<T> = kotlinx.coroutines.flow.callbackFlow {
+        val p = prefs(context)
+        trySend(get(context, key))
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, changed -> if (changed == key.name) trySend(get(context, key)) }
+        p.registerOnSharedPreferenceChangeListener(listener)
+        awaitClose { p.unregisterOnSharedPreferenceChangeListener(listener) }
     }
 
     fun <T> set(context: Context, key: Key<T>, value: T) {

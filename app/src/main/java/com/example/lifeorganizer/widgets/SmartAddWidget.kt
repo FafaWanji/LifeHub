@@ -44,9 +44,9 @@ class SmartAddWidget : GlanceAppWidget() {
 
     @Composable
     private fun SmartEntry(context: Context) {
-        val surface = ColorProvider(R.color.widget_surface)
+        val surface = com.example.lifeorganizer.calendar.widget.rememberWidgetColors().surface
         val accent = ColorProvider(R.color.widget_accent)
-        val muted = ColorProvider(R.color.widget_muted)
+        val muted = com.example.lifeorganizer.calendar.widget.rememberWidgetColors().muted
 
         Row(
             modifier = GlanceModifier
@@ -63,7 +63,7 @@ class SmartAddWidget : GlanceAppWidget() {
                 verticalAlignment = Alignment.Vertical.CenterVertically
             ) {
                 Image(
-                    provider = ImageProvider(R.drawable.ic_widget_sparkle),
+                    provider = ImageProvider(R.drawable.ic_widget_edit),
                     contentDescription = null,
                     colorFilter = ColorFilter.tint(accent),
                     modifier = GlanceModifier.size(20.dp)

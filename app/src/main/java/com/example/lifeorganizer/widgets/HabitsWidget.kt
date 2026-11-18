@@ -116,10 +116,11 @@ class HabitsWidget : GlanceAppWidget() {
 
     @Composable
     private fun Content(context: Context, lang: String, filter: WidgetFilter, rows: List<WidgetRow>, moduleOn: Boolean) {
-        val surface = ColorProvider(R.color.widget_surface)
+        val colors = com.example.lifeorganizer.calendar.widget.rememberWidgetColors()
+        val surface = colors.surface
         val accent = ColorProvider(R.color.widget_accent)
-        val muted = ColorProvider(R.color.widget_muted)
-        val onSurface = ColorProvider(R.color.widget_on_surface)
+        val muted = colors.muted
+        val onSurface = colors.onSurface
         val open = actionStartActivity(openApp(context))
 
         Column(modifier = GlanceModifier.fillMaxSize().background(surface).cornerRadius(20.dp).padding(16.dp)) {
@@ -137,7 +138,7 @@ class HabitsWidget : GlanceAppWidget() {
                             WidgetFilter.HABITS -> HabitsStr.habits
                         }.of(lang) + " ▾",
                         style = TextStyle(color = onSurface, fontSize = 12.sp),
-                        modifier = GlanceModifier.background(ColorProvider(R.color.widget_chip)).cornerRadius(8.dp)
+                        modifier = GlanceModifier.background(colors.chip).cornerRadius(8.dp)
                             .padding(horizontal = 10.dp, vertical = 4.dp)
                             .clickable(actionRunCallback<CycleWidgetFilter>())
                     )

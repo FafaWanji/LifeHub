@@ -31,7 +31,8 @@
   /* Light: the page in the tint, cards a touch lighter, the sidebar one step deeper */
   --bg: var(--l-bg); --side: var(--l-surface); --surface: color-mix(in srgb, var(--l-bg) 35%, #fff); --raised: var(--l-surface);
   --text: var(--l-text);
-  --accent: #2f5bd3; --accent-ink: #2449b3; --accent-soft: rgba(47, 91, 211, .10); --on-accent: #ffffff;
+  --accent: var(--acc-l, #2f5bd3); --accent-ink: color-mix(in srgb, var(--accent) 85%, #000);
+  --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent); --on-accent: #ffffff;
   --pos: #16a34a; --neg: #dc2626; --warn: #b7791f;
   --shadow: 0 1px 2px rgba(0, 0, 0, .05); --float: 0 8px 24px rgba(0, 0, 0, .08);
   --ease: cubic-bezier(.22, 1, .36, 1);
@@ -44,7 +45,8 @@
   :root:not([data-theme="light"]) {
     --bg: var(--d-bg); --side: color-mix(in srgb, var(--d-bg) 70%, #000); --surface: var(--d-surface); --raised: var(--d-raised);
     --text: var(--d-text);
-    --accent: #8aa8ff; --accent-ink: #9db6ff; --accent-soft: rgba(138, 168, 255, .14); --on-accent: #0f1320;
+    --accent: var(--acc-d, #8aa8ff); --accent-ink: color-mix(in srgb, var(--accent) 80%, #fff);
+    --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent); --on-accent: var(--acc-d-on, #0f1320);
     --pos: #4cc38a; --neg: #e5484d; --warn: #e0b45c;
     --shadow: none; --float: 0 8px 24px rgba(0, 0, 0, .4);
     color-scheme: dark;
@@ -53,7 +55,8 @@
 :root[data-theme="dark"] {
   --bg: var(--d-bg); --side: color-mix(in srgb, var(--d-bg) 70%, #000); --surface: var(--d-surface); --raised: var(--d-raised);
   --text: var(--d-text);
-  --accent: #8aa8ff; --accent-ink: #9db6ff; --accent-soft: rgba(138, 168, 255, .14); --on-accent: #0f1320;
+  --accent: var(--acc-d, #8aa8ff); --accent-ink: color-mix(in srgb, var(--accent) 80%, #fff);
+  --accent-soft: color-mix(in srgb, var(--accent) 14%, transparent); --on-accent: var(--acc-d-on, #0f1320);
   --pos: #4cc38a; --neg: #e5484d; --warn: #e0b45c;
   --shadow: none; --float: 0 8px 24px rgba(0, 0, 0, .4);
   color-scheme: dark;

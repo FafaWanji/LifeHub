@@ -60,5 +60,13 @@ class LifeHubApplication : WaypointsApplication() {
         if (key == MicroSettings.WIDGET_BIRTHDAYS.name || key == MicroSettings.DATE_ORDER.name) {
             scope.launch { runCatching { com.example.lifeorganizer.calendar.widget.CalendarWidget().updateAll(this@LifeHubApplication) } }
         }
+        // Widgets take their colours from the background, so all of them redraw
+        if (key == MicroSettings.PASTEL_BACKGROUND.name) scope.launch {
+            val app = this@LifeHubApplication
+            runCatching { com.example.lifeorganizer.widgets.HabitsWidget().updateAll(app) }
+            runCatching { com.example.lifeorganizer.widgets.NoteWidget().updateAll(app) }
+            runCatching { com.example.lifeorganizer.widgets.SmartAddWidget().updateAll(app) }
+            runCatching { com.example.lifeorganizer.calendar.widget.CalendarWidget().updateAll(app) }
+        }
     }
 }

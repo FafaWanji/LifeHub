@@ -53,11 +53,11 @@ class CalendarWidget : GlanceAppWidget() {
     private fun WidgetContent(events: List<WidgetEvent>, lang: String) {
         val S = com.example.lifeorganizer.core.i18n.Str
         val dateFormatter = com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "EEEMMMdd")
-        val surface = ColorProvider(R.color.widget_surface)
-        val onSurface = ColorProvider(R.color.widget_on_surface)
-        val muted = ColorProvider(R.color.widget_muted)
+        val surface = rememberWidgetColors().surface
+        val onSurface = rememberWidgetColors().onSurface
+        val muted = rememberWidgetColors().muted
         val accent = ColorProvider(R.color.widget_accent)
-        val card = ColorProvider(R.color.widget_chip)
+        val card = rememberWidgetColors().chip
         val zone = ZoneId.systemDefault()
         val today = LocalDate.now()
         val now = System.currentTimeMillis()
