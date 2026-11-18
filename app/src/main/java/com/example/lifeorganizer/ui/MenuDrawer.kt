@@ -94,13 +94,6 @@ fun MenuDrawerSheet(
                 selected = currentView == ActiveView.HABITS,
                 onClick = { onNavigate(ActiveView.HABITS) }
             )
-            if (AppModule.FINANCE in enabledModules) DrawerEntry(
-                selectedIcon = Icons.Filled.Savings,
-                icon = Icons.Outlined.Savings,
-                label = Str.finance.text(),
-                selected = currentView == ActiveView.MONEY,
-                onClick = { onNavigate(ActiveView.MONEY) }
-            )
 
             HorizontalDivider(
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
@@ -108,6 +101,13 @@ fun MenuDrawerSheet(
             )
 
             SectionLabel(Str.tools.text())
+            if (AppModule.FINANCE in enabledModules) DrawerEntry(
+                selectedIcon = Icons.Filled.Savings,
+                icon = Icons.Outlined.Savings,
+                label = Str.finance.text(),
+                selected = currentView == ActiveView.MONEY,
+                onClick = { onNavigate(ActiveView.MONEY) }
+            )
             if (AppModule.RELEASES in enabledModules) DrawerEntry(
                 selectedIcon = Icons.Filled.NewReleases,
                 icon = Icons.Outlined.NewReleases,
