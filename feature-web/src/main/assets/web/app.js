@@ -862,6 +862,8 @@ const Money = {
     const info = await (await fetch('/api/info')).json();
     if (T[info.lang]) lang = info.lang;
     financeOn = info.finance !== false;
+    // Same background tint as the app; the stylesheet has the tones for each
+    if (info.background) document.documentElement.dataset.bg = info.background;
   } catch (e) { /* default language */ }
   document.documentElement.lang = lang;
   document.title = 'LifeHub';

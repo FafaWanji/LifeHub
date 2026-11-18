@@ -41,8 +41,14 @@ class WebApi(context: Context) {
     private suspend fun financeOn() = AppModule.FINANCE in settings.enabledModules.first()
 
     suspend fun info(): ApiResponse = ApiResponse.ok(
-        JSONObject().put("app", "LifeHub").put("lang", lang()).put("finance", financeOn())
+        JSONObject().put("app", "LifeHub").put("lang", lang()).put("finance", financeOn()).put("background", background())
     )
+
+    /** The app's background tint, so the browser page looks like the phone; only Pastel has a choice, the others are grey. */
+    private suspend fun background(): String =
+        if (settings.designStyle.first() == "pastel")
+            com.example.lifeorganizer.core.settings.MicroSettings.get(app, com.example.lifeorganizer.core.settings.MicroSettings.PASTEL_BACKGROUND)
+        else "graphite"
 
     suspend fun handle(method: String, path: String, query: Map<String, String>, body: String): ApiResponse = runCatching {
         val parts = path.removePrefix("/api/").trim('/').split('/')
