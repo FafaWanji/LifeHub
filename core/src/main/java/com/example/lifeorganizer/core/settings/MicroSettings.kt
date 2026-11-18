@@ -86,7 +86,7 @@ object MicroSettings {
 
     // Appearance
     val COMPACT = BoolKey("compact", false)
-    /** Pastel design: "blue" (blue-tinted surfaces, the earlier look) or "graphite" (neutral grey). */
+    /** Pastel design: background tint id from [com.example.lifeorganizer.core.theme.PastelBackgrounds] ("blue", the earlier look, by default). */
     val PASTEL_BACKGROUND = StringKey("pastel_background", "blue")
     /** ActiveView name the app opens with. */
     val START_SCREEN = StringKey("start_screen", "CALENDAR")

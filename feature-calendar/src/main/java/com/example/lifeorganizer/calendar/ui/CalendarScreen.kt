@@ -64,6 +64,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -486,10 +488,10 @@ fun CalendarScreen(
                                         containerColor = MaterialTheme.colorScheme.surfaceContainer
                                     )
                                 ) {
-                                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                                    Column(modifier = Modifier.padding(12.dp)) {
                                         Text(
                                             Translations.get(TransKey.UPCOMING_EVENTS, lang),
-                                            style = MaterialTheme.typography.labelMedium,
+                                            style = MaterialTheme.typography.labelSmall,
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                         upcomingEvents.take(3).forEach { event ->
@@ -507,12 +509,12 @@ fun CalendarScreen(
                                                 ageText
                                             } else ""
                                             Row(
-                                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                                modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 Text(
                                                     "• ${event.event.title}$birthdayBadge",
-                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    style = MaterialTheme.typography.bodySmall,
                                                     maxLines = 1,
                                                     overflow = TextOverflow.Ellipsis,
                                                     modifier = Modifier.weight(1f)
@@ -1583,10 +1585,11 @@ fun SettingsDialog(
                                         label = { Text(Translations.get(TransKey.SYSTEM_DEFAULT, lang)) }
                                     )
                                 }
-                                // Blue-tinted (the earlier look) or neutral graphite surfaces
+                                // Background tint of the surfaces, shown as circles in the current light/dark tone
                                 val micro = com.example.lifeorganizer.core.settings.MicroSettings
                                 val background = com.example.lifeorganizer.core.settings.rememberMicro(micro.PASTEL_BACKGROUND)
                                 val settingsContext = androidx.compose.ui.platform.LocalContext.current
+                                val darkNow = isDarkTheme ?: androidx.compose.foundation.isSystemInDarkTheme()
                                 Text(
                                     text = com.example.lifeorganizer.core.i18n.Txt("Hintergrund").of(lang),
                                     style = MaterialTheme.typography.labelMedium,
@@ -1596,15 +1599,31 @@ fun SettingsDialog(
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
+                                        .horizontalScroll(rememberScrollState())
                                         .padding(horizontal = 16.dp, vertical = 4.dp),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    listOf("blue" to com.example.lifeorganizer.core.i18n.Txt("Blau"), "graphite" to com.example.lifeorganizer.core.i18n.Txt("Graphit")).forEach { (id, label) ->
-                                        FilterChip(
-                                            selected = background == id,
-                                            onClick = { micro.set(settingsContext, micro.PASTEL_BACKGROUND, id) },
-                                            label = { Text(label.of(lang)) }
-                                        )
+                                    com.example.lifeorganizer.core.theme.PastelBackgrounds.forEach { option ->
+                                        val isSelected = background == option.id
+                                        val tones = option.tones(darkNow)
+                                        val name = option.name.of(lang)
+                                        // Page colour with the card colour inside, so the tint reads even when it is subtle
+                                        Box(
+                                            modifier = Modifier
+                                                .size(40.dp)
+                                                .background(color = tones.background, shape = CircleShape)
+                                                .border(
+                                                    width = if (isSelected) 3.dp else 1.dp,
+                                                    color = if (isSelected) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.outline,
+                                                    shape = CircleShape
+                                                )
+                                                .semantics { contentDescription = name }
+                                                .clickable { micro.set(settingsContext, micro.PASTEL_BACKGROUND, option.id) },
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Box(Modifier.size(18.dp).background(tones.variant, CircleShape))
+                                        }
                                     }
                                 }
                             }

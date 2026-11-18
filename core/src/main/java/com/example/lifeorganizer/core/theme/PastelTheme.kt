@@ -57,6 +57,27 @@ private fun readable(c: Color, on: Color): Color {
     return out
 }
 
+/** Surface tones of one background: page, cards, raised parts, text. */
+class Tones(val background: Color, val surface: Color, val variant: Color, val text: Color)
+
+/** A Pastel background. Tints stay low so the accent and the calendar's colours still lead. */
+class PastelBackground(val id: String, val name: com.example.lifeorganizer.core.i18n.Txt, val dark: Tones, val light: Tones) {
+    fun tones(dark: Boolean) = if (dark) this.dark else light
+}
+
+private fun tones(bg: Long, surface: Long, variant: Long, text: Long) = Tones(Color(bg), Color(surface), Color(variant), Color(text))
+private fun txt(de: String) = com.example.lifeorganizer.core.i18n.Txt(de)
+
+/** The choices in the settings; the id is what is stored ([com.example.lifeorganizer.core.settings.MicroSettings.PASTEL_BACKGROUND]). */
+val PastelBackgrounds = listOf(
+    PastelBackground("blue", txt("Blau"), tones(0xFF17181D, 0xFF21232A, 0xFF2C2F38, 0xFFF1F2F6), tones(0xFFFAFAFC, 0xFFF2F3F7, 0xFFE6E8EE, 0xFF1B1D24)),
+    PastelBackground("graphite", txt("Graphit"), tones(0xFF141415, 0xFF1C1C1E, 0xFF262628, 0xFFEDEDED), tones(0xFFFAFAFA, 0xFFF4F4F5, 0xFFEAEAEC, 0xFF171717)),
+    PastelBackground("warm", txt("Warm"), tones(0xFF1A1714, 0xFF25211C, 0xFF302A24, 0xFFF2EEE8), tones(0xFFFBFAF7, 0xFFF4F1EB, 0xFFE9E4DA, 0xFF1F1B16)),
+    PastelBackground("green", txt("Grün"), tones(0xFF141A17, 0xFF1D2520, 0xFF27312B, 0xFFEEF3EF), tones(0xFFF9FBFA, 0xFFF1F5F2, 0xFFE3EBE5, 0xFF18201B)),
+    PastelBackground("violet", txt("Lila"), tones(0xFF19161F, 0xFF231F2C, 0xFF2E293A, 0xFFF2F0F6), tones(0xFFFBFAFD, 0xFFF3F2F8, 0xFFE8E6F0, 0xFF1D1B24)),
+    PastelBackground("rose", txt("Rosa"), tones(0xFF1C1619, 0xFF272024, 0xFF332A2F, 0xFFF5EFF1), tones(0xFFFCFAFB, 0xFFF6F1F3, 0xFFECE4E8, 0xFF221B1E))
+)
+
 @Composable
 fun PastelTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -64,8 +85,9 @@ fun PastelTheme(
     content: @Composable () -> Unit
 ) {
     val accent = accentColor?.let { Color(it) } ?: MistBlue
-    // Surfaces: blue-tinted (the earlier look) or neutral graphite, picked in the settings
-    val blue = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.PASTEL_BACKGROUND) != "graphite"
+    // Surfaces picked in the settings; an unknown id (e.g. from a newer backup) falls back to blue
+    val chosen = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.PASTEL_BACKGROUND)
+    val t = (PastelBackgrounds.firstOrNull { it.id == chosen } ?: PastelBackgrounds.first()).tones(darkTheme)
     // The chrome stays neutral (graphite selections and chips); the accent marks actions, amber marks deadlines
     val colorScheme = if (darkTheme) {
         accentScheme(
@@ -73,10 +95,10 @@ fun PastelTheme(
             secondaryAccent = Graphite,
             tertiaryAccent = PeachCream,
             dark = true,
-            background = if (blue) Color(0xFF17181D) else Color(0xFF141415),
-            surface = if (blue) Color(0xFF21232A) else Color(0xFF1C1C1E),
-            surfaceVariant = if (blue) Color(0xFF2C2F38) else Color(0xFF262628),
-            onBackground = if (blue) Color(0xFFF1F2F6) else Color(0xFFEDEDED)
+            background = t.background,
+            surface = t.surface,
+            surfaceVariant = t.variant,
+            onBackground = t.text
         )
     } else {
         accentScheme(
@@ -84,10 +106,10 @@ fun PastelTheme(
             secondaryAccent = Graphite,
             tertiaryAccent = PeachCream,
             dark = false,
-            background = if (blue) Color(0xFFFAFAFC) else Color(0xFFFAFAFA),
-            surface = if (blue) Color(0xFFF2F3F7) else Color(0xFFF4F4F5),
-            surfaceVariant = if (blue) Color(0xFFE6E8EE) else Color(0xFFEAEAEC),
-            onBackground = if (blue) Color(0xFF1B1D24) else Color(0xFF171717)
+            background = t.background,
+            surface = t.surface,
+            surfaceVariant = t.variant,
+            onBackground = t.text
         ).let { it.copy(primary = readable(it.primary, Color.White), tertiary = readable(it.tertiary, Color.White)) }
     }
 
