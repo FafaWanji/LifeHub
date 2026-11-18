@@ -32,6 +32,16 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.8", listOf(
+            Txt("Neues Design: ruhigere Schrift und Formen, Menü und Kalender aufgeräumt, Finanzen zeigen den Rest groß oben"),
+            Txt("Hintergrund für das Pastell-Design wählbar: Graphit, Blau, Warm, Grün, Lila oder Rosa"),
+            Txt("PC-Zugriff komplett neu: nutzt das ganze Fenster, Seitenleiste, Anzeige ob das Handy verbunden ist, Hell/Dunkel umschaltbar"),
+            Txt("Finanzen stehen im Menü jetzt unter Werkzeuge"),
+            Txt("Kalender-Export in den Einstellungen entfernt – er enthielt nur Termine. Die vollständige Sicherung gibt es unter Menü → Backup & Import"),
+            Txt("Symbole statt Emojis, Geburtstags-Benachrichtigungen ohne Emoji")
+        )
+    ),
+    Release(
         "1.7.3", listOf(
             Txt("Kalender: Erinnerungen werden nach einem Neustart zuverlässig neu gestellt, auch wenn exakte Alarme später erlaubt werden"),
             Txt("Geburtstage: Das Alter stimmt jetzt auch bei Geburtstagen am 1. Januar"),
