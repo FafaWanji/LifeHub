@@ -44,10 +44,11 @@ jobs:
           git diff -- '*/schemas/*'
           git diff --quiet -- '*/schemas/*' && [ -z "$(git status --porcelain -- '*/schemas/*')" ] || echo "::warning::Room schema files changed during the build – commit the regenerated ones"
 
-      - name: Name the APKs
+      - name: Name the APK
+        # Only arm64-v8a: the beta is tried on one current phone (OnePlus 13); full releases keep all three
         run: |
           mkdir -p out
-          for f in app/build/outputs/apk/beta/*.apk; do
+          for f in app/build/outputs/apk/beta/*arm64-v8a*.apk; do
             cp "$f" "out/lifehub-beta-${GITHUB_RUN_NUMBER}-$(basename "$f" .apk | sed 's/^app-//; s/-beta$//').apk"
           done
           ls -la out
@@ -63,5 +64,5 @@ jobs:
             Beta build of `${{ github.sha }}` from the `beta` branch.
 
             Installs as a separate app ("LifeHub Beta") next to the normal LifeHub – move data with a backup if you want it there.
-            Pick the APK for your phone: arm64-v8a for almost all current phones.
+            One APK, arm64-v8a, for current phones.
           files: out/*.apk
