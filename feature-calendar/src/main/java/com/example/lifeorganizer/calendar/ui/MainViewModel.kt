@@ -769,48 +769,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun formatOffset(offset: Long): String =
         com.example.lifeorganizer.core.i18n.reminderLabel(offset, languageCode.value)
 
-    fun importEventsFromUri(context: Context, uri: Uri, onResult: (Int, Int) -> Unit) {
-        viewModelScope.launch(Dispatchers.IO) {
-            try {
-                val content = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
-                if (content.isNullOrBlank()) {
-                    withContext(Dispatchers.Main) { onResult(0, 0) }
-                    return@launch
-                }
-                val importedEvents = com.example.lifeorganizer.calendar.util.IcsImporter.parseIcs(content)
-                val currentEvents = eventsWithReminders.value.map { it.event }
-                var importedCount = 0
-                var skippedCount = 0
-                
-                for (eventWithReminders in importedEvents) {
-                    val event = eventWithReminders.event.let { it.copy(targetAddress = com.example.lifeorganizer.core.util.Places.clean(it.targetAddress)) }
-                    // Duplicate check: title and start time match
-                    val isDuplicate = currentEvents.any { it.title == event.title && it.startTimeMillis == event.startTimeMillis }
-                    if (isDuplicate) {
-                        skippedCount++
-                        continue
-                    }
-                    val eventId = eventDao.insertEvent(event)
-                    val reminders = eventWithReminders.reminders.map { it.copy(eventId = eventId) }
-                    eventDao.insertReminders(reminders)
-                    // Schedule with the stored ids – unsaved reminders all have id 0 and would overwrite each other.
-                    val now = System.currentTimeMillis()
-                    eventDao.getRemindersForEvent(eventId).filter { it.reminderTimeMillis > now }
-                        .forEach { alarmScheduler.schedule(event.copy(id = eventId), it) }
-                    importedCount++
-                }
-                withContext(Dispatchers.Main) {
-                    onResult(importedCount, skippedCount)
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                withContext(Dispatchers.Main) {
-                    onResult(0, 0)
-                }
-            }
-        }
-    }
-
     private suspend fun getOrCreateBirthdayCategory(): Long {
         val bdayCat = eventDao.getCategoryByNameSync("Birthdays")
             ?: eventDao.getCategoryByNameSync("Geburtstage")

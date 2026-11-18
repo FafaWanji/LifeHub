@@ -1451,24 +1451,6 @@ fun SettingsDialog(
     var showCategoryManager by remember { mutableStateOf(false) }
 
     val context = androidx.compose.ui.platform.LocalContext.current
-    var importMessage by remember { mutableStateOf<String?>(null) }
-    
-    LaunchedEffect(importMessage) {
-        importMessage?.let {
-            android.widget.Toast.makeText(context, it, android.widget.Toast.LENGTH_LONG).show()
-            importMessage = null
-        }
-    }
-
-    val importLauncher = rememberLauncherForActivityResult(
-        androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
-    ) { uri: android.net.Uri? ->
-        if (uri != null) {
-            viewModel.importEventsFromUri(context, uri) { imported, skipped ->
-                importMessage = Str.importResult.of(lang).format(imported, skipped)
-            }
-        }
-    }
 
     val ringtonePicker = rememberLauncherForActivityResult(
         ActivityResultContracts.StartActivityForResult()
@@ -1921,13 +1903,6 @@ fun SettingsDialog(
                             DeviceCalendarRow(viewModel)
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp))
                             
-                            ListItem(
-                                headlineContent = { Text(Translations.get(TransKey.IMPORT, lang)) },
-                                modifier = Modifier.clickable { importLauncher.launch(arrayOf("*/*")) },
-                                trailingContent = { Icon(androidx.compose.material.icons.Icons.Default.Add, contentDescription = null) },
-                                colors = ListItemDefaults.colors(containerColor = Color.Transparent)
-                            )
-
                             ListItem(
                                 headlineContent = { Text(Translations.get(TransKey.SYSTEM_EVENTS, lang)) },
                                 trailingContent = {
