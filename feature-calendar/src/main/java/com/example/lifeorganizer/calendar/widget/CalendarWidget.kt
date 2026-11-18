@@ -82,7 +82,7 @@ class CalendarWidget : GlanceAppWidget() {
                         item {
                             Text(
                                 dayLabel(date) + " · " + date.format(dateFormatter),
-                                style = TextStyle(color = muted, fontSize = 12.sp, fontWeight = FontWeight.Bold),
+                                style = TextStyle(color = muted, fontSize = 12.sp, fontWeight = FontWeight.Medium),
                                 modifier = GlanceModifier.padding(top = if (date == grouped.keys.first()) 0.dp else 10.dp, bottom = 4.dp)
                             )
                         }
@@ -124,7 +124,7 @@ class CalendarWidget : GlanceAppWidget() {
                     } else {
                         Text(
                             Instant.ofEpochMilli(event.startTimeMillis).atZone(zone).format(hhmm),
-                            style = TextStyle(color = onSurface, fontSize = 13.sp, fontWeight = FontWeight.Bold)
+                            style = TextStyle(color = onSurface, fontSize = 13.sp, fontWeight = FontWeight.Medium)
                         )
                         Text(Instant.ofEpochMilli(event.endTimeMillis).atZone(zone).format(hhmm), style = TextStyle(color = muted, fontSize = 11.sp))
                     }
@@ -134,7 +134,7 @@ class CalendarWidget : GlanceAppWidget() {
                     Text(event.title, maxLines = 1, style = TextStyle(color = onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium))
                     if (subtitle != null) Text(
                         subtitle, maxLines = 1,
-                        style = TextStyle(color = if (running) accent else muted, fontSize = 12.sp, fontWeight = if (running) FontWeight.Bold else FontWeight.Normal)
+                        style = TextStyle(color = if (running) accent else muted, fontSize = 12.sp, fontWeight = if (running) FontWeight.Medium else FontWeight.Normal)
                     )
                 }
             }

@@ -27,7 +27,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DocumentScanner
 import androidx.compose.material.icons.filled.Mic
@@ -267,15 +267,10 @@ fun SmartAddDialog(
                     Box(
                         modifier = Modifier
                             .size(40.dp)
-                            .background(
-                                Brush.linearGradient(
-                                    listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.tertiary)
-                                ),
-                                CircleShape
-                            ),
+                            .background(MaterialTheme.colorScheme.surfaceContainerHighest, androidx.compose.foundation.shape.RoundedCornerShape(10.dp)),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimary)
+                        Icon(androidx.compose.material.icons.Icons.Outlined.EditNote, contentDescription = null, tint = MaterialTheme.colorScheme.onSurface)
                     }
                     Spacer(Modifier.width(12.dp))
                     Text(Str.smartAdd.text(), style = MaterialTheme.typography.titleLarge, modifier = Modifier.weight(1f))
@@ -383,8 +378,6 @@ fun SmartAddDialog(
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
-                            Spacer(Modifier.width(8.dp))
                             Text(Str.process.text())
                         }
                     }

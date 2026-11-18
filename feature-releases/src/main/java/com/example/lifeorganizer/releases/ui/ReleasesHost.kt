@@ -169,8 +169,8 @@ fun ReleasesHost(onMenuClick: () -> Unit, vm: ReleasesViewModel = viewModel()) {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        ReleaseStr.onRadar.of(lang).uppercase() + if (items.isNotEmpty()) "  ${items.size}" else "",
-                        style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary,
+                        ReleaseStr.onRadar.of(lang) + if (items.isNotEmpty()) "  ${items.size}" else "",
+                        style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.weight(1f)
                     )
                     Box {
@@ -287,7 +287,7 @@ private fun TierHeader(tier: String?, count: Int, lang: String) {
 @Composable
 private fun TierBadge(tier: String, color: Color, size: Dp, modifier: Modifier = Modifier) {
     Box(modifier.size(size).clip(RoundedCornerShape(6.dp)).background(color), contentAlignment = Alignment.Center) {
-        Text(tier, color = Color(0xFF1B1B1F), fontWeight = FontWeight.Black, style = MaterialTheme.typography.titleSmall)
+        Text(tier, color = Color(0xFF1B1B1F), fontWeight = FontWeight.Medium, style = MaterialTheme.typography.titleSmall)
     }
 }
 
@@ -356,7 +356,7 @@ private fun NextLine(next: ReleaseRow?, lang: String) {
         return
     }
     Row(
-        Modifier.clip(RoundedCornerShape(50)).background(MaterialTheme.colorScheme.primaryContainer).padding(horizontal = 8.dp, vertical = 3.dp),
+        Modifier.clip(RoundedCornerShape(6.dp)).background(MaterialTheme.colorScheme.primaryContainer).padding(horizontal = 8.dp, vertical = 3.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(Icons.Outlined.Schedule, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onPrimaryContainer)

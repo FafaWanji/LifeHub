@@ -67,7 +67,7 @@ fun SettingsScreen(
         Text(
             text = stringResource(R.string.settings),
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(24.dp))

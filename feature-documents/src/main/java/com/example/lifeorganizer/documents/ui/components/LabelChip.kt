@@ -28,7 +28,7 @@ fun LabelChip(
             text = text,
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
             style = MaterialTheme.typography.labelMedium.copy(
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
                 fontSize = 12.sp
             ),
             color = MaterialTheme.colorScheme.onSurface

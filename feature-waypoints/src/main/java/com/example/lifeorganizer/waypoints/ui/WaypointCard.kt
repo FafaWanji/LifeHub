@@ -84,7 +84,7 @@ fun WaypointCard(
                         Text(
                             text = waypoint.name,
                             style = MaterialTheme.typography.titleMedium,
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Bold,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
                             maxLines = 1,
                             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )

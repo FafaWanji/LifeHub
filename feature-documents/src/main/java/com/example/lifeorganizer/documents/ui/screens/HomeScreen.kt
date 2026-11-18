@@ -85,7 +85,7 @@ fun HomeScreen(
         Text(
             text = stringResource(R.string.pinned_docs),
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onBackground
         )
         Spacer(modifier = Modifier.height(16.dp))
@@ -149,7 +149,7 @@ fun DocumentCard(
                         text = document.title,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Medium
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     LabelChip(

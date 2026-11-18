@@ -52,7 +52,7 @@ class NoteWidget : GlanceAppWidget() {
         val accent = ColorProvider(R.color.widget_accent)
         val muted = ColorProvider(R.color.widget_muted)
         Column(
-            modifier = GlanceModifier.fillMaxSize().background(surface).cornerRadius(20.dp).padding(14.dp)
+            modifier = GlanceModifier.fillMaxSize().background(surface).cornerRadius(20.dp).padding(16.dp)
         ) {
             if (note == null) {
                 Text(
@@ -65,8 +65,8 @@ class NoteWidget : GlanceAppWidget() {
             Text(
                 note.title.ifBlank { context.getString(R.string.note_widget_untitled) },
                 maxLines = 1,
-                style = TextStyle(color = accent, fontSize = 16.sp, fontWeight = FontWeight.Bold),
-                modifier = GlanceModifier.fillMaxWidth().padding(bottom = 6.dp)
+                style = TextStyle(color = ColorProvider(R.color.widget_on_surface), fontSize = 16.sp, fontWeight = FontWeight.Medium),
+                modifier = GlanceModifier.fillMaxWidth().padding(bottom = 8.dp)
                     .clickable(actionStartActivity(openApp(context, note.id)))
             )
             val lines = note.content.split("\n").withIndex().filter { it.value.isNotBlank() }.toList()

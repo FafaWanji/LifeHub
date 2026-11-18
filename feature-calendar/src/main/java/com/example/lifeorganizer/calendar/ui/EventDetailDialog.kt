@@ -107,7 +107,7 @@ fun EventDetailDialog(
                         Text(
                             text = event.title,
                             style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Medium
                         )
                     }
                     IconButton(onClick = onDismiss) {
@@ -177,7 +177,7 @@ fun EventDetailDialog(
                                     }
                                 },
                                 color = androidx.compose.ui.graphics.Color(0xFFFF6B9D),
-                                fontWeight = FontWeight.Bold
+                                fontWeight = FontWeight.Medium
                             )
                             if (event.birthYear != null) {
                                 Text(
@@ -286,7 +286,7 @@ fun DetailRow(label: String, content: @Composable () -> Unit) {
             text = label,
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Medium
         )
         Spacer(modifier = Modifier.height(2.dp))
         content()

@@ -176,7 +176,7 @@ fun DocumentsScreen(
             Text(
                 text = stringResource(R.string.all_docs),
                 style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onBackground
             )
             Spacer(modifier = Modifier.height(16.dp))

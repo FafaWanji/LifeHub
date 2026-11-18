@@ -122,11 +122,11 @@ class HabitsWidget : GlanceAppWidget() {
         val onSurface = ColorProvider(R.color.widget_on_surface)
         val open = actionStartActivity(openApp(context))
 
-        Column(modifier = GlanceModifier.fillMaxSize().background(surface).cornerRadius(20.dp).padding(14.dp)) {
+        Column(modifier = GlanceModifier.fillMaxSize().background(surface).cornerRadius(20.dp).padding(16.dp)) {
             Row(modifier = GlanceModifier.fillMaxWidth().padding(bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(
                     HabitsStr.today.of(lang),
-                    style = TextStyle(color = accent, fontSize = 16.sp, fontWeight = FontWeight.Bold),
+                    style = TextStyle(color = onSurface, fontSize = 16.sp, fontWeight = FontWeight.Medium),
                     modifier = GlanceModifier.defaultWeight().clickable(open)
                 )
                 if (moduleOn) {
@@ -137,14 +137,14 @@ class HabitsWidget : GlanceAppWidget() {
                             WidgetFilter.HABITS -> HabitsStr.habits
                         }.of(lang) + " ▾",
                         style = TextStyle(color = onSurface, fontSize = 12.sp),
-                        modifier = GlanceModifier.background(ColorProvider(R.color.widget_chip)).cornerRadius(12.dp)
+                        modifier = GlanceModifier.background(ColorProvider(R.color.widget_chip)).cornerRadius(8.dp)
                             .padding(horizontal = 10.dp, vertical = 4.dp)
                             .clickable(actionRunCallback<CycleWidgetFilter>())
                     )
                     Spacer(GlanceModifier.width(8.dp))
                     Text(
                         "+",
-                        style = TextStyle(color = accent, fontSize = 22.sp, fontWeight = FontWeight.Bold),
+                        style = TextStyle(color = accent, fontSize = 22.sp, fontWeight = FontWeight.Medium),
                         modifier = GlanceModifier.padding(horizontal = 4.dp).clickable(open)
                     )
                 }
@@ -164,7 +164,7 @@ class HabitsWidget : GlanceAppWidget() {
                         ) {
                             Text(
                                 if (row.done) "✓" else "○",
-                                style = TextStyle(color = if (row.done) muted else accent, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                                style = TextStyle(color = if (row.done) muted else accent, fontSize = 16.sp, fontWeight = FontWeight.Medium)
                             )
                             Spacer(GlanceModifier.width(10.dp))
                             Text(
