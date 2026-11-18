@@ -19,6 +19,8 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CheckBoxOutlineBlank
+import androidx.compose.material.icons.outlined.Alarm
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Notes
 import androidx.compose.material.icons.automirrored.filled.Sort
@@ -548,13 +550,15 @@ fun LabelsManagerView(viewModel: NotesViewModel, onBack: () -> Unit) {
                 ListItem(
                     modifier = Modifier.clickable { expandedId = if (expanded) null else label.id },
                     headlineContent = {
-                        Text(
-                            label.name + when (label.kind) {
-                                com.example.lifeorganizer.notes.data.TodoKind.TODO -> "  ☐"
-                                com.example.lifeorganizer.notes.data.TodoKind.DATED -> "  ☐ ⏰"
-                                else -> ""
-                            }
-                        )
+                        // To-do labels show what they do: tick off, and for "To Do X" also a reminder
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(label.name)
+                            val tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            if (label.kind != com.example.lifeorganizer.notes.data.TodoKind.NONE)
+                                androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Outlined.CheckBoxOutlineBlank, null, Modifier.size(16.dp), tint = tint)
+                            if (label.kind == com.example.lifeorganizer.notes.data.TodoKind.DATED)
+                                androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Outlined.Alarm, null, Modifier.size(16.dp), tint = tint)
+                        }
                     },
                     supportingContent = {
                         if (!expanded) {

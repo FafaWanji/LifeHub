@@ -26,7 +26,7 @@ object HabitsStr {
     // Home-screen widget
     val all = Txt("All", "Alle", "Tümü", "Todo", "全部")
     val tomorrow = Txt("Tomorrow", "Morgen", "Yarın", "Mañana", "明天")
-    val allDone = Txt("All done for now 🎉", "Alles erledigt 🎉", "Hepsi tamam 🎉", "Todo hecho 🎉", "全部完成 🎉")
+    val allDone = Txt("All done for now", "Alles erledigt", "Hepsi tamam", "Todo hecho", "全部完成")
     val moduleOff = Txt(
         "Habits are switched off in the settings.",
         "Gewohnheiten sind in den Einstellungen ausgeschaltet.",

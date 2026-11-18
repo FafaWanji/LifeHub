@@ -28,6 +28,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Flag
@@ -1408,10 +1409,7 @@ fun Day(
                 fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal
             )
             if (hasBirthday) {
-                Text(
-                    text = "🎂",
-                    style = MaterialTheme.typography.bodySmall
-                )
+                androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Outlined.Cake, null, Modifier.padding(top = 2.dp).size(12.dp), tint = Color(0xFFFF4081))
             } else if (eventColors.isNotEmpty()) {
                 Row(
                     modifier = Modifier.padding(top = 2.dp),

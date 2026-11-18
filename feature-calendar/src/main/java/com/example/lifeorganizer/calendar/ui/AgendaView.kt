@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.outlined.Cake
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.*
@@ -250,21 +252,30 @@ fun SwipeToDeleteItem(
                             .format(DateTimeFormatter.ofPattern("HH:mm"))
                     }
                     val repeat = if (item.event.isBirthday) null else recurrenceLabel(item.event.recurrenceRule, lang)
-                    Text(
-                        text = if (repeat != null) "$timeText · 🔁 $repeat" else timeText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Text(
+                            text = if (repeat != null) "$timeText ·" else timeText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        if (repeat != null) {
+                            androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Default.Repeat, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(repeat, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    }
                     if (item.event.isBirthday) {
                         val occurrenceYear = Instant.ofEpochMilli(item.event.startTimeMillis)
                             .atZone(ZoneId.systemDefault())
                             .toLocalDate().year
                         val age = item.event.birthYear?.let { occurrenceYear - it }
-                        Text(
-                            text = "🎂 ${Translations.get(TransKey.BIRTHDAY, lang)}${age?.let { " ($it)" } ?: ""}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Color(0xFFFF4081)
-                        )
+                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                            androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Outlined.Cake, null, Modifier.size(14.dp), tint = Color(0xFFFF4081))
+                            Text(
+                                text = "${Translations.get(TransKey.BIRTHDAY, lang)}${age?.let { " ($it)" } ?: ""}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color(0xFFFF4081)
+                            )
+                        }
                     }
                 }
                 IconButton(onClick = onEdit) {

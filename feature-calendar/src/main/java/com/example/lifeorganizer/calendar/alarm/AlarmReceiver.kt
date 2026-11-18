@@ -91,9 +91,9 @@ class AlarmReceiver : BroadcastReceiver() {
                 val birthdayMessage = if (isBirthday && birthYear > 0) {
                     // The text says "tomorrow": on 31 Dec the birthday falls in the next year
                     val age = LocalDate.now().plusDays(1).year - birthYear
-                    "🎂 $title turns $age tomorrow!"
+                    "$title turns $age tomorrow"
                 } else if (isBirthday) {
-                    "🎂 $title's birthday is tomorrow!"
+                    "$title's birthday is tomorrow"
                 } else null
 
                 val soundUri = runBlocking {
@@ -108,7 +108,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
                 if (isBirthday) {
                     notificationHelper.showBirthdayNotification(
-                        title = "🎂 Birthday Tomorrow",
+                        title = "Birthday tomorrow",
                         message = birthdayMessage ?: message
                     )
                 } else {
