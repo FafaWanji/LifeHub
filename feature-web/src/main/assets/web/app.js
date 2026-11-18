@@ -36,7 +36,9 @@ const T = {
     subNotes: 'Unternotizen', addSubNote: 'Unternotiz hinzufügen', subNoteOf: 'Unternotiz von {0}',
     detachSubNote: 'Eigenständige Notiz machen', doneLabel: 'Erledigt',
     subCount: '{0} Unternotizen', subCountOne: '1 Unternotiz',
-    moveContent: 'Inhalt in Unternotiz verschieben', moveContentTitle: 'Titel der neuen Unternotiz'
+    moveContent: 'Inhalt in Unternotiz verschieben', moveContentTitle: 'Titel der neuen Unternotiz',
+    linked: 'Handy verbunden', unlinked: 'Handy nicht erreichbar',
+    themeSystem: 'Design: System', themeLight: 'Design: Hell', themeDark: 'Design: Dunkel'
   },
   tr: {
     calendar: 'Takvim', notes: 'Notlar', money: 'Finans', logout: 'Bağlantıyı kes',
@@ -100,13 +102,56 @@ function el(tag, attrs = {}, ...children) {
     if (v === undefined || v === null || v === false) continue;
     if (k.startsWith('on')) e.addEventListener(k.slice(2), v);
     else if (k === 'class') e.className = v;
-    else if (k === 'style') Object.assign(e.style, v);
+    // Custom properties like '--c' only work through setProperty
+    else if (k === 'style') for (const [p, s] of Object.entries(v)) p.startsWith('--') ? e.style.setProperty(p, s) : (e.style[p] = s);
     else if (k === 'value') e.value = v;
     else if (k === 'checked') e.checked = !!v;
     else e.setAttribute(k, v === true ? '' : v);
   }
   for (const c of children.flat()) if (c !== null && c !== undefined && c !== false) e.append(c instanceof Node ? c : String(c));
   return e;
+}
+
+// Line icons (lucide, ISC licence), one size and stroke everywhere; the markup is our own constants
+const ICONS = {
+  calendar: '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/>',
+  notes: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/>',
+  money: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+  left: '<path d="m15 18-6-6 6-6"/>',
+  right: '<path d="m9 18 6-6-6-6"/>',
+  plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
+  pin: '<path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/>',
+  search: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>',
+  trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>',
+  logout: '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>',
+  eye: '<path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>',
+  pencil: '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>',
+  sub: '<path d="m15 10 5 5-5 5"/><path d="M4 4v7a4 4 0 0 0 4 4h12"/>',
+  up: '<path d="m9 14-5-5 5-5"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/>',
+  place: '<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>',
+  clock: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
+  split: '<path d="M16 3h5v5"/><path d="M8 3H3v5"/><path d="M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3"/><path d="m15 9 6-6"/>',
+  system: '<rect width="20" height="14" x="2" y="3" rx="2"/><path d="M8 21h8"/><path d="M12 17v4"/>',
+  light: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  dark: '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>'
+};
+
+// Light or dark: the system's choice unless one is picked in the sidebar. Only this browser remembers it.
+const THEMES = ['system', 'light', 'dark'];
+function storedTheme() { try { return localStorage.getItem('lh_theme') || 'system'; } catch (e) { return 'system'; } }
+function applyTheme(name) {
+  if (name === 'system') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = name;
+  const b = $('#theme');
+  if (b) b.replaceChildren(icon(name), el('span', {}, t('theme' + name[0].toUpperCase() + name.slice(1))));
+}
+applyTheme(storedTheme());
+function icon(name) {
+  const s = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  s.setAttribute('viewBox', '0 0 24 24');
+  s.setAttribute('class', 'i');
+  s.setAttribute('aria-hidden', 'true');
+  s.innerHTML = ICONS[name];
+  return s;
 }
 
 function toast(msg) {
@@ -130,8 +175,8 @@ function setOnline(on) {
   if (on === online) return;
   online = on;
   document.body.classList.toggle('readonly', !on);
-  $('#offline').textContent = t('offlineBanner');
-  $('#offline').hidden = on;
+  offlineBanner.hidden = on;
+  showLink();
   lockInputs();
   if (!on) return;
   // Back online: first save what was typed before the connection dropped, then fresh data
@@ -146,6 +191,36 @@ function lockInputs() {
   });
 }
 new MutationObserver(() => { if (!online) lockInputs(); }).observe(document.documentElement, { childList: true, subtree: true });
+
+/** The phone link in the sidebar: the one place that always says whether the phone answers. */
+function showLink() {
+  const link = $('#link');
+  link.classList.toggle('off', !online);
+  link.lastElementChild.textContent = online ? t('linked') : t('unlinked');
+  link.title = online ? '' : t('offline');
+}
+
+// Stays the same element across views, so going offline shows it at once
+const offlineBanner = el('div', { class: 'offline', hidden: true }, el('span', { class: 'dot' }), el('span', {}));
+
+/** Puts a view into the main area; fill views (calendar, notes) take the whole window height. */
+function show(fill, ...children) {
+  offlineBanner.lastElementChild.textContent = t('offlineBanner');
+  $('#main').classList.toggle('fill', fill);
+  $('#main').replaceChildren(offlineBanner, ...children);
+  // Only a change of tab fades in; redraws after a click or a background refresh stay still
+  if (show.enter) $('#main').lastElementChild.classList.add('view');
+  show.enter = false;
+}
+
+/** Page title with month arrows, as calendar and finance share it. */
+function monthHead(title, shift, ...extra) {
+  return el('div', { class: 'pagehead' },
+    el('h2', {}, title),
+    el('button', { class: 'icon', onclick: () => shift(-1), 'aria-label': '‹' }, icon('left')),
+    el('button', { class: 'icon', onclick: () => shift(1), 'aria-label': '›' }, icon('right')),
+    ...extra);
+}
 
 async function api(method, path, body) {
   if (method !== 'GET' && !online) {
@@ -208,6 +283,7 @@ function modal(title, body, buttons) {
   const close = () => back.remove();
   const back = el('div', { class: 'backdrop', onclick: e => { if (e.target === back) close(); } },
     el('div', { class: 'modal', role: 'dialog' }, el('h3', {}, title), body, el('div', { class: 'actions' }, buttons(close))));
+  back.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
   document.body.append(back);
   const first = back.querySelector('input, textarea, select');
   if (first) first.focus();
@@ -217,7 +293,7 @@ function modal(title, body, buttons) {
 // ---------------------------------------------------------------- pairing
 
 function showPairing() {
-  $('#top').hidden = true;
+  $('#side').hidden = true;
   const input = el('input', { inputmode: 'numeric', maxlength: '6', autocomplete: 'one-time-code', placeholder: '••••••' });
   const err = el('div', { class: 'error' });
   const go = async () => {
@@ -231,7 +307,10 @@ function showPairing() {
     } catch (e) { err.textContent = t('offline'); }
   };
   input.addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
-  $('#main').replaceChildren(el('div', { class: 'pair card' }, el('h2', {}, t('pairTitle')), el('p', { class: 'muted' }, t('pairHint')), input, err, el('button', { onclick: go }, t('connect'))));
+  $('#main').classList.remove('fill');
+  $('#main').replaceChildren(el('div', { class: 'pairwrap' }, el('div', { class: 'pair card view' },
+    el('div', { class: 'brand' }, el('img', { src: '/favicon.svg', alt: '' }), el('span', {}, 'LifeHub')),
+    el('h2', {}, t('pairTitle')), el('p', {}, t('pairHint')), input, err, el('button', { onclick: go }, t('connect')))));
   input.focus();
 }
 
@@ -250,13 +329,20 @@ let render = () => {};
 let busy = () => false; // a view with unsaved input says so, then polling does not reload it
 
 function start() {
-  $('#top').hidden = false;
+  $('#side').hidden = false;
   document.querySelectorAll('#tabs button').forEach(b => {
     b.hidden = b.dataset.tab === 'money' && !financeOn;
-    b.textContent = t(b.dataset.tab);
+    b.replaceChildren(icon(b.dataset.tab), el('span', {}, t(b.dataset.tab)));
     b.onclick = () => { location.hash = b.dataset.tab; };
   });
-  $('#logout').textContent = t('logout');
+  showLink();
+  applyTheme(storedTheme());
+  $('#theme').onclick = () => {
+    const next = THEMES[(THEMES.indexOf(storedTheme()) + 1) % THEMES.length];
+    try { localStorage.setItem('lh_theme', next); } catch (e) { /* private window: applies until reload */ }
+    applyTheme(next);
+  };
+  $('#logout').replaceChildren(icon('logout'), el('span', {}, t('logout')));
   $('#logout').onclick = () => { localStorage.removeItem('lh_token'); token = null; showPairing(); };
   route();
   poll();
@@ -266,9 +352,15 @@ function route() {
   tab = ['calendar', 'notes', ...(financeOn ? ['money'] : [])].includes(location.hash.slice(1)) ? location.hash.slice(1) : 'calendar';
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   busy = () => false;
+  show.enter = true;
   ({ calendar: Calendar, notes: Notes, money: Money })[tab].mount();
 }
 window.addEventListener('hashchange', () => { if (token) route(); });
+// The calendar fits as many events per day as the window height allows
+window.addEventListener('resize', () => {
+  clearTimeout(route.resize);
+  route.resize = setTimeout(() => { if (token && tab === 'calendar' && Calendar.events) Calendar.draw(); }, 150);
+});
 document.addEventListener('visibilitychange', () => { if (!document.hidden && token) poll(); });
 
 let version = null;
@@ -328,13 +420,15 @@ const Calendar = {
   draw() {
     const title = new Intl.DateTimeFormat(lang, { month: 'long', year: 'numeric' }).format(this.month);
     const shiftMonth = n => { this.month = new Date(this.month.getFullYear(), this.month.getMonth() + n, 1); this.load(); };
-    const toolbar = el('div', { class: 'toolbar' },
-      el('button', { class: 'icon', onclick: () => shiftMonth(-1), 'aria-label': '‹' }, '‹'),
-      el('h2', {}, title),
-      el('button', { class: 'icon', onclick: () => shiftMonth(1), 'aria-label': '›' }, '›'),
-      el('button', { class: 'ghost', onclick: () => { this.month = new Date(new Date().getFullYear(), new Date().getMonth(), 1); this.selected = new Date(); this.load(); } }, t('today')),
+    const head = monthHead(title, shiftMonth,
+      el('button', { class: 'soft sm', onclick: () => { this.month = new Date(new Date().getFullYear(), new Date().getMonth(), 1); this.selected = new Date(); this.load(); } }, t('today')),
       el('div', { class: 'spacer' }),
-      el('button', { onclick: () => this.edit(null, this.selected) }, '+ ' + t('newEvent')));
+      el('button', { class: 'needs-phone', onclick: () => this.edit(null, this.selected) }, icon('plus'), t('newEvent')));
+
+    // As many event rows per day as the window height leaves room for (header, page title and padding off)
+    const narrow = window.innerWidth <= 860;
+    const cellHeight = (window.innerHeight - 24 - 60 - 32 - 24) / 6;
+    const fits = narrow ? 0 : Math.max(1, Math.floor((cellHeight - 16 - 26) / 22));
 
     const grid = el('div', { class: 'grid' });
     const dowFmt = new Intl.DateTimeFormat(lang, { weekday: 'short' });
@@ -344,24 +438,33 @@ const Calendar = {
     for (let i = 0; i < 42; i++) {
       const day = new Date(d);
       const evs = this.eventsOn(day);
-      const cls = ['day', day.getMonth() !== this.month.getMonth() && 'other', sameDay(day, today) && 'today', sameDay(day, this.selected) && 'selected', evs.length && 'has'].filter(Boolean).join(' ');
-      grid.append(el('div', { class: cls, onclick: () => { this.selected = day; this.draw(); }, ondblclick: () => this.edit(null, day) },
+      // One row of "+n" replaces the last event when they do not all fit
+      const shown = evs.length > fits ? Math.max(0, fits - 1) : evs.length;
+      const cls = ['day', day.getMonth() !== this.month.getMonth() && 'other', sameDay(day, today) && 'today', sameDay(day, this.selected) && 'selected',
+        evs.length && 'has', (day.getDay() === 0 || day.getDay() === 6) && 'weekend'].filter(Boolean).join(' ');
+      grid.append(el('div', { class: cls, tabindex: '0', onclick: () => { this.selected = day; this.draw(); }, ondblclick: () => this.edit(null, day),
+        onkeydown: e => { if (e.key === 'Enter') { this.selected = day; this.draw(); } } },
         el('span', { class: 'num' }, day.getDate()),
-        evs.slice(0, 3).map(ev => el('div', { class: 'chip', style: { background: this.colorFor(ev) }, title: ev.title }, (ev.allDay ? '' : isoTime(new Date(ev.start)) + ' ') + ev.title)),
-        evs.length > 3 ? el('div', { class: 'more' }, '+' + (evs.length - 3)) : null));
+        evs.slice(0, shown).map(ev => el('div', { class: 'chip', style: { '--c': this.colorFor(ev) }, title: ev.title },
+          ev.allDay ? null : el('time', {}, isoTime(new Date(ev.start))), el('span', {}, ev.title))),
+        evs.length > shown && fits ? el('div', { class: 'more' }, '+' + (evs.length - shown)) : null));
       d.setDate(d.getDate() + 1);
     }
 
     const list = this.eventsOn(this.selected);
     const side = el('div', { class: 'card daylist' },
+      el('div', { class: 'when' }, isoDate(this.selected)),
       el('h3', {}, new Intl.DateTimeFormat(lang, { weekday: 'long', day: 'numeric', month: 'long' }).format(this.selected)),
-      list.length ? list.map(ev => el('div', { class: 'event', onclick: () => this.edit(ev) },
-        el('div', { class: 'dot', style: { background: this.colorFor(ev) } }),
-        el('div', {}, el('div', {}, ev.title), el('div', { class: 'muted' }, ev.allDay ? t('allDay') : isoTime(new Date(ev.start)) + (ev.end ? '–' + isoTime(new Date(ev.end)) : '')), ev.location ? el('div', { class: 'muted' }, ev.location) : null)))
-        : el('p', { class: 'muted' }, t('noEvents')),
-      el('button', { class: 'ghost', onclick: () => this.edit(null, this.selected) }, '+ ' + t('newEvent')));
+      list.length ? el('div', { class: 'events' }, list.map(ev => el('div', { class: 'event', style: { '--c': this.colorFor(ev) }, onclick: () => this.edit(ev) },
+        el('div', { class: 'bar' }),
+        el('div', {},
+          el('div', { class: 't' }, ev.title),
+          el('div', { class: 'meta' }, icon('clock'), ev.allDay ? t('allDay') : isoTime(new Date(ev.start)) + (ev.end ? '–' + isoTime(new Date(ev.end)) : '')),
+          ev.location ? el('div', { class: 'meta' }, icon('place'), ev.location) : null))))
+        : el('p', { class: 'empty' }, t('noEvents')),
+      el('button', { class: 'ghost sm needs-phone', onclick: () => this.edit(null, this.selected) }, icon('plus'), t('newEvent')));
 
-    $('#main').replaceChildren(toolbar, el('div', { class: 'cal-layout' }, grid, side));
+    show(true, head, el('div', { class: 'cal-layout' }, grid, side));
   },
 
   edit(ev, day) {
@@ -405,13 +508,13 @@ const Calendar = {
       el('label', {}, t('reminder')), f.reminder,
       el('label', {}, t('location')), f.location,
       el('label', {}, t('description')), f.description,
-      ev && ev.recurrence ? el('p', { class: 'muted' }, t('seriesHint')) : null);
+      ev && ev.recurrence ? el('p', { class: 'hint' }, t('seriesHint')) : null);
 
     modal(ev ? t('editEvent') : t('newEvent'), body, close => [
-      ev ? el('button', { class: 'danger', onclick: async () => { if (!confirm(t('confirmDelete'))) return; await api('DELETE', 'calendar/events/' + ev.id); close(); this.load(); } }, t('delete')) : null,
+      ev ? el('button', { class: 'danger', onclick: async () => { if (!confirm(t('confirmDelete'))) return; await api('DELETE', 'calendar/events/' + ev.id); close(); this.load(); } }, icon('trash'), t('delete')) : null,
       el('div', { class: 'spacer' }),
       el('button', { class: 'ghost', onclick: close }, t('cancel')),
-      el('button', { onclick: async () => {
+      el('button', { class: 'primary', onclick: async () => {
         if (!f.title.value.trim() || !f.date.value) { f.title.focus(); return; }
         const allDay = f.allDay.checked;
         const s = fromParts(f.date.value, allDay ? '00:00' : f.start.value || '09:00');
@@ -472,23 +575,27 @@ const Notes = {
 
   draw() {
     const listBox = el('div', { class: 'notelist' });
-    const search = el('input', { placeholder: t('search'), value: this.query, 'data-offline-ok': '', oninput: e => { this.query = e.target.value; this.drawList(listBox, this.shown()); } });
+    const search = el('input', { type: 'search', placeholder: t('search'), value: this.query, 'data-offline-ok': '', oninput: e => { this.query = e.target.value; this.drawList(listBox, this.shown()); } });
     this.drawList(listBox, this.shown());
-    const left = el('div', { class: 'card' }, el('div', { class: 'row' }, search), el('p'), el('button', { onclick: () => { this.open({ id: null, title: '', content: '', isPinned: false }); } }, '+ ' + t('newNote')), el('p'), listBox);
-    $('#main').replaceChildren(el('div', { class: 'notes-layout' }, left, el('div', { class: 'card editor' }, this.editor())));
+    const head = el('div', { class: 'pagehead' }, el('h2', {}, t('notes')), el('div', { class: 'spacer' }),
+      el('button', { class: 'needs-phone', onclick: () => { this.open({ id: null, title: '', content: '', isPinned: false }); } }, icon('plus'), t('newNote')));
+    const left = el('div', { class: 'notes-side' }, el('div', { class: 'field' }, icon('search'), search), listBox);
+    show(true, head, el('div', { class: 'notes-layout' }, left, el('div', { class: 'card editor' }, this.editor())));
   },
 
   drawList(box, shown) {
     if (!shown.length) { box.replaceChildren(el('p', { class: 'muted' }, t('noNotes'))); return; }
     const firstLine = n => n.content.split(/\r?\n/).find(l => l.trim()) || '';
     const item = (n, cls, extra) => el('div', {
-      class: cls + (n.isDone ? ' done' : '') + (this.current && this.current.id === n.id ? ' active' : ''), onclick: () => this.open(n) },
-      el('div', { class: 't' }, (n.isPinned ? '★ ' : '') + (n.title || t('untitled'))), el('div', { class: 's' }, firstLine(n)), ...extra);
+      class: cls + (n.isDone ? ' done' : '') + (this.current && this.current.id === n.id ? ' active' : ''), tabindex: '0', onclick: () => this.open(n),
+      onkeydown: e => { if (e.key === 'Enter') this.open(n); } },
+      el('div', { class: 't' }, n.isPinned ? icon('pin') : null, el('span', {}, n.title || t('untitled'))),
+      firstLine(n) ? el('div', { class: 's' }, firstLine(n)) : null, ...extra);
     // Searching: every match on its own, with its main note above
     if (this.query) {
       box.replaceChildren(...shown.map(n => {
         const e = item(n, 'noteitem', []);
-        if (n.parentId) e.prepend(el('div', { class: 's parent' }, '↳ ' + this.titleOf(n.parentId)));
+        if (n.parentId) e.prepend(el('div', { class: 's parent' }, icon('sub'), this.titleOf(n.parentId)));
         return e;
       }));
       return;
@@ -515,7 +622,7 @@ const Notes = {
 
   editor() {
     const n = this.current;
-    if (!n) return el('p', { class: 'muted' }, t('pickNote'));
+    if (!n) return el('div', { class: 'pick' }, t('pickNote'));
     const status = el('span', { class: 'saved' });
     const title = el('input', { class: 'title', placeholder: t('title'), value: n.title, oninput: e => { n.title = e.target.value; this.changed(status); } });
     const text = el('textarea', { oninput: e => { n.content = e.target.value; this.changed(status); } });
@@ -529,31 +636,32 @@ const Notes = {
       this.changed(status);
       showPreview();
     }));
-    const toggle = el('button', { class: 'icon', onclick: () => { this.previewMode = !this.previewMode; apply(); } });
+    const toggle = el('button', { class: 'ghost sm', onclick: () => { this.previewMode = !this.previewMode; apply(); } });
     const apply = () => {
       text.hidden = this.previewMode;
       preview.hidden = !this.previewMode;
-      toggle.textContent = this.previewMode ? t('edit') : t('preview');
+      toggle.replaceChildren(icon(this.previewMode ? 'pencil' : 'eye'), this.previewMode ? t('edit') : t('preview'));
       if (this.previewMode) showPreview();
     };
     apply();
-    const pin = el('button', { class: 'icon', onclick: () => { n.isPinned = !n.isPinned; pin.textContent = n.isPinned ? '★ ' + t('unpin') : '☆ ' + t('pin'); this.changed(status); } }, n.isPinned ? '★ ' + t('unpin') : '☆ ' + t('pin'));
-    const del = n.id ? el('button', { class: 'danger', onclick: async () => {
+    const pinLabel = () => [icon('pin'), n.isPinned ? t('unpin') : t('pin')];
+    const pin = el('button', { class: 'ghost sm', onclick: () => { n.isPinned = !n.isPinned; pin.replaceChildren(...pinLabel()); this.changed(status); } }, ...pinLabel());
+    const del = n.id ? el('button', { class: 'danger sm', onclick: async () => {
       if (!confirm(t('confirmDelete'))) return;
       clearTimeout(this.timer); this.dirty = false;
       await api('DELETE', 'notes/' + n.id);
       this.current = null;
       this.load();
-    } }, t('delete')) : null;
+    } }, icon('trash'), t('delete')) : null;
     // Sub-note: its main note one click away. Main note: its sub-notes (tick off, open, add one)
-    const parent = n.parentId ? el('button', { class: 'icon', onclick: () => { const p = this.notes.find(x => x.id === n.parentId); if (p) this.open(p); } },
-      '↳ ' + t('subNoteOf', this.titleOf(n.parentId))) : null;
+    const parent = n.parentId ? el('button', { class: 'ghost sm crumb', onclick: () => { const p = this.notes.find(x => x.id === n.parentId); if (p) this.open(p); } },
+      icon('up'), t('subNoteOf', this.titleOf(n.parentId))) : null;
     const subs = n.id && !n.parentId ? el('div', { class: 'subnotes' },
       el('h3', {}, t('subNotes')),
       ...this.subsOf(n.id).map(s => el('div', { class: 'subnote' + (s.isDone ? ' done' : '') },
         el('input', { type: 'checkbox', checked: s.isDone, onchange: async e => { await api('PUT', 'notes/' + s.id, { isDone: e.target.checked }); this.load(); } }),
         el('span', { onclick: () => this.open(s) }, s.title || (s.content.split(/\r?\n/).find(l => l.trim()) || t('untitled'))))),
-      el('button', { class: 'icon', onclick: () => this.open({ id: null, title: '', content: '', isPinned: false, parentId: n.id }) }, '+ ' + t('addSubNote'))
+      el('button', { class: 'ghost sm needs-phone', onclick: () => this.open({ id: null, title: '', content: '', isPinned: false, parentId: n.id }) }, icon('plus'), t('addSubNote'))
     ) : null;
     // A sub-note can be ticked off or stand alone again
     const move = async parentId => {
@@ -574,14 +682,15 @@ const Notes = {
       await this.load();
       this.draw();
     };
-    const moveContentButton = !n.parentId && n.content.trim() ? el('button', { class: 'icon', onclick: moveContent }, t('moveContent')) : null;
-    const structure = !n.id ? null : n.parentId ? el('div', { class: 'toolbar' },
-      el('label', { class: 'check' }, el('input', { type: 'checkbox', checked: n.isDone, onchange: async e => {
+    // Structure actions sit in the same tool row as the rest: tick off or detach a sub-note, split a main note
+    const structure = !n.id ? [] : n.parentId ? [
+      el('label', { class: 'inline' }, el('input', { type: 'checkbox', checked: n.isDone, onchange: async e => {
         n.isDone = e.target.checked; await api('PUT', 'notes/' + n.id, { isDone: n.isDone }); this.load(); } }), t('doneLabel')),
-      el('button', { class: 'icon', onclick: () => move(null) }, t('detachSubNote'))
-    ) : moveContentButton ? el('div', { class: 'toolbar' }, moveContentButton) : null;
+      el('button', { class: 'ghost sm needs-phone', onclick: () => move(null) }, icon('split'), t('detachSubNote'))
+    ] : n.content.trim() ? [el('button', { class: 'ghost sm needs-phone', onclick: moveContent }, icon('sub'), t('moveContent'))] : [];
     const labels = n.labels && n.labels.length ? el('div', { class: 'labels' }, ...n.labels.map(l => el('span', { class: 'label' }, l))) : null;
-    return el('div', {}, parent, el('div', { class: 'row' }, title), labels, el('div', { class: 'toolbar' }, toggle, pin, el('div', { class: 'spacer' }), status, del), structure, text, preview, subs);
+    return el('div', { style: { display: 'contents' } }, parent, title, labels,
+      el('div', { class: 'tools' }, toggle, pin, ...structure, el('div', { class: 'spacer' }), status, del), text, preview, subs);
   },
 
   changed(status) {
@@ -681,15 +790,13 @@ const Money = {
     const d = this.data;
     const cat = id => this.categories.find(c => c.id === id);
     const shift = n => { this.month = new Date(this.month.getFullYear(), this.month.getMonth() + n, 1); this.load(); };
-    const toolbar = el('div', { class: 'toolbar' },
-      el('button', { class: 'icon', onclick: () => shift(-1) }, '‹'),
-      el('h2', {}, new Intl.DateTimeFormat(lang, { month: 'long', year: 'numeric' }).format(this.month)),
-      el('button', { class: 'icon', onclick: () => shift(1) }, '›'));
-    const card = (label, value, cls) => el('div', { class: 'card' }, el('div', { class: 'muted' }, label), el('div', { class: 'v ' + cls }, value));
+    const head = monthHead(new Intl.DateTimeFormat(lang, { month: 'long', year: 'numeric' }).format(this.month), shift);
+    // The balance leads; income and expenses are the two figures it comes from
+    const stat = (label, value, cls, sub) => el('div', { class: 'card stat ' + cls }, el('div', { class: 'k' }, label), el('div', { class: 'v' }, value), sub ? el('div', { class: 'sub' }, sub) : null);
     const cards = el('div', { class: 'cards' },
-      card(t('income'), money(d.income), 'pos'),
-      card(t('expenses'), money(Math.abs(d.expense)), 'neg'),
-      card(t('left'), money(d.rest), d.rest >= 0 ? 'pos' : 'neg'));
+      stat(t('left'), money(d.rest), 'lead', d.expected ? t('expected', money(Math.abs(d.expected))) : null),
+      stat(t('income'), money(d.income), ''),
+      stat(t('expenses'), money(Math.abs(d.expense)), ''));
 
     const total = Math.max(1, Math.abs(d.expense));
     const breakdown = el('div', { class: 'card' }, el('h3', {}, t('byCategory')),
@@ -697,12 +804,12 @@ const Money = {
         const c = cat(b.categoryId);
         const budget = c && c.budget ? c.budget : null;
         const share = budget ? Math.min(1, b.cents / budget) : b.cents / total;
-        const color = budget ? (b.cents >= budget ? 'var(--danger)' : b.cents >= budget * 0.8 ? 'var(--warn)' : 'var(--ok)') : (c ? colorOf(c.color) : 'var(--accent)');
-        return el('div', {},
-          el('div', { class: 'row' }, el('span', {}, c ? c.name : '—'), el('span', { class: 'muted', style: { textAlign: 'right' } }, budget ? t('budgetOf', money(b.cents), money(budget)) : money(b.cents))),
-          el('div', { class: 'bar' }, el('div', { style: { width: (share * 100).toFixed(1) + '%', background: color } })));
-      }) : el('p', { class: 'muted' }, t('noTx')),
-      d.expected ? el('p', { class: 'muted' }, t('expected', money(Math.abs(d.expected)))) : null);
+        // With a budget the bar says how close it is; without one it shows the category's colour
+        const color = budget ? (b.cents >= budget ? 'var(--neg)' : b.cents >= budget * 0.8 ? 'var(--warn)' : 'var(--accent)') : (c ? colorOf(c.color) : 'var(--accent)');
+        return el('div', { class: 'cat' },
+          el('div', { class: 'top' }, el('span', {}, c ? c.name : '—'), el('span', {}, budget ? t('budgetOf', money(b.cents), money(budget)) : money(b.cents))),
+          el('div', { class: 'meter' }, el('div', { style: { width: (share * 100).toFixed(1) + '%', '--c': color } })));
+      }) : el('p', { class: 'empty' }, t('noTx')));
 
     // Add form
     const kind = el('select', {}, el('option', { value: 'EXPENSE' }, t('expense')), el('option', { value: 'INCOME' }, t('incomeOne')));
@@ -727,22 +834,24 @@ const Money = {
     amount.addEventListener('keydown', e => { if (e.key === 'Enter') add(); });
     // Typing in the form: background refreshes wait
     busy = () => !!(amount.value || title.value) || form.contains(document.activeElement);
-    const form = el('div', { class: 'card' }, el('h3', {}, t('add')),
-      el('div', { class: 'row' }, kind, amount), el('p'), title, el('p'), el('div', { class: 'row' }, category, date), el('p'),
-      el('button', { onclick: add }, t('add')));
+    const form = el('div', { class: 'card form needs-phone' }, el('h3', {}, t('add')),
+      el('div', { class: 'row' }, kind, amount), title, el('div', { class: 'row' }, category, date),
+      el('button', { onclick: add }, icon('plus'), t('add')));
 
     const rows = d.transactions.map(tx => {
       const c = cat(tx.categoryId);
       return el('tr', {},
-        el('td', { class: 'muted' }, new Intl.DateTimeFormat(lang, { day: '2-digit', month: '2-digit' }).format(new Date(tx.date + 'T00:00'))),
+        el('td', { class: 'date' }, new Intl.DateTimeFormat(lang, { day: '2-digit', month: '2-digit' }).format(new Date(tx.date + 'T00:00'))),
         el('td', {}, tx.title || (c ? c.name : '')),
-        el('td', { class: 'muted' }, c ? c.name : ''),
+        el('td', { class: 'cat-name' }, c ? c.name : ''),
         el('td', { class: 'amt ' + (tx.amount >= 0 ? 'pos' : '') }, (tx.amount >= 0 ? '+' : '−') + money(Math.abs(tx.amount))),
-        el('td', {}, el('button', { class: 'danger', title: t('delete'), onclick: async () => { if (!confirm(t('confirmDelete'))) return; await api('DELETE', 'money/transactions/' + tx.id); this.load(); } }, '×')));
+        el('td', { class: 'del' }, el('button', { class: 'danger icon sm', title: t('delete'), 'aria-label': t('delete'), onclick: async () => { if (!confirm(t('confirmDelete'))) return; await api('DELETE', 'money/transactions/' + tx.id); this.load(); } }, icon('trash'))));
     });
-    const table = el('div', { class: 'card' }, el('h3', {}, t('transactions')), rows.length ? el('table', {}, el('tbody', {}, rows)) : el('p', { class: 'muted' }, t('noTx')));
+    const table = el('div', { class: 'card' }, el('h3', {}, t('transactions')), rows.length
+      ? el('table', {}, el('thead', {}, el('tr', {}, el('th', {}, t('date')), el('th', {}, t('title')), el('th', {}, t('category')), el('th', { class: 'amt' }, t('amount')), el('th'))), el('tbody', {}, rows))
+      : el('p', { class: 'empty' }, t('noTx')));
 
-    $('#main').replaceChildren(toolbar, cards, el('div', { class: 'money-layout' }, el('div', {}, breakdown, el('p'), form), table));
+    show(false, head, cards, el('div', { class: 'money-layout' }, table, el('div', { class: 'money-side' }, breakdown, form)));
   }
 };
 

@@ -9,17 +9,22 @@
 <script src="/app.js" defer></script>
 </head>
 <body>
-<header id="top" hidden>
-  <div class="brand">LifeHub</div>
-  <nav id="tabs">
-    <button data-tab="calendar"></button>
-    <button data-tab="notes"></button>
-    <button data-tab="money"></button>
-  </nav>
-  <button id="logout" class="ghost"></button>
-</header>
-<div id="offline" class="offline" hidden></div>
-<main id="main"></main>
+<div class="shell">
+  <aside id="side" hidden>
+    <div class="brand"><img src="/favicon.svg" alt=""><span>LifeHub</span></div>
+    <nav id="tabs">
+      <button data-tab="calendar"></button>
+      <button data-tab="notes"></button>
+      <button data-tab="money"></button>
+    </nav>
+    <div class="side-foot">
+      <div id="link" class="link"><span class="dot"></span><span></span></div>
+      <button id="theme" class="ghost"></button>
+      <button id="logout" class="ghost"></button>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
 <div id="toast" hidden></div>
 </body>
 </html>
