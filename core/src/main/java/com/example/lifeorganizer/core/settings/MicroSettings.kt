@@ -86,6 +86,8 @@ object MicroSettings {
 
     // Appearance
     val COMPACT = BoolKey("compact", false)
+    /** Pastel design: "blue" (blue-tinted surfaces, the earlier look) or "graphite" (neutral grey). */
+    val PASTEL_BACKGROUND = StringKey("pastel_background", "blue")
     /** ActiveView name the app opens with. */
     val START_SCREEN = StringKey("start_screen", "CALENDAR")
     /** "language", "dmy", "mdy" or "ymd". */
@@ -143,7 +145,7 @@ object MicroSettings {
         WEEK_START, EVENT_LENGTH, EVENT_REMINDER, WEEK_NUMBERS, WIDGET_BIRTHDAYS,
         NOTE_CHECKLIST, NOTE_DONE_BOTTOM, GLOW_MODE, GLOW_PLACE, GLOW_COLOR, NOTE_FONT, TRASH_DAYS,
         CURRENCY, MONTH_START, BUDGET_WARN,
-        COMPACT, START_SCREEN, DATE_ORDER,
+        COMPACT, START_SCREEN, DATE_ORDER, PASTEL_BACKGROUND,
         LOCK_SCOPE, LOCKED_VIEWS, BACKUP_KEEP, BACKUP_WIFI_ONLY, RELEASE_TIERS, RELEASE_SORT, RELEASE_COLOR, RING_MODE, RING_FAVORITES, RING_ORDER
     )
 

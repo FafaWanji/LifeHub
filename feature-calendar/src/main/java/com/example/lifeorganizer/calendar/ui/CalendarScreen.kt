@@ -511,7 +511,7 @@ fun CalendarScreen(
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
                                                 Text(
-                                                    "${event.event.title}$birthdayBadge",
+                                                    "• ${event.event.title}$birthdayBadge",
                                                     style = MaterialTheme.typography.bodyMedium,
                                                     maxLines = 1,
                                                     overflow = TextOverflow.Ellipsis,
@@ -1582,6 +1582,30 @@ fun SettingsDialog(
                                         onClick = { viewModel.saveDarkTheme(null) },
                                         label = { Text(Translations.get(TransKey.SYSTEM_DEFAULT, lang)) }
                                     )
+                                }
+                                // Blue-tinted (the earlier look) or neutral graphite surfaces
+                                val micro = com.example.lifeorganizer.core.settings.MicroSettings
+                                val background = com.example.lifeorganizer.core.settings.rememberMicro(micro.PASTEL_BACKGROUND)
+                                val settingsContext = androidx.compose.ui.platform.LocalContext.current
+                                Text(
+                                    text = com.example.lifeorganizer.core.i18n.Txt("Hintergrund").of(lang),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 8.dp)
+                                )
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    listOf("blue" to com.example.lifeorganizer.core.i18n.Txt("Blau"), "graphite" to com.example.lifeorganizer.core.i18n.Txt("Graphit")).forEach { (id, label) ->
+                                        FilterChip(
+                                            selected = background == id,
+                                            onClick = { micro.set(settingsContext, micro.PASTEL_BACKGROUND, id) },
+                                            label = { Text(label.of(lang)) }
+                                        )
+                                    }
                                 }
                             }
 

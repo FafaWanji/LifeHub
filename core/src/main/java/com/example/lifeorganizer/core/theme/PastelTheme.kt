@@ -64,6 +64,8 @@ fun PastelTheme(
     content: @Composable () -> Unit
 ) {
     val accent = accentColor?.let { Color(it) } ?: MistBlue
+    // Surfaces: blue-tinted (the earlier look) or neutral graphite, picked in the settings
+    val blue = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.PASTEL_BACKGROUND) != "graphite"
     // The chrome stays neutral (graphite selections and chips); the accent marks actions, amber marks deadlines
     val colorScheme = if (darkTheme) {
         accentScheme(
@@ -71,10 +73,10 @@ fun PastelTheme(
             secondaryAccent = Graphite,
             tertiaryAccent = PeachCream,
             dark = true,
-            background = Color(0xFF141415),
-            surface = Color(0xFF1C1C1E),
-            surfaceVariant = Color(0xFF262628),
-            onBackground = Color(0xFFEDEDED)
+            background = if (blue) Color(0xFF17181D) else Color(0xFF141415),
+            surface = if (blue) Color(0xFF21232A) else Color(0xFF1C1C1E),
+            surfaceVariant = if (blue) Color(0xFF2C2F38) else Color(0xFF262628),
+            onBackground = if (blue) Color(0xFFF1F2F6) else Color(0xFFEDEDED)
         )
     } else {
         accentScheme(
@@ -82,10 +84,10 @@ fun PastelTheme(
             secondaryAccent = Graphite,
             tertiaryAccent = PeachCream,
             dark = false,
-            background = Color(0xFFFAFAFA),
-            surface = Color(0xFFF4F4F5),
-            surfaceVariant = Color(0xFFEAEAEC),
-            onBackground = Color(0xFF171717)
+            background = if (blue) Color(0xFFFAFAFC) else Color(0xFFFAFAFA),
+            surface = if (blue) Color(0xFFF2F3F7) else Color(0xFFF4F4F5),
+            surfaceVariant = if (blue) Color(0xFFE6E8EE) else Color(0xFFEAEAEC),
+            onBackground = if (blue) Color(0xFF1B1D24) else Color(0xFF171717)
         ).let { it.copy(primary = readable(it.primary, Color.White), tertiary = readable(it.tertiary, Color.White)) }
     }
 
