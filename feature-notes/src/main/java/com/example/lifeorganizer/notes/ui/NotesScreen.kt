@@ -384,7 +384,7 @@ private fun sortLabel(mode: SortMode) = when (mode) {
 @Composable
 private fun SectionHeader(text: String) {
     Text(
-        text.uppercase(),
+        text,
         style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(start = 4.dp, top = 12.dp, bottom = 2.dp)

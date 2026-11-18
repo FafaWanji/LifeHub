@@ -101,7 +101,7 @@ fun NoteCard(
         }
     ) {
       Box {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(modifier = Modifier.padding(16.dp)) {
             if (parentTitle != null) {
                 Text(
                     "↳ " + parentTitle.ifBlank { Str.untitledNote.text() }, style = MaterialTheme.typography.labelSmall,
@@ -193,15 +193,14 @@ fun NoteCard(
             progress?.let { p ->
                 Spacer(Modifier.height(10.dp))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.CheckBox, null, Modifier.size(14.dp), tint = MaterialTheme.colorScheme.primary)
-                    Spacer(Modifier.width(6.dp))
                     LinearProgressIndicator(
                         progress = { p.done.toFloat() / p.total },
                         modifier = Modifier.weight(1f).height(4.dp),
+                        trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                         drawStopIndicator = {}
                     )
-                    Spacer(Modifier.width(6.dp))
-                    Text("${p.done}/${p.total}", style = MaterialTheme.typography.labelSmall)
+                    Spacer(Modifier.width(8.dp))
+                    Text("${p.done}/${p.total}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
 
