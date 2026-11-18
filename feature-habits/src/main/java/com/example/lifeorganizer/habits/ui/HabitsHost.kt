@@ -85,7 +85,7 @@ fun HabitsHost(onMenuClick: () -> Unit, vm: HabitsViewModel = viewModel()) {
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { editHabit = Habit(title = "") }) { Icon(Icons.Default.Add, HabitsStr.newHabit.text()) }
+            FloatingActionButton(onClick = { editHabit = Habit(title = "") }, containerColor = MaterialTheme.colorScheme.primary, contentColor = MaterialTheme.colorScheme.onPrimary) { Icon(Icons.Default.Add, HabitsStr.newHabit.text()) }
         },
         snackbarHost = { SnackbarHost(snackbar) }
     ) { padding ->
