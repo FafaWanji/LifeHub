@@ -73,7 +73,7 @@ import com.example.lifeorganizer.waypoints.ui.MainViewModel as WaypointsViewMode
  */
 @Composable
 fun ViewSwitcherButton(showingNotes: Boolean, onToggle: () -> Unit, modifier: Modifier = Modifier) {
-    val springSpec = spring<Float>(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMediumLow)
+    val springSpec = spring<Float>(dampingRatio = Spring.DampingRatioNoBouncy, stiffness = Spring.StiffnessMediumLow)
     val corner by animateIntAsState(if (showingNotes) 30 else 50, label = "switcher_corner")
     val rotation by animateFloatAsState(if (showingNotes) 180f else 0f, springSpec, label = "switcher_rotation")
     val container by animateColorAsState(

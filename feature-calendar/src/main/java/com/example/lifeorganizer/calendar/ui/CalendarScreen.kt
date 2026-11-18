@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -312,7 +313,10 @@ fun CalendarScreen(
 
     // One colour for all releases, set in the release radar settings
     val releaseColorSetting = com.example.lifeorganizer.core.settings.rememberMicro(com.example.lifeorganizer.core.settings.MicroSettings.RELEASE_COLOR)
-    val releaseColor = if (releaseColorSetting != 0) Color(releaseColorSetting) else MaterialTheme.colorScheme.secondary
+    // Pastel keeps its chrome grey, so its releases get their own lilac instead of the (now neutral) secondary colour
+    val releaseColor = if (releaseColorSetting != 0) Color(releaseColorSetting)
+        else if (com.example.lifeorganizer.core.theme.LocalDesignStyle.current == "pastel") Color(0xFFB39DDB)
+        else MaterialTheme.colorScheme.secondary
     val releaseDates = remember(releases) {
         releases.map { Instant.ofEpochMilli(it.at).atZone(ZoneId.systemDefault()).toLocalDate() }.toSet()
     }
@@ -364,7 +368,7 @@ fun CalendarScreen(
                 title = {
                     // Small phones: the action icons need the room, a cut-off "LifeH…" helps nobody
                     if (androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 400) {
-                        Text("LifeHub", fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
+                        Text("LifeHub", maxLines = 1, overflow = TextOverflow.Ellipsis, style = MaterialTheme.typography.titleMedium)
                     }
                 },
                 navigationIcon = {
@@ -419,9 +423,10 @@ fun CalendarScreen(
                         onClick = { 
                             onSmartAddClick?.invoke()
                         },
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurface
                     ) {
-                        Icon(Icons.Default.AutoAwesome, contentDescription = "Smart Add")
+                        Icon(androidx.compose.material.icons.Icons.Outlined.EditNote, contentDescription = "Smart Add")
                     }
                     FloatingActionButton(onClick = { showAddDialog = true }) {
                         Icon(Icons.Default.Add, contentDescription = Str.addEvent.text())
@@ -480,15 +485,14 @@ fun CalendarScreen(
                                         .padding(horizontal = 16.dp, vertical = 4.dp)
                                         .clickable { viewMode = ViewMode.AGENDA },
                                     colors = CardDefaults.cardColors(
-                                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainer
                                     )
                                 ) {
-                                    Column(modifier = Modifier.padding(12.dp)) {
+                                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
                                         Text(
                                             Translations.get(TransKey.UPCOMING_EVENTS, lang),
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            fontWeight = FontWeight.Bold
+                                            style = MaterialTheme.typography.labelMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                         upcomingEvents.take(3).forEach { event ->
                                             val eventDate = Instant.ofEpochMilli(event.event.startTimeMillis)
@@ -502,13 +506,26 @@ fun CalendarScreen(
                                                 val occurrenceYear = eventDate.year
                                                 val age = event.event.birthYear?.let { occurrenceYear - it }
                                                 val ageText = age?.let { " (${Translations.get(TransKey.AGE_TURNS, lang)} $it)" } ?: ""
-                                                " ${Translations.get(TransKey.CAKE_EMOJI, lang)}$ageText"
+                                                ageText
                                             } else ""
-                                            Text(
-                                                "• ${event.event.title}$birthdayBadge — $dateLabel",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                modifier = Modifier.padding(top = 2.dp)
-                                            )
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+                                                Text(
+                                                    "${event.event.title}$birthdayBadge",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    modifier = Modifier.weight(1f)
+                                                )
+                                                Text(
+                                                    dateLabel,
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                                    modifier = Modifier.padding(start = 12.dp)
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -526,10 +543,9 @@ fun CalendarScreen(
                         ) {
                             Text(
                                 text = visibleMonth.atDay(1).format(com.example.lifeorganizer.core.i18n.localDateFormatter(lang, "yyyyLLLL")),
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold
+                                style = MaterialTheme.typography.titleLarge
                             )
-                            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                            Icon(Icons.Default.ArrowDropDown, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
 
                         // Day Headers
@@ -537,11 +553,10 @@ fun CalendarScreen(
                             daysOfWeek.forEach { dayOfWeek ->
                                 Text(
                                     modifier = Modifier.weight(1f),
-                                    text = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.Builder().setLanguage(lang).build()).uppercase(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.secondary,
-                                    textAlign = TextAlign.Center,
-                                    fontWeight = FontWeight.SemiBold
+                                    text = dayOfWeek.getDisplayName(TextStyle.SHORT, Locale.Builder().setLanguage(lang).build()),
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
                                 )
                             }
                         }
@@ -1380,7 +1395,7 @@ fun Day(
             .background(
                 color = when {
                     isSelected -> MaterialTheme.colorScheme.primary
-                    isToday -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+                    isToday -> MaterialTheme.colorScheme.surfaceContainerHighest
                     else -> Color.Transparent
                 }
             )
@@ -1404,9 +1419,10 @@ fun Day(
                 color = when {
                     isSelected -> MaterialTheme.colorScheme.onPrimary
                     day.position != DayPosition.MonthDate -> MaterialTheme.colorScheme.outlineVariant
+                    isToday -> MaterialTheme.colorScheme.primary
                     else -> MaterialTheme.colorScheme.onSurface
                 },
-                fontWeight = if (isSelected || isToday) FontWeight.Bold else FontWeight.Normal
+                fontWeight = if (isSelected || isToday) FontWeight.Medium else FontWeight.Normal
             )
             if (hasBirthday) {
                 androidx.compose.material3.Icon(androidx.compose.material.icons.Icons.Outlined.Cake, null, Modifier.padding(top = 2.dp).size(12.dp), tint = Color(0xFFFF4081))

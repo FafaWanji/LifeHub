@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.outlined.EditNote
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -542,14 +543,15 @@ fun MainScreen(
                 ) {
                     Column(
                         horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        // Smart Add: a quiet secondary button; the + below is the one primary action
                         SmallFloatingActionButton(
                             onClick = { openSmartAdd() },
-                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            contentColor = MaterialTheme.colorScheme.onSurface
                         ) {
-                            Icon(Icons.Default.AutoAwesome, contentDescription = Str.smartAdd.text())
+                            Icon(Icons.Outlined.EditNote, contentDescription = Str.smartAdd.text())
                         }
                         FloatingActionButton(
                             onClick = {

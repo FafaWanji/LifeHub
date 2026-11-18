@@ -66,7 +66,7 @@ fun MenuDrawerSheet(
 ) {
     ModalDrawerSheet(
         drawerContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-        drawerShape = RoundedCornerShape(topEnd = 28.dp, bottomEnd = 28.dp)
+        drawerShape = RoundedCornerShape(topEnd = 20.dp, bottomEnd = 20.dp)
     ) {
         // Scrolls on small phones so the lower entries (settings, about) stay reachable
         Column(modifier = Modifier.fillMaxHeight().verticalScroll(rememberScrollState()).padding(horizontal = 12.dp)) {
@@ -137,7 +137,10 @@ fun MenuDrawerSheet(
                 onClick = onWebAccessClick
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                color = MaterialTheme.colorScheme.outlineVariant
+            )
 
             DrawerEntry(
                 selectedIcon = Icons.Outlined.SettingsBackupRestore,
@@ -182,19 +185,15 @@ fun MenuDrawerSheet(
 
 @Composable
 private fun DrawerHeader() {
+    // The hub mark in one solid colour next to the name; no gradient tile, no slogan
     Row(
-        modifier = Modifier.padding(start = 16.dp, top = 28.dp, bottom = 24.dp),
+        modifier = Modifier.padding(start = 16.dp, top = 24.dp, bottom = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(
             modifier = Modifier
-                .size(44.dp)
-                .background(
-                    Brush.linearGradient(
-                        listOf(MaterialTheme.colorScheme.primary, MaterialTheme.colorScheme.tertiary)
-                    ),
-                    RoundedCornerShape(14.dp)
-                ),
+                .size(32.dp)
+                .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(8.dp)),
             contentAlignment = Alignment.Center
         ) {
             // Same hub mark as the launcher icon
@@ -202,28 +201,22 @@ private fun DrawerHeader() {
                 androidx.compose.ui.res.painterResource(com.example.lifeorganizer.R.drawable.ic_lifehub_foreground),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimary,
-                modifier = Modifier.size(44.dp)
+                modifier = Modifier.size(32.dp)
             )
         }
-        Spacer(Modifier.width(14.dp))
-        Column {
-            Text("LifeHub", style = MaterialTheme.typography.titleLarge)
-            Text(
-                Str.tagline.text(),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        Spacer(Modifier.width(12.dp))
+        Text("LifeHub", style = MaterialTheme.typography.titleMedium)
     }
 }
 
 @Composable
 private fun SectionLabel(text: String) {
+    // Sentence case, close to its own entries
     Text(
-        text.uppercase(),
-        style = MaterialTheme.typography.labelSmall,
+        text,
+        style = MaterialTheme.typography.labelMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(start = 16.dp, bottom = 6.dp)
+        modifier = Modifier.padding(start = 16.dp, top = 4.dp, bottom = 8.dp)
     )
 }
 
@@ -237,15 +230,19 @@ private fun DrawerEntry(
 ) {
     NavigationDrawerItem(
         icon = { Icon(if (selected) selectedIcon else icon, contentDescription = null) },
-        label = { Text(label, style = MaterialTheme.typography.labelLarge) },
+        label = { Text(label, style = MaterialTheme.typography.bodyLarge) },
         selected = selected,
         onClick = onClick,
+        // Selected: a quiet surface step, the accent only on the icon. Rows 48dp, the touch minimum
         colors = NavigationDrawerItemDefaults.colors(
-            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            selectedTextColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            selectedContainerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+            selectedIconColor = MaterialTheme.colorScheme.primary,
+            selectedTextColor = MaterialTheme.colorScheme.onSurface,
+            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unselectedTextColor = MaterialTheme.colorScheme.onSurface,
             unselectedContainerColor = androidx.compose.ui.graphics.Color.Transparent
         ),
-        modifier = Modifier.padding(vertical = 2.dp)
+        shape = RoundedCornerShape(12.dp),
+        modifier = Modifier.padding(vertical = 2.dp).height(48.dp)
     )
 }
