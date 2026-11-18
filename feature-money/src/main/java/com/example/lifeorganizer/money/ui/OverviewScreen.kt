@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -72,13 +74,13 @@ fun OverviewScreen(vm: MoneyViewModel, modifier: Modifier = Modifier) {
     ) {
         item { MonthSwitcher(month, lang, vm::shiftMonth, monthStart) }
         item {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                SummaryCard(MoneyStr.income.text(), Amounts.format(summary.incomeCents, lang), incomeColor, Modifier.weight(1f))
-                SummaryCard(MoneyStr.expenses.text(), Amounts.format(abs(summary.expenseCents), lang), MaterialTheme.colorScheme.error, Modifier.weight(1f))
-                SummaryCard(
-                    MoneyStr.rest.text(), Amounts.format(summary.restCents, lang),
-                    if (summary.restCents >= 0) incomeColor else MaterialTheme.colorScheme.error, Modifier.weight(1f)
-                )
+            // The balance leads; income and expenses are the two figures it comes from
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                BalanceCard(MoneyStr.rest.text(), Amounts.format(summary.restCents, lang))
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    SummaryCard(MoneyStr.income.text(), Amounts.format(summary.incomeCents, lang), MaterialTheme.colorScheme.onSurface, Modifier.weight(1f))
+                    SummaryCard(MoneyStr.expenses.text(), Amounts.format(abs(summary.expenseCents), lang), MaterialTheme.colorScheme.onSurface, Modifier.weight(1f))
+                }
             }
         }
         if (expected != 0L) item {
@@ -156,15 +158,39 @@ fun MonthSwitcher(month: YearMonth, lang: String, onShift: (Int) -> Unit, startD
 
 @Composable
 private fun SummaryCard(label: String, value: String, color: Color, modifier: Modifier) {
-    Card(modifier) {
-        Column(Modifier.fillMaxWidth().padding(12.dp)) {
+    Card(modifier, colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)) {
+        Column(Modifier.fillMaxWidth().padding(16.dp)) {
             Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Spacer(Modifier.height(4.dp))
             // Large amounts on small phones get smaller instead of being cut off
             androidx.compose.foundation.text.BasicText(
                 value,
-                style = MaterialTheme.typography.titleSmall.copy(fontWeight = FontWeight.SemiBold, color = color),
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Medium, color = color, fontFeatureSettings = "tnum"),
                 maxLines = 1,
-                autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = MaterialTheme.typography.titleSmall.fontSize)
+                autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = 9.sp, maxFontSize = MaterialTheme.typography.titleLarge.fontSize)
+            )
+        }
+    }
+}
+
+/** What is left this month, the one figure on the screen that leads: ink on paper, inverted. */
+@Composable
+private fun BalanceCard(label: String, value: String) {
+    Card(
+        Modifier.fillMaxWidth(),
+        colors = androidx.compose.material3.CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.onSurface,
+            contentColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(Modifier.fillMaxWidth().padding(20.dp)) {
+            Text(label, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f))
+            Spacer(Modifier.height(4.dp))
+            androidx.compose.foundation.text.BasicText(
+                value,
+                style = MaterialTheme.typography.headlineMedium.copy(color = MaterialTheme.colorScheme.surface, fontFeatureSettings = "tnum"),
+                maxLines = 1,
+                autoSize = androidx.compose.foundation.text.TextAutoSize.StepBased(minFontSize = 12.sp, maxFontSize = MaterialTheme.typography.headlineMedium.fontSize)
             )
         }
     }

@@ -86,7 +86,7 @@ fun MoneyHost(onMenuClick: () -> Unit, vm: MoneyViewModel = viewModel()) {
                     MoneyTab.FIXED -> editRecurring = newRecurring()
                     MoneyTab.CATEGORIES -> editCategory = newCategory()
                 }
-            }) {
+            }, containerColor = androidx.compose.material3.MaterialTheme.colorScheme.primary, contentColor = androidx.compose.material3.MaterialTheme.colorScheme.onPrimary) {
                 Icon(
                     Icons.Default.Add,
                     when (tab) {
