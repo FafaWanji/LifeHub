@@ -32,6 +32,12 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.8.2", listOf(
+            Txt("Widgets übernehmen den gewählten Hintergrund und haben eigene Namen in der Widget-Auswahl"),
+            Txt("PC-Zugriff übernimmt Hintergrund und Akzentfarbe der App, Änderungen erscheinen ohne Neuladen")
+        )
+    ),
+    Release(
         "1.8.1", listOf(
             Txt("Neues Design auch für Release-Radar, Waypoints, Dokumente, Smart Add und die Widgets"),
             Txt("Kalender-Import in den Einstellungen entfernt – .ics-Dateien importierst du unter Menü → Backup & Import")
