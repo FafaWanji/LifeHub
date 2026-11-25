@@ -83,7 +83,7 @@ class CalendarWidget : GlanceAppWidget() {
                             Text(
                                 dayLabel(date) + " · " + date.format(dateFormatter),
                                 style = TextStyle(color = muted, fontSize = 12.sp, fontWeight = FontWeight.Medium),
-                                modifier = GlanceModifier.padding(top = if (date == grouped.keys.first()) 0.dp else 10.dp, bottom = 4.dp)
+                                modifier = GlanceModifier.padding(top = if (date == grouped.keys.first()) 0.dp else 8.dp, bottom = 2.dp)
                             )
                         }
                         items(dayEvents) { event ->
@@ -110,33 +110,26 @@ class CalendarWidget : GlanceAppWidget() {
             !event.location.isNullOrBlank() -> event.location.substringBefore(',').trim()
             else -> null
         }
-        Column(modifier = GlanceModifier.fillMaxWidth().padding(vertical = 3.dp)) {
+        Column(modifier = GlanceModifier.fillMaxWidth().padding(vertical = 1.dp)) {
             Row(
-                modifier = GlanceModifier.fillMaxWidth().background(card).cornerRadius(12.dp)
-                    .padding(horizontal = 10.dp, vertical = 8.dp).clickable(actionRunCallback<OpenAppAction>()),
+                modifier = GlanceModifier.fillMaxWidth().background(card).cornerRadius(8.dp)
+                    .padding(horizontal = 8.dp, vertical = 6.dp).clickable(actionRunCallback<OpenAppAction>()),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(modifier = GlanceModifier.width(4.dp).height(34.dp).cornerRadius(2.dp).background(ColorProvider(Color(event.color)))) {}
-                Spacer(GlanceModifier.width(10.dp))
-                Column(modifier = GlanceModifier.width(46.dp)) {
-                    if (event.isAllDay) {
-                        Text(S.allDay.of(lang), maxLines = 2, style = TextStyle(color = muted, fontSize = 11.sp))
-                    } else {
-                        Text(
-                            Instant.ofEpochMilli(event.startTimeMillis).atZone(zone).format(hhmm),
-                            style = TextStyle(color = onSurface, fontSize = 13.sp, fontWeight = FontWeight.Medium)
-                        )
-                        Text(Instant.ofEpochMilli(event.endTimeMillis).atZone(zone).format(hhmm), style = TextStyle(color = muted, fontSize = 11.sp))
-                    }
-                }
+                Box(modifier = GlanceModifier.width(3.dp).height(16.dp).cornerRadius(2.dp).background(ColorProvider(Color(event.color)))) {}
                 Spacer(GlanceModifier.width(8.dp))
-                Column(modifier = GlanceModifier.defaultWeight()) {
-                    Text(event.title, maxLines = 1, style = TextStyle(color = onSurface, fontSize = 14.sp, fontWeight = FontWeight.Medium))
-                    if (subtitle != null) Text(
-                        subtitle, maxLines = 1,
-                        style = TextStyle(color = if (running) accent else muted, fontSize = 12.sp, fontWeight = if (running) FontWeight.Medium else FontWeight.Normal)
-                    )
-                }
+                Text(
+                    if (event.isAllDay) S.allDay.of(lang) else Instant.ofEpochMilli(event.startTimeMillis).atZone(zone).format(hhmm),
+                    maxLines = 1,
+                    style = TextStyle(color = if (event.isAllDay) muted else onSurface, fontSize = if (event.isAllDay) 11.sp else 13.sp, fontWeight = FontWeight.Medium),
+                    modifier = GlanceModifier.width(52.dp)
+                )
+                Text(event.title, maxLines = 1, style = TextStyle(color = onSurface, fontSize = 13.sp), modifier = GlanceModifier.defaultWeight())
+                if (subtitle != null) Text(
+                    subtitle.take(18), maxLines = 1,
+                    style = TextStyle(color = if (running) accent else muted, fontSize = 12.sp, fontWeight = if (running) FontWeight.Medium else FontWeight.Normal),
+                    modifier = GlanceModifier.padding(start = 8.dp)
+                )
             }
         }
     }
