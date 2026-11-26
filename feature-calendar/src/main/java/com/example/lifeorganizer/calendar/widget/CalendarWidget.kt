@@ -124,11 +124,12 @@ class CalendarWidget : GlanceAppWidget() {
                     style = TextStyle(color = if (event.isAllDay) muted else onSurface, fontSize = if (event.isAllDay) 11.sp else 13.sp, fontWeight = FontWeight.Medium),
                     modifier = GlanceModifier.width(52.dp)
                 )
-                Text(event.title, maxLines = 1, style = TextStyle(color = onSurface, fontSize = 13.sp), modifier = GlanceModifier.defaultWeight())
+                // The title is measured first so it always shows; the place only gets what is left and is cut there
+                Text(event.title, maxLines = 1, style = TextStyle(color = onSurface, fontSize = 13.sp))
                 if (subtitle != null) Text(
-                    subtitle.take(18), maxLines = 1,
+                    subtitle, maxLines = 1,
                     style = TextStyle(color = if (running) accent else muted, fontSize = 12.sp, fontWeight = if (running) FontWeight.Medium else FontWeight.Normal),
-                    modifier = GlanceModifier.padding(start = 8.dp)
+                    modifier = GlanceModifier.defaultWeight().padding(start = 8.dp)
                 )
             }
         }
