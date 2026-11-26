@@ -32,6 +32,11 @@ data class Release(val version: String, val items: List<Txt>)
 /** Newest first. Add an entry for every release. */
 val CHANGELOG = listOf(
     Release(
+        "1.8.4", listOf(
+            Txt("Termine-Widget: der Name des Termins ist immer zu sehen, der Ort wird bei Platzmangel gekürzt")
+        )
+    ),
+    Release(
         "1.8.3", listOf(
             Txt("Termine-Widget: eine Zeile pro Termin, dadurch passen etwa doppelt so viele hinein")
         )
